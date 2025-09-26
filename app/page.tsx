@@ -1,7 +1,13 @@
+// /app/page.tsx
+import { headers } from "next/headers";
 import { Service } from "../types";
 
 async function getServices(): Promise<Service[]> {
-  const base = process.env.NEXT_PUBLIC_SITE_URL || "";
+  // Construit une URL absolue automatiquement (utile côté serveur)
+  const h = await headers();
+  const host = h.get("host");
+  const proto = h.get("x-forwarded-proto") || "https";
+  const base = `${proto}://${host}`;
   const res = await fetch(`${base}/api/services`, { cache: "no-store" });
   if (!res.ok) return [];
   return res.json();
@@ -39,9 +45,7 @@ export default async function Home() {
         </section>
       ))}
 
-      <p style={{ marginTop: 30 }}>
-        Accès administrateur : <code>/admin</code>
-      </p>
+      <p style={{ marginTop: 30 }}>Accès administrateur : <code>/admin</code></p>
     </>
   );
 }
