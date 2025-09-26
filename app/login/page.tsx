@@ -1,17 +1,27 @@
 // /app/login/page.tsx
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
-  const search = useSearchParams();
-  const next = search.get("next") || "/admin";
 
+  // on stocke ici la cible vers laquelle rediriger après login
+  const [nextPath, setNextPath] = useState<string>("/admin");
   const [user, setUser] = useState("");
   const [pass, setPass] = useState("");
   const [msg, setMsg] = useState("");
+
+  // On lit le paramètre ?next=… sans useSearchParams (pour éviter l’erreur build)
+  useEffect(() => {
+    if (typeof window !== "object") return;
+    const url = new URL(window.location.href);
+    const n = url.searchParams.get("next");
+    if (n) setNextPath(n);
+    const el = document.getElementById("user");
+    if (el) (el as HTMLInputElement).focus();
+  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -23,17 +33,11 @@ export default function LoginPage() {
         body: JSON.stringify({ user, pass }),
       });
       if (!res.ok) throw new Error(await res.text());
-      router.replace(next);
+      router.replace(nextPath || "/admin");
     } catch (err: any) {
       setMsg(err?.message || "Identifiants invalides");
     }
   }
-
-  // Si on revient déconnecté d'une page protégée, focus auto sur champ user
-  useEffect(() => {
-    const el = document.getElementById("user");
-    if (el) (el as HTMLInputElement).focus();
-  }, []);
 
   return (
     <div style={{ maxWidth: 420, margin: "40px auto", background: "#fff", padding: 20, borderRadius: 12, border: "1px solid #eee" }}>
