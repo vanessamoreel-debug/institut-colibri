@@ -33,7 +33,9 @@ export default function AdminPage() {
     }
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   async function addOrUpdate() {
     setMsg("");
@@ -109,9 +111,15 @@ export default function AdminPage() {
       {msg ? <p style={{ color: msg.startsWith("✔") ? "green" : "crimson" }}>{msg}</p> : null}
 
       {loading ? <p>Chargement…</p> : (
-        <table style={{ width: "100%", background: "#fff", border: "1px solid "#eee", borderRadius: 10 }}>
+        <table style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10 }}>
           <thead>
-            <tr><th style={{ textAlign: "left" }}>Nom</th><th>Catégorie</th><th>Durée</th><th>Prix</th><th>Actions</th></tr>
+            <tr>
+              <th style={{ textAlign: "left" }}>Nom</th>
+              <th>Catégorie</th>
+              <th>Durée</th>
+              <th>Prix</th>
+              <th>Actions</th>
+            </tr>
           </thead>
           <tbody>
             {data.map(s => (
