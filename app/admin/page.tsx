@@ -2,11 +2,14 @@
 import { useEffect, useState } from "react";
 import { Service } from "../../types";
 
-// Encodage Basic Auth "user:pass" -> "Basic base64(...)"
-function basicAuthHeader(user: string, pass: string) {
-  if (!user || !pass) return {};
-  const token = typeof window !== "undefined" ? btoa(`${user}:${pass}`) : "";
-  return { Authorization: `Basic ${token}` };
+// Construit un HeadersInit correct (toujours "Content-Type", et "Authorization" si user+pass)
+function makeAuthHeaders(user: string, pass: string): HeadersInit {
+  const h: Record<string, string> = { "Content-Type": "application/json" };
+  if (user && pass) {
+    const token = typeof window !== "undefined" ? btoa(`${user}:${pass}`) : "";
+    h["Authorization"] = `Basic ${token}`;
+  }
+  return h;
 }
 
 export default function AdminPage() {
@@ -30,9 +33,7 @@ export default function AdminPage() {
     }
   }
 
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
 
   async function addOrUpdate() {
     setMsg("");
@@ -44,10 +45,7 @@ export default function AdminPage() {
     try {
       const res = await fetch("/api/admin/services", {
         method,
-        headers: {
-          "Content-Type": "application/json",
-          ...basicAuthHeader(user, pass),
-        },
+        headers: makeAuthHeaders(user, pass),
         body: JSON.stringify(form),
       });
       if (!res.ok) throw new Error(await res.text());
@@ -64,10 +62,7 @@ export default function AdminPage() {
     try {
       const res = await fetch("/api/admin/services", {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          ...basicAuthHeader(user, pass),
-        },
+        headers: makeAuthHeaders(user, pass),
         body: JSON.stringify({ id }),
       });
       if (!res.ok) throw new Error(await res.text());
@@ -83,17 +78,19 @@ export default function AdminPage() {
       <h2>Administration des soins</h2>
       <p>Cette page est protégée (mot de passe). Ici, vous pouvez ajouter, modifier, supprimer.</p>
 
-      {/* Bloc identifiants pour les requêtes API */}
+      {/* Identifiants pour l'auth des requêtes API */}
       <div style={{ background: "#fff", padding: 12, border: "1px solid #eee", borderRadius: 10, margin: "12px 0" }}>
         <strong>Identifiants API (les mêmes que l’accès à la page)</strong>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
           <input placeholder="Identifiant (ADMIN_USER)" value={user} onChange={e => setUser(e.target.value)} />
           <input placeholder="Mot de passe (ADMIN_PASS)" type="password" value={pass} onChange={e => setPass(e.target.value)} />
         </div>
-        <small style={{ color: "#666" }}>Astuce : ils ne sont pas envoyés au serveur tant que vous ne cliquez pas sur un bouton (Ajouter/Enregistrer/Supprimer). Ils servent uniquement à créer l’en-tête d’authentification des requêtes.</small>
+        <small style={{ color: "#666" }}>
+          Ils ne sont envoyés qu’au clic sur Ajouter / Enregistrer / Supprimer, pour créer l’en-tête d’authentification.
+        </small>
       </div>
 
-      {/* Formulaire d'édition */}
+      {/* Formulaire */}
       <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
         <h3>{form?.id ? "Modifier un soin" : "Ajouter un soin"}</h3>
         <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 140px 140px 1fr" }}>
@@ -112,7 +109,7 @@ export default function AdminPage() {
       {msg ? <p style={{ color: msg.startsWith("✔") ? "green" : "crimson" }}>{msg}</p> : null}
 
       {loading ? <p>Chargement…</p> : (
-        <table style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10 }}>
+        <table style={{ width: "100%", background: "#fff", border: "1px solid "#eee", borderRadius: 10 }}>
           <thead>
             <tr><th style={{ textAlign: "left" }}>Nom</th><th>Catégorie</th><th>Durée</th><th>Prix</th><th>Actions</th></tr>
           </thead>
