@@ -1,23 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Service } from "../../types";
 
-// Construit un HeadersInit correct (toujours "Content-Type", et "Authorization" si user+pass)
-function makeAuthHeaders(user: string, pass: string): HeadersInit {
-  const h: Record<string, string> = { "Content-Type": "application/json" };
-  if (user && pass) {
-    const token = typeof window !== "undefined" ? btoa(`${user}:${pass}`) : "";
-    h["Authorization"] = `Basic ${token}`;
-  }
-  return h;
-}
-
 export default function AdminPage() {
+  const router = useRouter();
   const [data, setData] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState<Partial<Service>>({});
-  const [user, setUser] = useState<string>("");
-  const [pass, setPass] = useState<string>("");
   const [msg, setMsg] = useState<string>("");
 
   async function load() {
@@ -33,9 +23,7 @@ export default function AdminPage() {
     }
   }
 
-  useEffect(() => {
-    load();
-  }, []);
+  useEffect(() => { load(); }, []);
 
   async function addOrUpdate() {
     setMsg("");
@@ -47,7 +35,7 @@ export default function AdminPage() {
     try {
       const res = await fetch("/api/admin/services", {
         method,
-        headers: makeAuthHeaders(user, pass),
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
       if (!res.ok) throw new Error(await res.text());
@@ -55,7 +43,7 @@ export default function AdminPage() {
       await load();
       setMsg("✔️ Sauvegardé.");
     } catch (e: any) {
-      setMsg(`❌ Erreur: ${e?.message || "action refusée (auth ?)"} `);
+      setMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
     }
   }
 
@@ -64,35 +52,31 @@ export default function AdminPage() {
     try {
       const res = await fetch("/api/admin/services", {
         method: "DELETE",
-        headers: makeAuthHeaders(user, pass),
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
       });
       if (!res.ok) throw new Error(await res.text());
       await load();
       setMsg("✔️ Supprimé.");
     } catch (e: any) {
-      setMsg(`❌ Erreur: ${e?.message || "action refusée (auth ?)"} `);
+      setMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
     }
+  }
+
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.replace("/login");
   }
 
   return (
     <div>
       <h2>Administration des soins</h2>
-      <p>Cette page est protégée (mot de passe). Ici, vous pouvez ajouter, modifier, supprimer.</p>
+      <p>Ajoutez, modifiez ou supprimez vos prestations.</p>
 
-      {/* Identifiants pour l'auth des requêtes API */}
-      <div style={{ background: "#fff", padding: 12, border: "1px solid #eee", borderRadius: 10, margin: "12px 0" }}>
-        <strong>Identifiants API (les mêmes que l’accès à la page)</strong>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
-          <input placeholder="Identifiant (ADMIN_USER)" value={user} onChange={e => setUser(e.target.value)} />
-          <input placeholder="Mot de passe (ADMIN_PASS)" type="password" value={pass} onChange={e => setPass(e.target.value)} />
-        </div>
-        <small style={{ color: "#666" }}>
-          Ils ne sont envoyés qu’au clic sur Ajouter / Enregistrer / Supprimer, pour créer l’en-tête d’authentification.
-        </small>
+      <div style={{ display: "flex", justifyContent: "flex-end", margin: "12px 0" }}>
+        <button onClick={logout}>Se déconnecter</button>
       </div>
 
-      {/* Formulaire */}
       <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
         <h3>{form?.id ? "Modifier un soin" : "Ajouter un soin"}</h3>
         <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 140px 140px 1fr" }}>
