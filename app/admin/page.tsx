@@ -430,36 +430,43 @@ export default function AdminPage() {
           </datalist>
         </div>
 
-        <div style={{ display: "grid", gap: 8, gridTemplateColumns: "120px 1fr" }}>
-          <label
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              marginTop: 8,
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={!!form.approxDuration}
-              onChange={(e) =>
-                setForm({ ...form, approxDuration: e.target.checked })
-              }
-            />
-            Durée approximative (±)
-          </label>
-          <input
-            placeholder="Espace (px)"
-            type="number"
-            value={form.spacing?.toString() || ""}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                spacing: e.target.value === "" ? null : Number(e.target.value),
-              })
-            }
-          />
-        </div>
+       <div
+  style={{
+    display: "grid",
+    gap: 8,
+    gridTemplateColumns: "1fr 90px 90px 90px 90px 80px 1fr",
+    marginTop: 8,
+  }}
+>
+  <label
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 4,
+      justifyContent: "center",
+    }}
+  >
+    <input
+      type="checkbox"
+      checked={!!form.approxDuration}
+      onChange={(e) =>
+        setForm({ ...form, approxDuration: e.target.checked })
+      }
+    />
+    ±
+  </label>
+  <input
+    placeholder="Espace (px)"
+    type="number"
+    value={form.spacing?.toString() || ""}
+    onChange={(e) =>
+      setForm({
+        ...form,
+        spacing: e.target.value === "" ? null : Number(e.target.value),
+      })
+    }
+  />
+</div>
 
         <textarea
           placeholder="Description (optionnel)"
