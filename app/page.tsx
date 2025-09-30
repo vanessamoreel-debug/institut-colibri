@@ -3,7 +3,6 @@ import { headers } from "next/headers";
 import { Service } from "../types";
 
 async function getServices(): Promise<Service[]> {
-  // Construit l'URL du site côté serveur automatiquement
   const h = await headers();
   const host = h.get("host");
   const proto = h.get("x-forwarded-proto") || "https";
@@ -11,6 +10,12 @@ async function getServices(): Promise<Service[]> {
   const res = await fetch(`${base}/api/services`, { cache: "no-store" });
   if (!res.ok) return [];
   return res.json();
+}
+
+function formatDuration(s: Service) {
+  if (s.duration == null) return null;
+  const v = Math.round(s.duration);
+  return s.approxDuration ? `± ${v} min` : `${v} min`;
 }
 
 export default async function Home() {
@@ -35,21 +40,41 @@ export default async function Home() {
           <section key={cat} style={{ marginBottom: 28 }}>
             <h2 style={{ margin: "18px 0 10px" }}>{cat}</h2>
             <div>
-              {list.map((s) => (
-                <div key={s.id} style={{ background: "#fff", padding: 14, borderRadius: 10, marginBottom: 10, border: "1px solid #eee" }}>
-                  <strong>{s.name}</strong>
-                  {s.duration ? <span> — {s.duration} min</span> : null}
-                  <div style={{ float: "right", fontWeight: 600 }}>{Math.round(s.price)} CHF</div>
-                  {s.description ? <p style={{ margin: "6px 0 0", color: "#555" }}>{s.description}</p> : null}
-                  <div style={{ clear: "both" }} />
-                </div>
-              ))}
+              {list.map((s) => {
+                const dur = formatDuration(s);
+                return (
+                  <div
+                    key={s.id}
+                    style={{
+                      background: "#fff",
+                      padding: 14,
+                      borderRadius: 10,
+                      marginBottom: 10,
+                      border: "1px solid #eee",
+                    }}
+                  >
+                    <strong>{s.name}</strong>
+                    {dur ? <span> — {dur}</span> : null}
+                    <div style={{ float: "right", fontWeight: 600 }}>
+                      {Math.round(s.price)} CHF
+                    </div>
+                    {s.description ? (
+                      <p style={{ margin: "6px 0 0", color: "#555" }}>
+                        {s.description}
+                      </p>
+                    ) : null}
+                    <div style={{ clear: "both" }} />
+                  </div>
+                );
+              })}
             </div>
           </section>
         ))
       )}
 
-      <p style={{ marginTop: 30 }}>Accès administrateur : <code>/admin</code></p>
+      <p style={{ marginTop: 30 }}>
+        Accès administrateur : <code>/admin</code>
+      </p>
     </>
   );
 }
