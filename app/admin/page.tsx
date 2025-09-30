@@ -1,3 +1,4 @@
+// /app/admin/page.tsx
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -15,7 +16,6 @@ export default function AdminPage() {
     try {
       const res = await fetch("/api/services", {
         cache: "no-store",
-        credentials: "include", // ← assure l'envoi des cookies
       });
       if (!res.ok) throw new Error(await res.text());
       setData(await res.json());
@@ -30,32 +30,34 @@ export default function AdminPage() {
     load();
   }, []);
 
-  // Petite aide pour détecter une redirection vers /login depuis l'API
-  function detectRedirectToLogin(res: Response) {
-    // si le middleware a redirigé, fetch a suivi et on se retrouve avec du HTML de /login
-    const redirected = res.url.includes("/login");
-    if (redirected) router.replace("/login?next=/admin");
-    return redirected;
+  function handleUnauthorized(res: Response) {
+    // Si l'API renvoie 401, on renvoie vers /login
+    if (res.status === 401) {
+      router.replace("/login?next=/admin");
+      return true;
+    }
+    return false;
   }
 
   async function addOrUpdate() {
     setMsg("");
-    if (!form?.name || typeof form?.price !== "number") {
-      setMsg("Nom et prix sont obligatoires.");
+    if (!form?.name || !Number.isFinite(Number(form?.price))) {
+      setMsg("Nom et prix (nombre) sont obligatoires.");
       return;
     }
     const method = form?.id ? "PUT" : "POST";
     try {
       const res = await fetch("/api/admin/services", {
         method,
-        credentials: "include", // ← IMPORTANT
+        credentials: "include", // <-- cookie de session envoyé
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      if (detectRedirectToLogin(res)) return;
+      if (handleUnauthorized(res)) return;
       if (!res.ok) throw new Error(await res.text());
+      const json = await res.json();
+      setData(json.data || []);
       setForm({});
-      await load();
       setMsg("✔️ Sauvegardé.");
     } catch (e: any) {
       setMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
@@ -67,13 +69,14 @@ export default function AdminPage() {
     try {
       const res = await fetch("/api/admin/services", {
         method: "DELETE",
-        credentials: "include", // ← IMPORTANT
+        credentials: "include", // <-- cookie de session envoyé
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
       });
-      if (detectRedirectToLogin(res)) return;
+      if (handleUnauthorized(res)) return;
       if (!res.ok) throw new Error(await res.text());
-      await load();
+      const json = await res.json();
+      setData(json.data || []);
       setMsg("✔️ Supprimé.");
     } catch (e: any) {
       setMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
@@ -123,7 +126,7 @@ export default function AdminPage() {
             </tr>
           </thead>
           <tbody>
-            {data.map(s => (
+            {data.map((s) => (
               <tr key={s.id}>
                 <td>{s.name}</td>
                 <td style={{ textAlign: "center" }}>{s.category || "—"}</td>
