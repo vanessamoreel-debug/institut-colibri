@@ -54,7 +54,7 @@ export default async function Home() {
                     }}
                   >
                     <strong>{s.name}</strong>
-                    {dur ? <span> — {dur}</span> : null}
+{dur ? <span> {dur}</span> : null}
                     <div style={{ float: "right", fontWeight: 600 }}>
                       {Math.round(s.price)} CHF
                     </div>
