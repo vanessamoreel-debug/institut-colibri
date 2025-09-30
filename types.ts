@@ -7,12 +7,12 @@ export type Service = {
   approxDuration?: boolean | null;
   category?: string | null;
   description?: string | null;
-  order?: number | null;  // ordre du soin dans sa catégorie
+  order?: number | null;    // ordre du soin
+  spacing?: number | null;  // espace sous le soin (px)
 };
 
 export type Category = {
   id: string;
   name: string;           // toujours MAJUSCULE
-  order?: number | null;  // ordre de la catégorie (section)
-  spacing?: number | null;  // <- ESPACE sous le soin (px)
+  order?: number | null;  // ordre de la catégorie
 };
