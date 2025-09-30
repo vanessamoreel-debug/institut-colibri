@@ -10,14 +10,14 @@ function isAuthed(req: NextRequest) {
 
 async function listAll() {
   const db = getAdminDb();
-  const snap = await db.collection("services").orderBy("category").get();
+  const snap = await db.collection("services").get();
   return snap.docs.map((d) => ({ id: d.id, ...(d.data() as any) }));
 }
 
 export async function POST(req: NextRequest) {
   if (!isAuthed(req)) return new NextResponse("Unauthorized", { status: 401 });
   const body = await req.json().catch(() => ({}));
-  const { name, price, duration, approxDuration, category, description } = body || {};
+  const { name, price, duration, approxDuration, category, description, order } = body || {};
 
   if (typeof name !== "string" || !name.trim()) {
     return new NextResponse("Nom requis", { status: 400 });
@@ -27,19 +27,14 @@ export async function POST(req: NextRequest) {
     return new NextResponse("Prix invalide", { status: 400 });
   }
 
-  const dur =
-    duration === undefined || duration === null || duration === ""
-      ? null
-      : Number(duration);
-
+  const dur = duration == null || duration === "" ? null : Number(duration);
   if (dur !== null && !Number.isFinite(dur)) {
     return new NextResponse("Durée invalide", { status: 400 });
   }
 
-  const cat =
-    typeof category === "string" && category.trim()
-      ? category.trim().toUpperCase()
-      : null;
+  const cat = typeof category === "string" && category.trim() ? category.trim().toUpperCase() : null;
+
+  const ord = order == null || order === "" ? null : Number(order);
 
   const db = getAdminDb();
   await db.collection("services").add({
@@ -49,6 +44,7 @@ export async function POST(req: NextRequest) {
     approxDuration: !!approxDuration,
     category: cat,
     description: description ?? null,
+    order: ord,
   });
 
   const data = await listAll();
@@ -70,10 +66,7 @@ export async function PUT(req: NextRequest) {
   }
 
   if ("duration" in patch) {
-    const dur =
-      patch.duration === undefined || patch.duration === null || patch.duration === ""
-        ? null
-        : Number(patch.duration);
+    const dur = patch.duration == null || patch.duration === "" ? null : Number(patch.duration);
     if (dur !== null && !Number.isFinite(dur)) {
       return new NextResponse("Durée invalide", { status: 400 });
     }
@@ -87,6 +80,10 @@ export async function PUT(req: NextRequest) {
   if ("category" in patch) {
     const c = patch.category;
     patch.category = (typeof c === "string" && c.trim()) ? c.trim().toUpperCase() : null;
+  }
+
+  if ("order" in patch) {
+    patch.order = patch.order == null || patch.order === "" ? null : Number(patch.order);
   }
 
   const db = getAdminDb();
