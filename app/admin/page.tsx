@@ -83,9 +83,9 @@ export default function AdminPage() {
   async function addOrUpdate() {
     setMsg("");
 
-    // Validation prix: au moins priceMin OU (priceMin+priceMax)
+    // Validation prix: au moins priceMin, et cohérence avec priceMax
     const minOk = Number.isFinite(Number(form.priceMin));
-    const maxOk = form.priceMax == null || form.priceMax === "" || Number.isFinite(Number(form.priceMax));
+    const maxOk = form.priceMax == null || Number.isFinite(Number(form.priceMax));
 
     if (!form?.name) {
       setMsg("Nom requis.");
@@ -99,17 +99,21 @@ export default function AdminPage() {
       setMsg("Prix max invalide.");
       return;
     }
-    if (form.priceMin != null && form.priceMax != null && Number(form.priceMax) < Number(form.priceMin)) {
+    if (
+      form.priceMin != null &&
+      form.priceMax != null &&
+      Number(form.priceMax) < Number(form.priceMin)
+    ) {
       setMsg("Prix max doit être ≥ prix min.");
       return;
     }
 
     const payload: any = {
       ...form,
-      // prix unique n'est plus saisi dans l'UI; on normalise sur min/max
+      // On stocke en min/max (price unique non utilisé dans l’UI)
       price: null,
       priceMin: form.priceMin == null ? null : Number(form.priceMin),
-      priceMax: form.priceMax == null || form.priceMax === "" ? null : Number(form.priceMax),
+      priceMax: form.priceMax == null ? null : Number(form.priceMax),
 
       category: form.category ? String(form.category).toUpperCase() : null,
       duration: form.duration == null ? null : Number(form.duration),
@@ -228,93 +232,263 @@ export default function AdminPage() {
       </div>
 
       {/* --- Bloc Catégories --- */}
-      <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
+      <div
+        style={{
+          background: "#fff",
+          padding: 14,
+          borderRadius: 10,
+          border: "1px solid #eee",
+          marginBottom: 20,
+        }}
+      >
         <h3>Catégories (ordre des sections)</h3>
-        <p style={{ marginTop: 0, color: "#666" }}>MAJUSCULES, avec un numéro d'ordre (1 en haut, puis 2, 3...).</p>
+        <p style={{ marginTop: 0, color: "#666" }}>
+          MAJUSCULES, avec un numéro d&apos;ordre (1 en haut, puis 2, 3...).
+        </p>
 
-        <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 120px 180px" }}>
+        <div
+          style={{
+            display: "grid",
+            gap: 8,
+            gridTemplateColumns: "1fr 120px 180px",
+          }}
+        >
           <input
             placeholder="Nom de la catégorie (ex: SOINS DU VISAGE)"
             value={catForm.name || ""}
-            onChange={e => setCatForm({ ...(catForm as any), name: e.target.value.toUpperCase() })}
+            onChange={(e) =>
+              setCatForm({ ...(catForm as any), name: e.target.value.toUpperCase() })
+            }
           />
           <input
             placeholder="Ordre (ex: 1)"
             type="number"
             value={catForm.order?.toString() || ""}
-            onChange={e => setCatForm({ ...(catForm as any), order: e.target.value === "" ? null : Number(e.target.value) })}
+            onChange={(e) =>
+              setCatForm({
+                ...(catForm as any),
+                order: e.target.value === "" ? null : Number(e.target.value),
+              })
+            }
           />
           <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={catAddOrUpdate}>{(catForm as any).id ? "Enregistrer" : "Ajouter"}</button>
-            {(catForm as any).id ? <button onClick={() => setCatForm({})}>Annuler</button> : null}
+            <button onClick={catAddOrUpdate}>
+              {(catForm as any).id ? "Enregistrer" : "Ajouter"}
+            </button>
+            {(catForm as any).id ? (
+              <button onClick={() => setCatForm({})}>Annuler</button>
+            ) : null}
           </div>
         </div>
 
-        {catMsg ? <p style={{ color: catMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{catMsg}</p> : null}
+        {catMsg ? (
+          <p
+            style={{
+              color: catMsg.startsWith("✔") ? "green" : "crimson",
+              marginTop: 8,
+            }}
+          >
+            {catMsg}
+          </p>
+        ) : null}
 
-        {catsLoading ? <p>Chargement des catégories…</p> : (
-          <table style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10, marginTop: 12 }}>
+        {catsLoading ? (
+          <p>Chargement des catégories…</p>
+        ) : (
+          <table
+            style={{
+              width: "100%",
+              background: "#fff",
+              border: "1px solid #eee",
+              borderRadius: 10,
+              marginTop: 12,
+            }}
+          >
             <thead>
-              <tr><th style={{ textAlign: "left" }}>Nom</th><th style={{ width: 120 }}>Ordre</th><th style={{ width: 180 }}>Actions</th></tr>
+              <tr>
+                <th style={{ textAlign: "left" }}>Nom</th>
+                <th style={{ width: 120 }}>Ordre</th>
+                <th style={{ width: 180 }}>Actions</th>
+              </tr>
             </thead>
             <tbody>
-              {[...cats].sort((a, b) => {
-                const oa = a.order ?? 9999, ob = b.order ?? 9999;
-                if (oa !== ob) return oa - ob;
-                return (a.name || "").localeCompare(b.name || "");
-              }).map(c => (
-                <tr key={c.id}>
-                  <td>{c.name}</td>
-                  <td style={{ textAlign: "center" }}>{c.order ?? "—"}</td>
-                  <td style={{ textAlign: "center" }}>
-                    <button onClick={() => setCatForm(c)}>Modifier</button>
-                    <button onClick={() => catRemove(c.id)} style={{ marginLeft: 8 }}>Supprimer</button>
+              {[...cats]
+                .sort((a, b) => {
+                  const oa = a.order ?? 9999,
+                    ob = b.order ?? 9999;
+                  if (oa !== ob) return oa - ob;
+                  return (a.name || "").localeCompare(b.name || "");
+                })
+                .map((c) => (
+                  <tr key={c.id}>
+                    <td>{c.name}</td>
+                    <td style={{ textAlign: "center" }}>{c.order ?? "—"}</td>
+                    <td style={{ textAlign: "center" }}>
+                      <button onClick={() => setCatForm(c)}>Modifier</button>
+                      <button
+                        onClick={() => catRemove(c.id)}
+                        style={{ marginLeft: 8 }}
+                      >
+                        Supprimer
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              {cats.length === 0 ? (
+                <tr>
+                  <td colSpan={3} style={{ color: "#666", padding: 8 }}>
+                    Aucune catégorie.
                   </td>
                 </tr>
-              ))}
-              {cats.length === 0 ? <tr><td colSpan={3} style={{ color: "#666", padding: 8 }}>Aucune catégorie.</td></tr> : null}
+              ) : null}
             </tbody>
           </table>
         )}
       </div>
 
       {/* --- Bloc Soins --- */}
-      <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
+      <div
+        style={{
+          background: "#fff",
+          padding: 14,
+          borderRadius: 10,
+          border: "1px solid #eee",
+          marginBottom: 20,
+        }}
+      >
         <h3>{form?.id ? "Modifier un soin" : "Ajouter un soin"}</h3>
 
         {/* Prix min / Prix max + autres champs */}
-        <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 90px 90px 90px 90px 1fr" }}>
-          <input placeholder="Nom" value={form.name || ""} onChange={e => setForm({ ...form, name: e.target.value })} />
-          <input placeholder="Prix min" type="number" value={form.priceMin?.toString() || ""} onChange={e => setForm({ ...form, priceMin: e.target.value === "" ? null : Number(e.target.value) })} />
-          <input placeholder="Prix max (optionnel)" type="number" value={form.priceMax?.toString() || ""} onChange={e => setForm({ ...form, priceMax: e.target.value === "" ? null : Number(e.target.value) })} />
-          <input placeholder="Durée (min)" type="number" value={form.duration?.toString() || ""} onChange={e => setForm({ ...form, duration: e.target.value === "" ? null : Number(e.target.value) })} />
-          <input placeholder="Ordre" type="number" value={form.order?.toString() || ""} onChange={e => setForm({ ...form, order: e.target.value === "" ? null : Number(e.target.value) })} />
-          <input list="colibri-cats" placeholder="Catégorie" value={form.category || ""} onChange={e => setForm({ ...form, category: e.target.value.toUpperCase() })} />
+        <div
+          style={{
+            display: "grid",
+            gap: 8,
+            gridTemplateColumns: "1fr 90px 90px 90px 90px 1fr",
+          }}
+        >
+          <input
+            placeholder="Nom"
+            value={form.name || ""}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
+          <input
+            placeholder="Prix min"
+            type="number"
+            value={form.priceMin?.toString() || ""}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                priceMin: e.target.value === "" ? null : Number(e.target.value),
+              })
+            }
+          />
+          <input
+            placeholder="Prix max (optionnel)"
+            type="number"
+            value={form.priceMax?.toString() || ""}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                priceMax: e.target.value === "" ? null : Number(e.target.value),
+              })
+            }
+          />
+          <input
+            placeholder="Durée (min)"
+            type="number"
+            value={form.duration?.toString() || ""}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                duration: e.target.value === "" ? null : Number(e.target.value),
+              })
+            }
+          />
+          <input
+            placeholder="Ordre"
+            type="number"
+            value={form.order?.toString() || ""}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                order: e.target.value === "" ? null : Number(e.target.value),
+              })
+            }
+          />
+          <input
+            list="colibri-cats"
+            placeholder="Catégorie"
+            value={form.category || ""}
+            onChange={(e) =>
+              setForm({ ...form, category: e.target.value.toUpperCase() })
+            }
+          />
           <datalist id="colibri-cats">
-            {cats.map(c => <option key={c.id} value={c.name} />)}
+            {cats.map((c) => (
+              <option key={c.id} value={c.name} />
+            ))}
           </datalist>
         </div>
 
         <div style={{ display: "grid", gap: 8, gridTemplateColumns: "120px 1fr" }}>
-          <label style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-            <input type="checkbox" checked={!!form.approxDuration} onChange={e => setForm({ ...form, approxDuration: e.target.checked })} />
+          <label
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              marginTop: 8,
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={!!form.approxDuration}
+              onChange={(e) =>
+                setForm({ ...form, approxDuration: e.target.checked })
+              }
+            />
             Durée approximative (±)
           </label>
-          <input placeholder="Espace (px)" type="number" value={form.spacing?.toString() || ""} onChange={e => setForm({ ...form, spacing: e.target.value === "" ? null : Number(e.target.value) })} />
+          <input
+            placeholder="Espace (px)"
+            type="number"
+            value={form.spacing?.toString() || ""}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                spacing: e.target.value === "" ? null : Number(e.target.value),
+              })
+            }
+          />
         </div>
 
-        <textarea placeholder="Description (optionnel)" value={form.description || ""} onChange={e => setForm({ ...form, description: e.target.value })} style={{ width: "100%", marginTop: 8 }} />
+        <textarea
+          placeholder="Description (optionnel)"
+          value={form.description || ""}
+          onChange={(e) => setForm({ ...form, description: e.target.value })}
+          style={{ width: "100%", marginTop: 8 }}
+        />
         <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
-          <button onClick={addOrUpdate}>{form?.id ? "Enregistrer" : "Ajouter"}</button>
+          <button onClick={addOrUpdate}>
+            {form?.id ? "Enregistrer" : "Ajouter"}
+          </button>
           {form?.id ? <button onClick={() => setForm({})}>Annuler</button> : null}
         </div>
       </div>
 
-      {msg ? <p style={{ color: msg.startsWith("✔") ? "green" : "crimson" }}>{msg}</p> : null}
+      {msg ? (
+        <p style={{ color: msg.startsWith("✔") ? "green" : "crimson" }}>{msg}</p>
+      ) : null}
 
       {/* Tableau trié instantanément */}
-      {loading ? <p>Chargement…</p> : (
-        <table style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10 }}>
+      <div
+        style={{
+          width: "100%",
+          background: "#fff",
+          border: "1px solid #eee",
+          borderRadius: 10,
+        }}
+      >
+        <table style={{ width: "100%" }}>
           <thead>
             <tr>
               <th style={{ textAlign: "left" }}>Nom</th>
@@ -338,21 +512,32 @@ export default function AdminPage() {
                   {s.priceMin != null && s.priceMax != null
                     ? `${s.priceMin}–${s.priceMax} CHF`
                     : s.priceMin != null
-                      ? `${s.priceMin} CHF`
-                      : s.price != null
-                        ? `${s.price} CHF`
-                        : "—"}
+                    ? `${s.priceMin} CHF`
+                    : s.price != null
+                    ? `${s.price} CHF`
+                    : "—"}
                 </td>
                 <td style={{ textAlign: "center" }}>
                   <button onClick={() => setForm(s)}>Modifier</button>
-                  <button onClick={() => remove(s.id)} style={{ marginLeft: 8 }}>Supprimer</button>
+                  <button
+                    onClick={() => remove(s.id)}
+                    style={{ marginLeft: 8 }}
+                  >
+                    Supprimer
+                  </button>
                 </td>
               </tr>
             ))}
-            {dataSorted.length === 0 ? <tr><td colSpan={7} style={{ color: "#666", padding: 8 }}>Aucun soin.</td></tr> : null}
+            {dataSorted.length === 0 ? (
+              <tr>
+                <td colSpan={7} style={{ color: "#666", padding: 8 }}>
+                  Aucun soin.
+                </td>
+              </tr>
+            ) : null}
           </tbody>
         </table>
-      )}
+      </div>
     </div>
   );
 }
