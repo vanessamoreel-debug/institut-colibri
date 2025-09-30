@@ -17,7 +17,7 @@ async function listAll() {
 export async function POST(req: NextRequest) {
   if (!isAuthed(req)) return new NextResponse("Unauthorized", { status: 401 });
   const body = await req.json().catch(() => ({}));
-  const { name, price, duration, category, description } = body || {};
+  const { name, price, duration, approxDuration, category, description } = body || {};
 
   if (typeof name !== "string" || !name.trim()) {
     return new NextResponse("Nom requis", { status: 400 });
@@ -25,6 +25,15 @@ export async function POST(req: NextRequest) {
   const p = Number(price);
   if (!Number.isFinite(p)) {
     return new NextResponse("Prix invalide", { status: 400 });
+  }
+
+  const dur =
+    duration === undefined || duration === null || duration === ""
+      ? null
+      : Number(duration);
+
+  if (dur !== null && !Number.isFinite(dur)) {
+    return new NextResponse("Durée invalide", { status: 400 });
   }
 
   const cat =
@@ -36,7 +45,8 @@ export async function POST(req: NextRequest) {
   await db.collection("services").add({
     name: name.trim(),
     price: p,
-    duration: duration ?? null,
+    duration: dur,
+    approxDuration: !!approxDuration,
     category: cat,
     description: description ?? null,
   });
@@ -58,6 +68,22 @@ export async function PUT(req: NextRequest) {
     if (!Number.isFinite(p)) return new NextResponse("Prix invalide", { status: 400 });
     patch.price = p;
   }
+
+  if ("duration" in patch) {
+    const dur =
+      patch.duration === undefined || patch.duration === null || patch.duration === ""
+        ? null
+        : Number(patch.duration);
+    if (dur !== null && !Number.isFinite(dur)) {
+      return new NextResponse("Durée invalide", { status: 400 });
+    }
+    patch.duration = dur;
+  }
+
+  if ("approxDuration" in patch) {
+    patch.approxDuration = !!patch.approxDuration;
+  }
+
   if ("category" in patch) {
     const c = patch.category;
     patch.category = (typeof c === "string" && c.trim()) ? c.trim().toUpperCase() : null;
