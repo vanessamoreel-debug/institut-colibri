@@ -67,14 +67,16 @@ export default function AdminPage() {
       setMsg("Nom et prix (nombre) sont obligatoires.");
       return;
     }
+
+    // ✅ durée: null si vide/absente, sinon nombre
+    const durationValue =
+      form.duration == null ? null : Number(form.duration);
+
     const payload = {
       ...form,
       category: form.category ? String(form.category).toUpperCase() : null,
       price: Number(form.price),
-      duration:
-        form.duration === undefined || form.duration === null || form.duration === ""
-          ? null
-          : Number(form.duration),
+      duration: durationValue,
       approxDuration: !!form.approxDuration,
     };
 
@@ -172,7 +174,6 @@ export default function AdminPage() {
     if (s.duration == null) return "—";
     const v = Math.round(s.duration);
     return s.approxDuration ? `± ${v} min` : `${v} min`;
-    // (on stocke en minutes, on affiche selon approxDuration)
   }
 
   return (
