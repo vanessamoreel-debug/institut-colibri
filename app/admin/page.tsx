@@ -62,21 +62,18 @@ export default function AdminPage() {
     return false;
   }
 
-  // Tri local pour affichage admin (immédiat après changement)
+  // Tri local (catégorie -> ordre soin -> nom)
   const dataSorted = useMemo(() => {
     const copy = [...data];
     copy.sort((a, b) => {
       const ca = String(a.category || "");
       const cb = String(b.category || "");
-      // 1) ordre des catégories
       const ia = cats.find((c) => c.name === ca)?.order ?? 9999;
       const ib = cats.find((c) => c.name === cb)?.order ?? 9999;
       if (ia !== ib) return ia - ib;
-      // 2) ordre du soin
       const oa = a.order ?? 9999;
       const ob = b.order ?? 9999;
       if (oa !== ob) return oa - ob;
-      // 3) nom
       return a.name.localeCompare(b.name);
     });
     return copy;
@@ -85,15 +82,36 @@ export default function AdminPage() {
   // --------- CRUD SOINS ----------
   async function addOrUpdate() {
     setMsg("");
-    if (!form?.name || !Number.isFinite(Number(form?.price))) {
-      setMsg("Nom et prix (nombre) sont obligatoires.");
+
+    // Validation prix: au moins priceMin OU (priceMin+priceMax)
+    const minOk = Number.isFinite(Number(form.priceMin));
+    const maxOk = form.priceMax == null || form.priceMax === "" || Number.isFinite(Number(form.priceMax));
+
+    if (!form?.name) {
+      setMsg("Nom requis.");
+      return;
+    }
+    if (!minOk) {
+      setMsg("Prix min requis (ou prix unique).");
+      return;
+    }
+    if (!maxOk) {
+      setMsg("Prix max invalide.");
+      return;
+    }
+    if (form.priceMin != null && form.priceMax != null && Number(form.priceMax) < Number(form.priceMin)) {
+      setMsg("Prix max doit être ≥ prix min.");
       return;
     }
 
-    const payload = {
+    const payload: any = {
       ...form,
+      // prix unique n'est plus saisi dans l'UI; on normalise sur min/max
+      price: null,
+      priceMin: form.priceMin == null ? null : Number(form.priceMin),
+      priceMax: form.priceMax == null || form.priceMax === "" ? null : Number(form.priceMax),
+
       category: form.category ? String(form.category).toUpperCase() : null,
-      price: Number(form.price),
       duration: form.duration == null ? null : Number(form.duration),
       approxDuration: !!form.approxDuration,
       order: form.order == null ? null : Number(form.order),
@@ -264,23 +282,26 @@ export default function AdminPage() {
       <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
         <h3>{form?.id ? "Modifier un soin" : "Ajouter un soin"}</h3>
 
-        {/* Ajout du champ ESPACE (px) */}
-        <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 100px 100px 80px 100px 1fr" }}>
+        {/* Prix min / Prix max + autres champs */}
+        <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 90px 90px 90px 90px 1fr" }}>
           <input placeholder="Nom" value={form.name || ""} onChange={e => setForm({ ...form, name: e.target.value })} />
-          <input placeholder="Prix (CHF)" type="number" value={form.price?.toString() || ""} onChange={e => setForm({ ...form, price: Number(e.target.value) })} />
+          <input placeholder="Prix min" type="number" value={form.priceMin?.toString() || ""} onChange={e => setForm({ ...form, priceMin: e.target.value === "" ? null : Number(e.target.value) })} />
+          <input placeholder="Prix max (optionnel)" type="number" value={form.priceMax?.toString() || ""} onChange={e => setForm({ ...form, priceMax: e.target.value === "" ? null : Number(e.target.value) })} />
           <input placeholder="Durée (min)" type="number" value={form.duration?.toString() || ""} onChange={e => setForm({ ...form, duration: e.target.value === "" ? null : Number(e.target.value) })} />
           <input placeholder="Ordre" type="number" value={form.order?.toString() || ""} onChange={e => setForm({ ...form, order: e.target.value === "" ? null : Number(e.target.value) })} />
-          <input placeholder="Espace (px)" type="number" value={form.spacing?.toString() || ""} onChange={e => setForm({ ...form, spacing: e.target.value === "" ? null : Number(e.target.value) })} />
           <input list="colibri-cats" placeholder="Catégorie" value={form.category || ""} onChange={e => setForm({ ...form, category: e.target.value.toUpperCase() })} />
           <datalist id="colibri-cats">
             {cats.map(c => <option key={c.id} value={c.name} />)}
           </datalist>
         </div>
 
-        <label style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-          <input type="checkbox" checked={!!form.approxDuration} onChange={e => setForm({ ...form, approxDuration: e.target.checked })} />
-          Durée approximative (±)
-        </label>
+        <div style={{ display: "grid", gap: 8, gridTemplateColumns: "120px 1fr" }}>
+          <label style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+            <input type="checkbox" checked={!!form.approxDuration} onChange={e => setForm({ ...form, approxDuration: e.target.checked })} />
+            Durée approximative (±)
+          </label>
+          <input placeholder="Espace (px)" type="number" value={form.spacing?.toString() || ""} onChange={e => setForm({ ...form, spacing: e.target.value === "" ? null : Number(e.target.value) })} />
+        </div>
 
         <textarea placeholder="Description (optionnel)" value={form.description || ""} onChange={e => setForm({ ...form, description: e.target.value })} style={{ width: "100%", marginTop: 8 }} />
         <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
@@ -313,7 +334,15 @@ export default function AdminPage() {
                 <td style={{ textAlign: "center" }}>{formatDuration(s)}</td>
                 <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
                 <td style={{ textAlign: "center" }}>{s.spacing ?? "—"}</td>
-                <td style={{ textAlign: "center", fontWeight: 600 }}>{s.price} CHF</td>
+                <td style={{ textAlign: "center", fontWeight: 600 }}>
+                  {s.priceMin != null && s.priceMax != null
+                    ? `${s.priceMin}–${s.priceMax} CHF`
+                    : s.priceMin != null
+                      ? `${s.priceMin} CHF`
+                      : s.price != null
+                        ? `${s.price} CHF`
+                        : "—"}
+                </td>
                 <td style={{ textAlign: "center" }}>
                   <button onClick={() => setForm(s)}>Modifier</button>
                   <button onClick={() => remove(s.id)} style={{ marginLeft: 8 }}>Supprimer</button>
