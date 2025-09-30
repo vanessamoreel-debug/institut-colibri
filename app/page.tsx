@@ -29,19 +29,16 @@ function formatDuration(s: Service) {
 }
 
 export default async function Home() {
-  const [services, categories] = await Promise.all([getServices(), getCategories()]);
+  const [services, categories] = await Promise.all([getServices(), getCategories()]]);
 
-  // Regrouper par catégorie
   const byCat = services.reduce<Record<string, Service[]>>((acc, s) => {
     const k = s.category || "AUTRES";
     (acc[k] ||= []).push(s);
     return acc;
   }, {});
 
-  // Obtenir liste des catégories présentes (même si pas dans la table categories)
   const presentCats = Object.keys(byCat);
 
-  // Construire liste ordonnée: celles connues (triées par order), puis les restantes par nom
   const knownOrder = categories
     .filter(c => presentCats.includes(c.name))
     .sort((a, b) => {
@@ -89,7 +86,7 @@ export default async function Home() {
                         background: "#fff",
                         padding: 14,
                         borderRadius: 10,
-                        marginBottom: 10,
+                        marginBottom: s.spacing ?? 10, // applique l’espace personnalisé
                         border: "1px solid #eee",
                       }}
                     >
