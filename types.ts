@@ -14,4 +14,5 @@ export type Category = {
   id: string;
   name: string;           // toujours MAJUSCULE
   order?: number | null;  // ordre de la catégorie (section)
+  spacing?: number | null;  // <- ESPACE sous le soin (px)
 };
