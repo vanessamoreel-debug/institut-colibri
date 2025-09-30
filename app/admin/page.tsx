@@ -1,26 +1,31 @@
 // /app/admin/page.tsx
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Service, Category } from "../../types";
 
 export default function AdminPage() {
   const router = useRouter();
 
+  // --- Soins ---
   const [data, setData] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState<Partial<Service>>({});
   const [msg, setMsg] = useState<string>("");
 
+  // --- Catégories ---
   const [cats, setCats] = useState<Category[]>([]);
   const [catsLoading, setCatsLoading] = useState(true);
+  const [catForm, setCatForm] = useState<Partial<Category>>({});
+  const [catMsg, setCatMsg] = useState<string>("");
 
   async function loadServices() {
     setLoading(true);
     try {
       const res = await fetch("/api/services", { cache: "no-store" });
       if (!res.ok) throw new Error(await res.text());
-      setData(await res.json());
+      const json = (await res.json()) as Service[];
+      setData(json);
     } catch (e: any) {
       setMsg(e?.message || "Erreur de chargement");
     } finally {
@@ -33,9 +38,10 @@ export default function AdminPage() {
     try {
       const res = await fetch("/api/categories", { cache: "no-store" });
       if (!res.ok) throw new Error(await res.text());
-      setCats(await res.json());
-    } catch {
-      // pas critique
+      const json = (await res.json()) as Category[];
+      setCats(json);
+    } catch (e: any) {
+      setCatMsg(e?.message || "Erreur de chargement des catégories");
     } finally {
       setCatsLoading(false);
     }
@@ -54,6 +60,27 @@ export default function AdminPage() {
     return false;
   }
 
+  // Tri local pour affichage admin (immédiat après changement)
+  const dataSorted = useMemo(() => {
+    const copy = [...data];
+    copy.sort((a, b) => {
+      const ca = String(a.category || "");
+      const cb = String(b.category || "");
+      // d'abord tri par ordre de catégorie si connu
+      const ia = cats.find((c) => c.name === ca)?.order ?? 9999;
+      const ib = cats.find((c) => c.name === cb)?.order ?? 9999;
+      if (ia !== ib) return ia - ib;
+      // puis ordre du soin
+      const oa = a.order ?? 9999;
+      const ob = b.order ?? 9999;
+      if (oa !== ob) return oa - ob;
+      // puis nom
+      return a.name.localeCompare(b.name);
+    });
+    return copy;
+  }, [data, cats]);
+
+  // --------- CRUD SOINS ----------
   async function addOrUpdate() {
     setMsg("");
     if (!form?.name || !Number.isFinite(Number(form?.price))) {
@@ -120,6 +147,56 @@ export default function AdminPage() {
     return s.approxDuration ? `± ${v} min` : `${v} min`;
   }
 
+  // --------- CRUD CATEGORIES ----------
+  async function catAddOrUpdate() {
+    setCatMsg("");
+    if (!catForm?.name || !String(catForm.name).trim()) {
+      setCatMsg("Nom de catégorie requis.");
+      return;
+    }
+    const payload = {
+      id: (catForm as any).id,
+      name: String(catForm.name).trim().toUpperCase(),
+      order: catForm.order == null ? null : Number(catForm.order),
+    };
+    const method = (catForm as any).id ? "PUT" : "POST";
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method,
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (handleUnauthorized(res)) return;
+      if (!res.ok) throw new Error(await res.text());
+      const json = await res.json();
+      setCats(json.data || []);
+      setCatForm({});
+      setCatMsg("✔️ Catégorie enregistrée.");
+    } catch (e: any) {
+      setCatMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
+    }
+  }
+
+  async function catRemove(id: string) {
+    setCatMsg("");
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method: "DELETE",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (handleUnauthorized(res)) return;
+      if (!res.ok) throw new Error(await res.text());
+      const json = await res.json();
+      setCats(json.data || []);
+      setCatMsg("✔️ Catégorie supprimée.");
+    } catch (e: any) {
+      setCatMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
+    }
+  }
+
   return (
     <div>
       <h2>Administration des soins</h2>
@@ -129,6 +206,58 @@ export default function AdminPage() {
         <button onClick={logout}>Se déconnecter</button>
       </div>
 
+      {/* --- Bloc Catégories --- */}
+      <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
+        <h3>Catégories (ordre des sections)</h3>
+        <p style={{ marginTop: 0, color: "#666" }}>MAJUSCULES, avec un numéro d'ordre (1 en haut, puis 2, 3...).</p>
+
+        <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 120px 180px" }}>
+          <input
+            placeholder="Nom de la catégorie (ex: SOINS DU VISAGE)"
+            value={catForm.name || ""}
+            onChange={e => setCatForm({ ...(catForm as any), name: e.target.value.toUpperCase() })}
+          />
+          <input
+            placeholder="Ordre (ex: 1)"
+            type="number"
+            value={catForm.order?.toString() || ""}
+            onChange={e => setCatForm({ ...(catForm as any), order: e.target.value === "" ? null : Number(e.target.value) })}
+          />
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={catAddOrUpdate}>{(catForm as any).id ? "Enregistrer" : "Ajouter"}</button>
+            {(catForm as any).id ? <button onClick={() => setCatForm({})}>Annuler</button> : null}
+          </div>
+        </div>
+
+        {catMsg ? <p style={{ color: catMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{catMsg}</p> : null}
+
+        {catsLoading ? <p>Chargement des catégories…</p> : (
+          <table style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10, marginTop: 12 }}>
+            <thead>
+              <tr><th style={{ textAlign: "left" }}>Nom</th><th style={{ width: 120 }}>Ordre</th><th style={{ width: 180 }}>Actions</th></tr>
+            </thead>
+            <tbody>
+              {[...cats].sort((a, b) => {
+                const oa = a.order ?? 9999, ob = b.order ?? 9999;
+                if (oa !== ob) return oa - ob;
+                return (a.name || "").localeCompare(b.name || "");
+              }).map(c => (
+                <tr key={c.id}>
+                  <td>{c.name}</td>
+                  <td style={{ textAlign: "center" }}>{c.order ?? "—"}</td>
+                  <td style={{ textAlign: "center" }}>
+                    <button onClick={() => setCatForm(c)}>Modifier</button>
+                    <button onClick={() => catRemove(c.id)} style={{ marginLeft: 8 }}>Supprimer</button>
+                  </td>
+                </tr>
+              ))}
+              {cats.length === 0 ? <tr><td colSpan={3} style={{ color: "#666", padding: 8 }}>Aucune catégorie.</td></tr> : null}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {/* --- Bloc Soins --- */}
       <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
         <h3>{form?.id ? "Modifier un soin" : "Ajouter un soin"}</h3>
 
@@ -157,6 +286,7 @@ export default function AdminPage() {
 
       {msg ? <p style={{ color: msg.startsWith("✔") ? "green" : "crimson" }}>{msg}</p> : null}
 
+      {/* Tableau trié instantanément */}
       {loading ? <p>Chargement…</p> : (
         <table style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10 }}>
           <thead>
@@ -170,7 +300,7 @@ export default function AdminPage() {
             </tr>
           </thead>
           <tbody>
-            {data.map((s) => (
+            {dataSorted.map((s) => (
               <tr key={s.id}>
                 <td>{s.name}</td>
                 <td style={{ textAlign: "center" }}>{s.category || "—"}</td>
@@ -183,7 +313,7 @@ export default function AdminPage() {
                 </td>
               </tr>
             ))}
-            {data.length === 0 ? <tr><td colSpan={6} style={{ color: "#666", padding: 8 }}>Aucun soin.</td></tr> : null}
+            {dataSorted.length === 0 ? <tr><td colSpan={6} style={{ color: "#666", padding: 8 }}>Aucun soin.</td></tr> : null}
           </tbody>
         </table>
       )}
