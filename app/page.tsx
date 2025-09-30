@@ -40,33 +40,40 @@ export default async function Home() {
           <section key={cat} style={{ marginBottom: 28 }}>
             <h2 style={{ margin: "18px 0 10px" }}>{cat}</h2>
             <div>
-              {list.map((s) => {
-                const dur = formatDuration(s);
-                return (
-                  <div
-                    key={s.id}
-                    style={{
-                      background: "#fff",
-                      padding: 14,
-                      borderRadius: 10,
-                      marginBottom: 10,
-                      border: "1px solid #eee",
-                    }}
-                  >
-                    <strong>{s.name}</strong>
-{dur ? <span> {dur}</span> : null}
-                    <div style={{ float: "right", fontWeight: 600 }}>
-                      {Math.round(s.price)} CHF
+              {list
+                .sort((a, b) => {
+                  const oa = a.order ?? 9999;
+                  const ob = b.order ?? 9999;
+                  if (oa !== ob) return oa - ob;
+                  return a.name.localeCompare(b.name);
+                })
+                .map((s) => {
+                  const dur = formatDuration(s);
+                  return (
+                    <div
+                      key={s.id}
+                      style={{
+                        background: "#fff",
+                        padding: 14,
+                        borderRadius: 10,
+                        marginBottom: 10,
+                        border: "1px solid #eee",
+                      }}
+                    >
+                      <strong>{s.name}</strong>
+                      {dur ? <span> {dur}</span> : null}
+                      <div style={{ float: "right", fontWeight: 600 }}>
+                        {Math.round(s.price)} CHF
+                      </div>
+                      {s.description ? (
+                        <p style={{ margin: "6px 0 0", color: "#555" }}>
+                          {s.description}
+                        </p>
+                      ) : null}
+                      <div style={{ clear: "both" }} />
                     </div>
-                    {s.description ? (
-                      <p style={{ margin: "6px 0 0", color: "#555" }}>
-                        {s.description}
-                      </p>
-                    ) : null}
-                    <div style={{ clear: "both" }} />
-                  </div>
-                );
-              })}
+                  );
+                })}
             </div>
           </section>
         ))
