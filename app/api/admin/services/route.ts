@@ -5,7 +5,6 @@ import { getAdminDb } from "../../../../lib/firebaseAdmin";
 export const dynamic = "force-dynamic";
 
 function isAuthed(req: NextRequest) {
-  // On s'assure que le cookie de session existe
   return req.cookies.get("colibri_admin")?.value === "1";
 }
 
@@ -28,12 +27,17 @@ export async function POST(req: NextRequest) {
     return new NextResponse("Prix invalide", { status: 400 });
   }
 
+  const cat =
+    typeof category === "string" && category.trim()
+      ? category.trim().toUpperCase()
+      : null;
+
   const db = getAdminDb();
   await db.collection("services").add({
     name: name.trim(),
     price: p,
     duration: duration ?? null,
-    category: category ?? null,
+    category: cat,
     description: description ?? null,
   });
 
@@ -47,16 +51,20 @@ export async function PUT(req: NextRequest) {
   const { id, ...rest } = body || {};
   if (!id) return new NextResponse("Missing id", { status: 400 });
 
-  if ("price" in rest) {
-    const p = Number(rest.price);
-    if (!Number.isFinite(p)) {
-      return new NextResponse("Prix invalide", { status: 400 });
-    }
-    (rest as any).price = p;
+  const patch: any = { ...rest };
+
+  if ("price" in patch) {
+    const p = Number(patch.price);
+    if (!Number.isFinite(p)) return new NextResponse("Prix invalide", { status: 400 });
+    patch.price = p;
+  }
+  if ("category" in patch) {
+    const c = patch.category;
+    patch.category = (typeof c === "string" && c.trim()) ? c.trim().toUpperCase() : null;
   }
 
   const db = getAdminDb();
-  await db.collection("services").doc(id).update(rest);
+  await db.collection("services").doc(id).update(patch);
 
   const data = await listAll();
   return NextResponse.json({ ok: true, data });
