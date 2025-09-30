@@ -28,10 +28,17 @@ function formatDuration(s: Service) {
   return s.approxDuration ? `± ${v} min` : `${v} min`;
 }
 
+function formatPrice(s: Service) {
+  if (s.priceMin != null && s.priceMax != null) return `${s.priceMin}–${s.priceMax} CHF`;
+  if (s.priceMin != null) return `${s.priceMin} CHF`;
+  if (s.price != null) return `${s.price} CHF`;
+  return "—";
+}
+
 export default async function Home() {
-  // ✅ correction: pas de ']' en trop
   const [services, categories] = await Promise.all([getServices(), getCategories()]);
 
+  // Regrouper par catégorie
   const byCat = services.reduce<Record<string, Service[]>>((acc, s) => {
     const k = s.category || "AUTRES";
     (acc[k] ||= []).push(s);
@@ -40,6 +47,7 @@ export default async function Home() {
 
   const presentCats = Object.keys(byCat);
 
+  // Ordonner les catégories (par order puis nom), puis ajouter les inconnues
   const knownOrder = categories
     .filter(c => presentCats.includes(c.name))
     .sort((a, b) => {
@@ -87,14 +95,14 @@ export default async function Home() {
                         background: "#fff",
                         padding: 14,
                         borderRadius: 10,
-                        marginBottom: s.spacing ?? 10, // applique l’espace personnalisé si défini
+                        marginBottom: s.spacing ?? 10, // espace personnalisé
                         border: "1px solid #eee",
                       }}
                     >
                       <strong>{s.name}</strong>
                       {dur ? <span> {dur}</span> : null}
                       <div style={{ float: "right", fontWeight: 600 }}>
-                        {Math.round(s.price)} CHF
+                        {formatPrice(s)}
                       </div>
                       {s.description ? (
                         <p style={{ margin: "6px 0 0", color: "#555" }}>
