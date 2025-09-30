@@ -17,7 +17,7 @@ async function listAll() {
 export async function POST(req: NextRequest) {
   if (!isAuthed(req)) return new NextResponse("Unauthorized", { status: 401 });
   const body = await req.json().catch(() => ({}));
-  const { name, price, duration, approxDuration, category, description, order } = body || {};
+  const { name, price, duration, approxDuration, category, description, order, spacing } = body || {};
 
   if (typeof name !== "string" || !name.trim()) {
     return new NextResponse("Nom requis", { status: 400 });
@@ -33,8 +33,8 @@ export async function POST(req: NextRequest) {
   }
 
   const cat = typeof category === "string" && category.trim() ? category.trim().toUpperCase() : null;
-
   const ord = order == null || order === "" ? null : Number(order);
+  const sp = spacing == null || spacing === "" ? null : Number(spacing);
 
   const db = getAdminDb();
   await db.collection("services").add({
@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
     category: cat,
     description: description ?? null,
     order: ord,
+    spacing: sp,
   });
 
   const data = await listAll();
@@ -84,6 +85,10 @@ export async function PUT(req: NextRequest) {
 
   if ("order" in patch) {
     patch.order = patch.order == null || patch.order === "" ? null : Number(patch.order);
+  }
+
+  if ("spacing" in patch) {
+    patch.spacing = patch.spacing == null || patch.spacing === "" ? null : Number(patch.spacing);
   }
 
   const db = getAdminDb();
