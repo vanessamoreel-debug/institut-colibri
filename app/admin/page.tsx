@@ -19,6 +19,7 @@ export default function AdminPage() {
   const [catForm, setCatForm] = useState<Partial<Category>>({});
   const [catMsg, setCatMsg] = useState<string>("");
 
+  // Charger soins
   async function loadServices() {
     setLoading(true);
     try {
@@ -33,6 +34,7 @@ export default function AdminPage() {
     }
   }
 
+  // Charger catégories
   async function loadCats() {
     setCatsLoading(true);
     try {
@@ -66,15 +68,15 @@ export default function AdminPage() {
     copy.sort((a, b) => {
       const ca = String(a.category || "");
       const cb = String(b.category || "");
-      // d'abord tri par ordre de catégorie si connu
+      // 1) ordre des catégories
       const ia = cats.find((c) => c.name === ca)?.order ?? 9999;
       const ib = cats.find((c) => c.name === cb)?.order ?? 9999;
       if (ia !== ib) return ia - ib;
-      // puis ordre du soin
+      // 2) ordre du soin
       const oa = a.order ?? 9999;
       const ob = b.order ?? 9999;
       if (oa !== ob) return oa - ob;
-      // puis nom
+      // 3) nom
       return a.name.localeCompare(b.name);
     });
     return copy;
@@ -95,6 +97,7 @@ export default function AdminPage() {
       duration: form.duration == null ? null : Number(form.duration),
       approxDuration: !!form.approxDuration,
       order: form.order == null ? null : Number(form.order),
+      spacing: form.spacing == null ? null : Number(form.spacing),
     };
 
     const method = form?.id ? "PUT" : "POST";
@@ -261,11 +264,13 @@ export default function AdminPage() {
       <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
         <h3>{form?.id ? "Modifier un soin" : "Ajouter un soin"}</h3>
 
-        <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 100px 100px 80px 1fr" }}>
+        {/* Ajout du champ ESPACE (px) */}
+        <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 100px 100px 80px 100px 1fr" }}>
           <input placeholder="Nom" value={form.name || ""} onChange={e => setForm({ ...form, name: e.target.value })} />
           <input placeholder="Prix (CHF)" type="number" value={form.price?.toString() || ""} onChange={e => setForm({ ...form, price: Number(e.target.value) })} />
           <input placeholder="Durée (min)" type="number" value={form.duration?.toString() || ""} onChange={e => setForm({ ...form, duration: e.target.value === "" ? null : Number(e.target.value) })} />
           <input placeholder="Ordre" type="number" value={form.order?.toString() || ""} onChange={e => setForm({ ...form, order: e.target.value === "" ? null : Number(e.target.value) })} />
+          <input placeholder="Espace (px)" type="number" value={form.spacing?.toString() || ""} onChange={e => setForm({ ...form, spacing: e.target.value === "" ? null : Number(e.target.value) })} />
           <input list="colibri-cats" placeholder="Catégorie" value={form.category || ""} onChange={e => setForm({ ...form, category: e.target.value.toUpperCase() })} />
           <datalist id="colibri-cats">
             {cats.map(c => <option key={c.id} value={c.name} />)}
@@ -295,6 +300,7 @@ export default function AdminPage() {
               <th>Catégorie</th>
               <th>Durée</th>
               <th>Ordre</th>
+              <th>Espace</th>
               <th>Prix</th>
               <th>Actions</th>
             </tr>
@@ -306,6 +312,7 @@ export default function AdminPage() {
                 <td style={{ textAlign: "center" }}>{s.category || "—"}</td>
                 <td style={{ textAlign: "center" }}>{formatDuration(s)}</td>
                 <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
+                <td style={{ textAlign: "center" }}>{s.spacing ?? "—"}</td>
                 <td style={{ textAlign: "center", fontWeight: 600 }}>{s.price} CHF</td>
                 <td style={{ textAlign: "center" }}>
                   <button onClick={() => setForm(s)}>Modifier</button>
@@ -313,7 +320,7 @@ export default function AdminPage() {
                 </td>
               </tr>
             ))}
-            {dataSorted.length === 0 ? <tr><td colSpan={6} style={{ color: "#666", padding: 8 }}>Aucun soin.</td></tr> : null}
+            {dataSorted.length === 0 ? <tr><td colSpan={7} style={{ color: "#666", padding: 8 }}>Aucun soin.</td></tr> : null}
           </tbody>
         </table>
       )}
