@@ -67,12 +67,15 @@ export default function AdminPage() {
       setMsg("Nom et prix (nombre) sont obligatoires.");
       return;
     }
-    // Forcer MAJUSCULE côté client aussi (en plus du serveur)
     const payload = {
       ...form,
       category: form.category ? String(form.category).toUpperCase() : null,
       price: Number(form.price),
-      duration: form.duration === undefined || form.duration === null ? null : Number(form.duration),
+      duration:
+        form.duration === undefined || form.duration === null || form.duration === ""
+          ? null
+          : Number(form.duration),
+      approxDuration: !!form.approxDuration,
     };
 
     const method = form?.id ? "PUT" : "POST";
@@ -89,7 +92,6 @@ export default function AdminPage() {
       setData(json.data || []);
       setForm({});
       setMsg("✔️ Sauvegardé.");
-      // Reload des catégories si nouvelle catégorie utilisée
       await loadCats();
     } catch (e: any) {
       setMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
@@ -166,6 +168,13 @@ export default function AdminPage() {
     }
   }
 
+  function formatDuration(s: Service) {
+    if (s.duration == null) return "—";
+    const v = Math.round(s.duration);
+    return s.approxDuration ? `± ${v} min` : `${v} min`;
+    // (on stocke en minutes, on affiche selon approxDuration)
+  }
+
   return (
     <div>
       <h2>Administration des soins</h2>
@@ -219,12 +228,13 @@ export default function AdminPage() {
       {/* --- Bloc Soins --- */}
       <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
         <h3>{form?.id ? "Modifier un soin" : "Ajouter un soin"}</h3>
+
         <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 140px 140px 1fr" }}>
           <input placeholder="Nom" value={form.name || ""} onChange={e => setForm({ ...form, name: e.target.value })} />
           <input placeholder="Prix (CHF)" type="number" value={form.price?.toString() || ""} onChange={e => setForm({ ...form, price: Number(e.target.value) })} />
-          <input placeholder="Durée (min)" type="number" value={form.duration?.toString() || ""} onChange={e => setForm({ ...form, duration: Number(e.target.value) })} />
+          <input placeholder="Durée (min)" type="number" value={form.duration?.toString() || ""} onChange={e => setForm({ ...form, duration: e.target.value === "" ? (undefined as any) : Number(e.target.value) })} />
 
-          {/* Saisie avec suggestions (datalist). Toujours MAJUSCULE côté client */}
+          {/* Catégorie avec suggestions */}
           <input
             list="colibri-cats"
             placeholder="Catégorie (ex: SOINS DU VISAGE)"
@@ -235,6 +245,16 @@ export default function AdminPage() {
             {cats.map(c => <option key={c.id} value={c.name} />)}
           </datalist>
         </div>
+
+        {/* Case à cocher : durée approximative */}
+        <label style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+          <input
+            type="checkbox"
+            checked={!!form.approxDuration}
+            onChange={e => setForm({ ...form, approxDuration: e.target.checked })}
+          />
+          Durée approximative (afficher “±” devant la durée)
+        </label>
 
         <textarea placeholder="Description (optionnel)" value={form.description || ""} onChange={e => setForm({ ...form, description: e.target.value })} style={{ width: "100%", marginTop: 8 }} />
         <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
@@ -261,7 +281,7 @@ export default function AdminPage() {
               <tr key={s.id}>
                 <td>{s.name}</td>
                 <td style={{ textAlign: "center" }}>{s.category || "—"}</td>
-                <td style={{ textAlign: "center" }}>{s.duration ?? "—"}</td>
+                <td style={{ textAlign: "center" }}>{formatDuration(s)}</td>
                 <td style={{ textAlign: "center", fontWeight: 600 }}>{s.price} CHF</td>
                 <td style={{ textAlign: "center" }}>
                   <button onClick={() => setForm(s)}>Modifier</button>
