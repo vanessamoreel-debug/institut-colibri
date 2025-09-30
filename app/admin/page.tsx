@@ -13,7 +13,10 @@ export default function AdminPage() {
   async function load() {
     setLoading(true);
     try {
-      const res = await fetch("/api/services", { cache: "no-store" });
+      const res = await fetch("/api/services", {
+        cache: "no-store",
+        credentials: "include", // ← assure l'envoi des cookies
+      });
       if (!res.ok) throw new Error(await res.text());
       setData(await res.json());
     } catch (e: any) {
@@ -23,7 +26,17 @@ export default function AdminPage() {
     }
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
+
+  // Petite aide pour détecter une redirection vers /login depuis l'API
+  function detectRedirectToLogin(res: Response) {
+    // si le middleware a redirigé, fetch a suivi et on se retrouve avec du HTML de /login
+    const redirected = res.url.includes("/login");
+    if (redirected) router.replace("/login?next=/admin");
+    return redirected;
+  }
 
   async function addOrUpdate() {
     setMsg("");
@@ -35,9 +48,11 @@ export default function AdminPage() {
     try {
       const res = await fetch("/api/admin/services", {
         method,
+        credentials: "include", // ← IMPORTANT
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
+      if (detectRedirectToLogin(res)) return;
       if (!res.ok) throw new Error(await res.text());
       setForm({});
       await load();
@@ -52,9 +67,11 @@ export default function AdminPage() {
     try {
       const res = await fetch("/api/admin/services", {
         method: "DELETE",
+        credentials: "include", // ← IMPORTANT
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id }),
       });
+      if (detectRedirectToLogin(res)) return;
       if (!res.ok) throw new Error(await res.text());
       await load();
       setMsg("✔️ Supprimé.");
@@ -64,7 +81,7 @@ export default function AdminPage() {
   }
 
   async function logout() {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     router.replace("/login");
   }
 
