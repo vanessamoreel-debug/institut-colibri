@@ -1,6 +1,6 @@
 // /app/page.tsx
 import { headers } from "next/headers";
-import { Service } from "../types";
+import { Category, Service } from "../types";
 
 async function getServices(): Promise<Service[]> {
   const h = await headers();
@@ -12,6 +12,16 @@ async function getServices(): Promise<Service[]> {
   return res.json();
 }
 
+async function getCategories(): Promise<Category[]> {
+  const h = await headers();
+  const host = h.get("host");
+  const proto = h.get("x-forwarded-proto") || "https";
+  const base = `${proto}://${host}`;
+  const res = await fetch(`${base}/api/categories`, { cache: "no-store" });
+  if (!res.ok) return [];
+  return res.json();
+}
+
 function formatDuration(s: Service) {
   if (s.duration == null) return null;
   const v = Math.round(s.duration);
@@ -19,13 +29,34 @@ function formatDuration(s: Service) {
 }
 
 export default async function Home() {
-  const services = await getServices();
+  const [services, categories] = await Promise.all([getServices(), getCategories()]);
 
+  // Regrouper par catégorie
   const byCat = services.reduce<Record<string, Service[]>>((acc, s) => {
-    const k = s.category || "Autres";
+    const k = s.category || "AUTRES";
     (acc[k] ||= []).push(s);
     return acc;
   }, {});
+
+  // Obtenir liste des catégories présentes (même si pas dans la table categories)
+  const presentCats = Object.keys(byCat);
+
+  // Construire liste ordonnée: celles connues (triées par order), puis les restantes par nom
+  const knownOrder = categories
+    .filter(c => presentCats.includes(c.name))
+    .sort((a, b) => {
+      const oa = a.order ?? 9999;
+      const ob = b.order ?? 9999;
+      if (oa !== ob) return oa - ob;
+      return (a.name || "").localeCompare(b.name || "");
+    })
+    .map(c => c.name);
+
+  const unknown = presentCats
+    .filter(name => !knownOrder.includes(name))
+    .sort((a, b) => a.localeCompare(b));
+
+  const orderedCats = [...knownOrder, ...unknown];
 
   return (
     <>
@@ -33,21 +64,23 @@ export default async function Home() {
         Consultez nos soins. Les prix sont indicatifs et peuvent être ajustés.
       </p>
 
-      {Object.keys(byCat).length === 0 ? (
+      {orderedCats.length === 0 ? (
         <p style={{ color: "#666" }}>Aucun soin pour le moment.</p>
       ) : (
-        Object.entries(byCat).map(([cat, list]) => (
-          <section key={cat} style={{ marginBottom: 28 }}>
-            <h2 style={{ margin: "18px 0 10px" }}>{cat}</h2>
-            <div>
-              {list
-                .sort((a, b) => {
-                  const oa = a.order ?? 9999;
-                  const ob = b.order ?? 9999;
-                  if (oa !== ob) return oa - ob;
-                  return a.name.localeCompare(b.name);
-                })
-                .map((s) => {
+        orderedCats.map((cat) => {
+          const list = byCat[cat] || [];
+          const sorted = [...list].sort((a, b) => {
+            const oa = a.order ?? 9999;
+            const ob = b.order ?? 9999;
+            if (oa !== ob) return oa - ob;
+            return a.name.localeCompare(b.name);
+          });
+
+          return (
+            <section key={cat} style={{ marginBottom: 28 }}>
+              <h2 style={{ margin: "18px 0 10px" }}>{cat}</h2>
+              <div>
+                {sorted.map((s) => {
                   const dur = formatDuration(s);
                   return (
                     <div
@@ -74,9 +107,10 @@ export default async function Home() {
                     </div>
                   );
                 })}
-            </div>
-          </section>
-        ))
+              </div>
+            </section>
+          );
+        })
       )}
 
       <p style={{ marginTop: 30 }}>
