@@ -29,7 +29,8 @@ function formatDuration(s: Service) {
 }
 
 export default async function Home() {
-  const [services, categories] = await Promise.all([getServices(), getCategories()]]);
+  // ✅ correction: pas de ']' en trop
+  const [services, categories] = await Promise.all([getServices(), getCategories()]);
 
   const byCat = services.reduce<Record<string, Service[]>>((acc, s) => {
     const k = s.category || "AUTRES";
@@ -86,7 +87,7 @@ export default async function Home() {
                         background: "#fff",
                         padding: 14,
                         borderRadius: 10,
-                        marginBottom: s.spacing ?? 10, // applique l’espace personnalisé
+                        marginBottom: s.spacing ?? 10, // applique l’espace personnalisé si défini
                         border: "1px solid #eee",
                       }}
                     >
