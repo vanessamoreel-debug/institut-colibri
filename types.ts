@@ -7,10 +7,11 @@ export type Service = {
   approxDuration?: boolean | null;
   category?: string | null;
   description?: string | null;
-  order?: number | null;  // <- champ ordre
+  order?: number | null;  // ordre du soin dans sa catégorie
 };
 
 export type Category = {
   id: string;
-  name: string; // toujours MAJUSCULE
+  name: string;           // toujours MAJUSCULE
+  order?: number | null;  // ordre de la catégorie (section)
 };
