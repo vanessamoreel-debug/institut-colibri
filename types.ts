@@ -1,24 +1,29 @@
 // /types.ts
+
 export type Service = {
   id: string;
   name: string;
-
-  // Prix: soit un prix unique (price), soit un intervalle (priceMin/priceMax).
-  // Dans l'admin on renseigne surtout priceMin/priceMax ; on garde "price" pour compatibilité.
   price?: number | null;
   priceMin?: number | null;
   priceMax?: number | null;
-
   duration?: number | null;
-  approxDuration?: boolean | null;
+  approxDuration?: boolean;
   category?: string | null;
   description?: string | null;
-  order?: number | null;    // ordre du soin
-  spacing?: number | null;  // espace sous le soin (px)
+  order?: number | null;
+  spacing?: number | null;
 };
 
 export type Category = {
   id: string;
-  name: string;           // toujours MAJUSCULE
-  order?: number | null;  // ordre de la catégorie (section)
+  name: string;
+  order?: number | null;
+};
+
+export type PageDoc = {
+  id: string;        // id Firestore (= slug)
+  slug: string;      // "contact" | "a-propos"
+  title: string;
+  body: string;      // Markdown ou texte simple
+  updatedAt?: number;
 };
