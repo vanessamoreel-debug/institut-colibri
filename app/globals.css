@@ -68,3 +68,66 @@ html, body {
   color: #666;
   font-size: 14px;
 }
+
+/* ----- Menu déroulant ----- */
+.menu-wrap {
+  position: relative;
+}
+
+.menu-button {
+  appearance: none;
+  border: 1px solid #e6e6e9;
+  background: #fff;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.menu-button:hover {
+  background: #fafafa;
+}
+
+.chevron {
+  margin-left: 6px;
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+.chevron-up {
+  transform: rotate(180deg);
+}
+
+.menu-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 220px;
+  background: #fff;
+  border: 1px solid #e6e6e9;
+  border-radius: 12px;
+  padding: 6px;
+  display: none; /* caché par défaut */
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  z-index: 20;
+}
+.menu-panel.open {
+  display: flex;          /* visible quand .open */
+  flex-direction: column;
+  gap: 6px;
+}
+
+.menu-link {
+  text-decoration: none;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: #111;
+  display: block;
+}
+.menu-link:hover {
+  background: #f5f5f7;
+}
+.menu-link.active {
+  background: #111;
+  color: #fff;
+}
+
