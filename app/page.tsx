@@ -38,7 +38,6 @@ function formatPrice(s: Service) {
 export default async function Home() {
   const [services, categories] = await Promise.all([getServices(), getCategories()]);
 
-  // Regrouper par catégorie
   const byCat = services.reduce<Record<string, Service[]>>((acc, s) => {
     const k = s.category || "AUTRES";
     (acc[k] ||= []).push(s);
@@ -47,7 +46,6 @@ export default async function Home() {
 
   const presentCats = Object.keys(byCat);
 
-  // Ordonner les catégories (par order puis nom), puis ajouter les inconnues
   const knownOrder = categories
     .filter(c => presentCats.includes(c.name))
     .sort((a, b) => {
@@ -95,7 +93,7 @@ export default async function Home() {
                         background: "#fff",
                         padding: 14,
                         borderRadius: 10,
-                        marginBottom: s.spacing ?? 10, // espace personnalisé
+                        marginBottom: s.spacing ?? 10,
                         border: "1px solid #eee",
                       }}
                     >
@@ -118,10 +116,6 @@ export default async function Home() {
           );
         })
       )}
-
-      <p style={{ marginTop: 30 }}>
-        Accès administrateur : <code>/admin</code>
-      </p>
     </>
   );
 }
