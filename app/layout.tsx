@@ -1,17 +1,27 @@
-export const metadata = { title: "Institut Colibri", description: "Soins & tarifs" };
+// /app/layout.tsx
+import type { Metadata } from "next";
+import "./globals.css";
+import NavBar from "./NavBar";
+import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Institut Colibri",
+  description: "Soins, durées et tarifs",
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
-      <body style={{ fontFamily: "system-ui, sans-serif", margin: 0, padding: 20, background: "#fafafa" }}>
-        <header style={{ maxWidth: 960, margin: "0 auto 20px", padding: "10px 0" }}>
-          <h1 style={{ margin: 0 }}>Institut Colibri</h1>
-          <p style={{ margin: "6px 0 0", color: "#555" }}>Soins, durées et tarifs</p>
+      <body className="site">
+        <header className="site-header">
+          <Link href="/" className="brand">Institut Colibri</Link>
+          <NavBar />
         </header>
-        <main style={{ maxWidth: 960, margin: "0 auto" }}>{children}</main>
-        <footer style={{ maxWidth: 960, margin: "40px auto 0", fontSize: 12, color: "#777" }}>
-          <hr />
-          <p>© {new Date().getFullYear()} Institut Colibri</p>
+
+        <main className="site-main">{children}</main>
+
+        <footer className="site-footer">
+          © {new Date().getFullYear()} Institut Colibri
         </footer>
       </body>
     </html>
