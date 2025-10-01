@@ -126,7 +126,6 @@ body {
 .menu-link:hover { background: #f5f5f7; }
 .menu-link.active { background: #111; color: #fff; }
 /* Import de la police douce et élégante */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&display=swap');
 
 /* Le header devient vertical : titre centré + menu en dessous */
 .site-header {
