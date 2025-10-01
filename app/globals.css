@@ -1,14 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Cormorant+Garamond:wght@400;500;600&display=swap');
+
 /* --- Reset simple --- */
 html, body { margin: 0; padding: 0; }
 
 /* --- Fond papier peint (moins zoomé) --- */
-/* L’image est répétée avec une taille confortable. Ajuste 600px si besoin. */
 body {
   font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
   background-image: url("/fond-ecran-institut.jpg");
   background-repeat: repeat;
-  background-size: 600px auto;   /* ↓ plus grand = plus "zoomé", plus petit = plus de répétition */
+  background-size: 600px auto;   /* +grand = plus zoomé, +petit = motif répété */
   background-position: top center;
   color: #111;
   line-height: 1.6;
@@ -22,36 +22,47 @@ body {
   /* pas de fond ici: on laisse voir le papier peint */
 }
 
+/* Header vertical : Titre centré + Menu en dessous */
 .site-header {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px; /* espace entre le titre et le bouton Menu */
   margin-bottom: 16px;
 }
 
-.brand {
-  font-size: 22px;
-  font-weight: 700;
-  text-decoration: none;
-  color: inherit;
-  margin-right: auto;
+/* Gros titre centré, couleur #7D6C71 */
+.site-title {
+  text-align: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 6em;          /* ~6x plus grand */
+  font-weight: 600;
+  margin: 10px 0 4px;
+  color: #7D6C71;          /* Rouge:125, Vert:108, Bleu:113 */
 }
 
-/* Carte centrale lisible sur le fond */
+/* Le bouton Menu reste à droite dans le header (ou center si tu préfères) */
+.menu-wrap { align-self: flex-end; }
+
+/* Ancienne classe brand (non utilisée) */
+.brand { display: none; }
+
+/* Contenu principal sans carte blanche */
 .site-main {
-  background: transparent; /* plus de fond blanc */
+  background: transparent;
   border: 0;
-  padding: 0;              /* on laisse la vignette gérer son propre padding */
+  padding: 0;
 }
 
-
+/* Footer : style géré par .card, on ne garde que la typo/taille */
 .site-footer {
   margin-top: 18px;
   color: #444;
   font-size: 14px;
-  /* pas de background/border ici, c’est la classe .card qui s’en occupe */
+  /* pas de background/border ici : la classe .card s'en occupe */
 }
-/* --- Styles ancien menu “liens” (au cas où) --- */
+
+/* --- Styles ancien menu “liens” (si jamais utilisés) --- */
 .nav { display: flex; gap: 12px; flex-wrap: wrap; }
 .nav-link {
   text-decoration: none;
@@ -65,34 +76,34 @@ body {
 .nav-link.active { background: #111; color: #fff; border-color: #111; }
 
 /* ----- Menu déroulant (☰ Menu) ----- */
-.menu-wrap { position: relative; }
 .menu-button {
   appearance: none;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid #e6e6e9;
-  background: #fff;
-  padding: 8px 12px;
+
+  /* style "card" léger pour le bouton (plus blanc) */
+  background: rgba(125, 108, 113, 0.10);
+  border: 1px solid rgba(125, 108, 113, 0.20);
   border-radius: 10px;
+
+  padding: 8px 12px;
   font-size: 14px;
   cursor: pointer;
 }
-.menu-button:hover { background: #fafafa; }
+.menu-button:hover { background: rgba(125, 108, 113, 0.15); }
 
 .menu-icon { font-size: 16px; line-height: 1; }
-
 .chevron { margin-left: 6px; display: inline-block; transition: transform 0.15s ease; }
 .chevron-up { transform: rotate(180deg); }
 
-/* panneau + animation douce */
+/* Panneau du menu + animation douce - style "card" */
 .menu-panel {
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
   min-width: 220px;
 
-  /* style "card" */
   background: rgba(125, 108, 113, 0.10);
   border: 1px solid rgba(125, 108, 113, 0.20);
   border-radius: 14px;
@@ -114,7 +125,6 @@ body {
   transition: opacity .18s ease, transform .18s ease, visibility 0s;
 }
 
-
 .menu-link {
   text-decoration: none;
   padding: 8px 10px;
@@ -122,58 +132,28 @@ body {
   color: #111;
   display: block;
 }
-.menu-link:hover { background: #f5f5f7; }
+.menu-link:hover { background: rgba(125, 108, 113, 0.12); }
 .menu-link.active { background: #111; color: #fff; }
-/* Import de la police douce et élégante */
 
-/* Le header devient vertical : titre centré + menu en dessous */
-.site-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px; /* petit espace entre le titre et le bouton Menu */
-  margin-bottom: 16px;
-}
-
-/* Gros titre centré, couleur #7D6C71 (tes valeurs RVB) */
-.site-title {
-  text-align: center;
-  font-family: 'Playfair Display', serif;
-  font-size: 6em;          /* ~6x plus grand */
-  font-weight: 600;
-  margin: 10px 0 4px;
-  color: #7D6C71;          /* Rouge:125, Vert:108, Bleu:113 */
-}
-
-/* Le bouton Menu s’aligne à droite du conteneur si tu veux */
-.menu-wrap {
-  align-self: flex-end;    /* le menu reste à droite dans le header */
-}
-
-/* Ancienne classe brand (plus utilisée) — optionnel : tu peux la supprimer */
-.brand { display: none; }
 /* Vignette d’accueil douce et transparente */
 .hero-card {
-  background: rgba(125, 108, 113, 0.10);         /* #7D6C71 à ~12% d’opacité */
+  background: rgba(125, 108, 113, 0.10);         /* teinte #7D6C71 à ~10% */
   border: 1px solid rgba(125, 108, 113, 0.25);   /* liseré subtil */
   border-radius: 14px;
   padding: 24px 22px;
   max-width: 760px;
   margin: 0 auto 16px;
-  color: #3d2f34;                                 /* texte doux lisible */
+  color: #3d2f34;
   font-family: 'Cormorant Garamond', serif;       /* police plus douce */
   line-height: 1.7;
 }
-
 .hero-card h2 {
   margin: 0 0 8px;
   font-family: 'Playfair Display', serif;         /* titre élégant */
   color: #7D6C71;
 }
-.hero-card p {
-  margin: 0;
-  font-size: 20px;
-}
+.hero-card p { margin: 0; font-size: 20px; }
+
 /* Style réutilisable pour toutes les vignettes */
 .card {
   background: rgba(125, 108, 113, 0.10);       /* transparent teinté */
