@@ -4,20 +4,6 @@ import Link from "next/link";
 export default function Home() {
   return (
     <div style={{ textAlign: "center" }}>
-      {/* Image bannière */}
-      <img
-        src="/massage-pierres-chaudes.jpg"
-        alt="Massage aux pierres chaudes à l'Institut Colibri"
-        style={{
-          width: "100%",
-          maxHeight: "500px",
-          objectFit: "cover",
-          borderRadius: "12px",
-          marginBottom: "30px",
-        }}
-      />
-
-      {/* Texte d’accueil */}
       <h2>Bienvenue à l’Institut Colibri</h2>
       <p
         style={{
@@ -28,12 +14,11 @@ export default function Home() {
           margin: "12px auto",
         }}
       >
-        Un havre de paix au cœur de votre bien-être 🌸  
-        Découvrez nos soins visage, nos massages relaxants et nos rituels de beauté.  
+        Un havre de paix au cœur de votre bien-être 🌸
+        Découvrez nos soins visage, nos massages relaxants et nos rituels de beauté.
         Accordez-vous une véritable parenthèse de sérénité ✨
       </p>
 
-      {/* Bouton vers les soins */}
       <div style={{ marginTop: 25 }}>
         <Link
           href="/soins"
@@ -46,7 +31,6 @@ export default function Home() {
             textDecoration: "none",
             fontWeight: 600,
             fontSize: "16px",
-            transition: "0.3s",
           }}
         >
           Découvrir nos soins
