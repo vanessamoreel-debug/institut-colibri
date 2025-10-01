@@ -6,6 +6,13 @@ import { Service, Category, PageDoc } from "../../types";
 
 type Tab = "soins" | "pages";
 
+// petit helper pour convertir un input en number | null
+function numOrNull(v: any): number | null {
+  if (v === "" || v === undefined || v === null) return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
 export default function AdminPage() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("soins");
@@ -107,22 +114,24 @@ export default function AdminPage() {
   // --------- CRUD SOINS ----------
   async function addOrUpdate() {
     setMsg("");
-    const minOk = Number.isFinite(Number(form.priceMin));
-    const maxOk =
-      form.priceMax == null || form.priceMax === "" || Number.isFinite(Number(form.priceMax));
 
+    // Validation simple
     if (!form?.name) return setMsg("Nom requis.");
+    // priceMin/priceMax sont des number|null (on ne compare plus à "")
+    const minOk = form.priceMin == null || Number.isFinite(Number(form.priceMin));
+    const maxOk = form.priceMax == null || Number.isFinite(Number(form.priceMax));
+    if (!minOk || !maxOk) return setMsg("Prix incorrect.");
 
     const payload = {
       ...form,
       category: form.category ? String(form.category).toUpperCase() : null,
-      price: form.price == null || form.price === "" ? null : Number(form.price),
-      priceMin: minOk ? Number(form.priceMin) : null,
-      priceMax: maxOk && form.priceMax !== "" ? Number(form.priceMax) : null,
-      duration: form.duration == null || form.duration === "" ? null : Number(form.duration),
+      price: form.price == null ? null : Number(form.price),
+      priceMin: form.priceMin == null ? null : Number(form.priceMin),
+      priceMax: form.priceMax == null ? null : Number(form.priceMax),
+      duration: form.duration == null ? null : Number(form.duration),
       approxDuration: !!form.approxDuration,
-      order: form.order == null || form.order === "" ? null : Number(form.order),
-      spacing: form.spacing == null || form.spacing === "" ? null : Number(form.spacing),
+      order: form.order == null ? null : Number(form.order),
+      spacing: form.spacing == null ? null : Number(form.spacing),
     };
 
     const method = form?.id ? "PUT" : "POST";
@@ -308,7 +317,7 @@ export default function AdminPage() {
                 placeholder="Ordre (ex: 1)"
                 type="number"
                 value={catForm.order?.toString() || ""}
-                onChange={e => setCatForm({ ...(catForm as any), order: e.target.value === "" ? null : Number(e.target.value) })}
+                onChange={e => setCatForm({ ...(catForm as any), order: numOrNull(e.target.value) as any })}
               />
               <div style={{ display: "flex", gap: 8 }}>
                 <button onClick={catAddOrUpdate}>{(catForm as any).id ? "Enregistrer" : "Ajouter"}</button>
@@ -345,15 +354,15 @@ export default function AdminPage() {
           </div>
 
           {/* --- Bloc Soins --- */}
-          <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
+          <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid "#eee", marginBottom: 20 }}>
             <h3>{form?.id ? "Modifier un soin" : "Ajouter un soin"}</h3>
 
             <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 110px 110px 90px 90px 1fr" }}>
               <input placeholder="Nom" value={form.name || ""} onChange={e => setForm({ ...form, name: e.target.value })} />
-              <input placeholder="Prix (CHF)" type="number" value={form.price?.toString() || ""} onChange={e => setForm({ ...form, price: e.target.value === "" ? null : Number(e.target.value) })} />
-              <input placeholder="Prix max (facultatif)" type="number" value={form.priceMax?.toString() || ""} onChange={e => setForm({ ...form, priceMax: e.target.value === "" ? null : Number(e.target.value) })} />
-              <input placeholder="Durée (min)" type="number" value={form.duration?.toString() || ""} onChange={e => setForm({ ...form, duration: e.target.value === "" ? null : Number(e.target.value) })} />
-              <input placeholder="Ordre" type="number" value={form.order?.toString() || ""} onChange={e => setForm({ ...form, order: e.target.value === "" ? null : Number(e.target.value) })} />
+              <input placeholder="Prix (CHF)" type="number" value={form.price?.toString() || ""} onChange={e => setForm({ ...form, price: numOrNull(e.target.value) as any })} />
+              <input placeholder="Prix max (facultatif)" type="number" value={form.priceMax?.toString() || ""} onChange={e => setForm({ ...form, priceMax: numOrNull(e.target.value) as any })} />
+              <input placeholder="Durée (min)" type="number" value={form.duration?.toString() || ""} onChange={e => setForm({ ...form, duration: numOrNull(e.target.value) as any })} />
+              <input placeholder="Ordre" type="number" value={form.order?.toString() || ""} onChange={e => setForm({ ...form, order: numOrNull(e.target.value) as any })} />
               <input list="colibri-cats" placeholder="Catégorie" value={form.category || ""} onChange={e => setForm({ ...form, category: e.target.value.toUpperCase() })} />
               <datalist id="colibri-cats">
                 {cats.map(c => <option key={c.id} value={c.name} />)}
@@ -367,7 +376,7 @@ export default function AdminPage() {
 
             <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 110px" }}>
               <textarea placeholder="Description (optionnel)" value={form.description || ""} onChange={e => setForm({ ...form, description: e.target.value })} />
-              <input placeholder="Espacement (px)" type="number" value={form.spacing?.toString() || ""} onChange={e => setForm({ ...form, spacing: e.target.value === "" ? null : Number(e.target.value) })} />
+              <input placeholder="Espacement (px)" type="number" value={form.spacing?.toString() || ""} onChange={e => setForm({ ...form, spacing: numOrNull(e.target.value) as any })} />
             </div>
 
             <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
