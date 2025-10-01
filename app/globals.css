@@ -61,9 +61,21 @@ body {
 
 /* Footer */
 .site-footer {
-  margin-top: 18px;
-  color: #444;
+  position: fixed;          /* fixé en bas */
+  right: 16px;              /* distance du bord droit */
+  bottom: 10px;             /* distance du bas */
   font-size: 14px;
+  color: #444;
+
+  background: rgba(125, 108, 113, 0.10);
+  border: 1px solid rgba(125, 108, 113, 0.20);
+  border-radius: 10px;
+  padding: 6px 10px;
+
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+
+  z-index: 1000;
 }
 
 /* ----- Bouton Menu (☰) ----- */
