@@ -1,28 +1,28 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Cormorant+Garamond:wght@400;500;600&display=swap');
 
-/* --- Reset simple + structure générale --- */
+/* --- Reset + layout sticky footer --- */
 html, body {
   margin: 0;
   padding: 0;
-  height: 100%;         /* occupe tout l’écran */
+  height: 100%;
 }
 
 .site {
-  min-height: 100%;     /* le site prend toute la hauteur */
+  min-height: 100%;
   display: flex;
   flex-direction: column;
 }
 
 .site-main {
-  flex: 1;              /* prend toute la place restante */
+  flex: 1;
   background: transparent;
   border: 0;
   padding: 0;
 }
 
-/* Footer collé en bas de page (non flottant) */
+/* Footer collé en bas (non flottant) */
 .site-footer {
-  align-self: flex-start;  /* collé à gauche */
+  align-self: flex-start;        /* à gauche */
   margin: 10px 0 0 16px;
   font-size: 14px;
   color: #444;
@@ -36,25 +36,25 @@ html, body {
   -webkit-backdrop-filter: blur(6px);
 }
 
-/* --- Fond papier peint (moins zoomé) --- */
+/* --- Fond papier peint --- */
 body {
   font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
   background-image: url("/fond-ecran-institut.jpg");
   background-repeat: repeat;
-  background-size: 600px auto;   /* +grand = plus zoomé, +petit = plus répété */
+  background-size: 600px auto;
   background-position: top center;
   color: #111;
   line-height: 1.6;
 }
 
-/* --- Structure générale (conteneur) --- */
+/* --- Conteneur principal --- */
 .site {
   max-width: 980px;
   margin: 0 auto;
   padding: 16px;
 }
 
-/* Header vertical : Titre centré + Menu en dessous */
+/* --- Header : titre + menu --- */
 .site-header {
   display: flex;
   flex-direction: column;
@@ -63,7 +63,6 @@ body {
   margin-bottom: 16px;
 }
 
-/* Gros titre centré, couleur #7D6C71 */
 .site-title {
   text-align: center;
   font-family: 'Playfair Display', serif;
@@ -73,13 +72,12 @@ body {
   color: #7D6C71;
 }
 
-/* Ancienne classe brand (non utilisée) */
-.brand { display: none; }
+.brand { display: false; } /* plus utilisé */
 
-/* ----- Menu déroulant (☰ Menu) ----- */
+/* --- Menu --- */
 .menu-wrap {
   align-self: flex-end;
-  position: relative;   /* important pour ancrer le panneau */
+  position: relative; /* ancrage du panneau */
 }
 
 .menu-button {
@@ -102,7 +100,6 @@ body {
 .chevron { margin-left: 6px; display: inline-block; transition: transform 0.15s ease; }
 .chevron-up { transform: rotate(180deg); }
 
-/* Panneau déroulant */
 .menu-panel {
   position: absolute;
   top: calc(100% + 6px);
@@ -115,7 +112,10 @@ body {
   padding: 6px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 
-  z-index: 20;
+  z-index: 1000;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+
   opacity: 0;
   transform: translateY(-6px);
   pointer-events: none;
@@ -140,9 +140,9 @@ body {
 .menu-link:hover { background: rgba(125, 108, 113, 0.12); }
 .menu-link.active { background: #111; color: #fff; }
 
-/* Vignette d’accueil douce et floutée */
+/* --- Vignette d’accueil (floutée) --- */
 .hero-card {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(125, 108, 113, 0.10);
   border: 1px solid rgba(125, 108, 113, 0.25);
   border-radius: 14px;
   padding: 24px 22px;
@@ -152,8 +152,8 @@ body {
   font-family: 'Cormorant Garamond', serif;
   line-height: 1.7;
 
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 .hero-card h2 {
   margin: 0 0 8px;
@@ -162,7 +162,7 @@ body {
 }
 .hero-card p { margin: 0; font-size: 20px; }
 
-/* Style réutilisable pour toutes les vignettes */
+/* --- Classe .card générique --- */
 .card {
   background: rgba(125, 108, 113, 0.10);
   border: 1px solid rgba(125, 108, 113, 0.20);
@@ -170,4 +170,97 @@ body {
   padding: 16px 20px;
   margin: 16px 0;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* ====== Services — conteneur englobant flouté ====== */
+.services-container {
+  background: rgba(255,255,255,0.35);
+  border: 1px solid rgba(125,108,113,0.25);
+  border-radius: 16px;
+  padding: 20px 18px;
+  margin: 0 auto 18px;
+  max-width: 980px;
+
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+}
+
+/* ====== Services — style “magazine” ====== */
+.services-wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 8px 4px;
+}
+
+.services-title {
+  text-align: center;
+  font-family: 'Playfair Display', serif;
+  color: #7D6C71;
+  margin: 6px 0 0;
+}
+.services-sub {
+  text-align: center;
+  margin: 4px 0 18px;
+  color: #444;
+}
+
+.services-section {
+  margin: 26px 0 20px;
+}
+
+.services-cat {
+  font-family: 'Playfair Display', serif;
+  letter-spacing: 0.5px;
+  font-size: 1.3rem;
+  margin: 0 0 10px;
+  color: #3d2f34;
+}
+
+.services-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Ligne “nom ……… prix” */
+.service-row { }
+.service-line {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.service-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.05rem;
+  color: #2b2326;
+  font-weight: 600;
+}
+.service-fill {
+  flex: 1;
+  border-bottom: 1px dotted rgba(125,108,113,0.45);
+  transform: translateY(-2px);
+}
+.service-price {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* meta (durée / description) */
+.service-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: #5a4a50;
+  font-size: 0.95rem;
+  margin-top: 4px;
+}
+.service-duration { font-style: italic; }
+.service-desc { opacity: 0.9; }
+
+/* ====== Petits écrans ====== */
+@media (max-width: 520px) {
+  .site-title { font-size: 3rem; }
+  .services-container { padding: 14px 12px; }
+  .service-name { font-size: 1rem; }
 }
