@@ -115,9 +115,7 @@ export default function AdminPage() {
   async function addOrUpdate() {
     setMsg("");
 
-    // Validation simple
     if (!form?.name) return setMsg("Nom requis.");
-    // priceMin/priceMax sont des number|null (on ne compare plus à "")
     const minOk = form.priceMin == null || Number.isFinite(Number(form.priceMin));
     const maxOk = form.priceMax == null || Number.isFinite(Number(form.priceMax));
     if (!minOk || !maxOk) return setMsg("Prix incorrect.");
@@ -354,7 +352,7 @@ export default function AdminPage() {
           </div>
 
           {/* --- Bloc Soins --- */}
-          <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid "#eee", marginBottom: 20 }}>
+          <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
             <h3>{form?.id ? "Modifier un soin" : "Ajouter un soin"}</h3>
 
             <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 110px 110px 90px 90px 1fr" }}>
