@@ -38,6 +38,7 @@ function formatPrice(s: Service) {
 export default async function SoinsPage() {
   const [services, categories] = await Promise.all([getServices(), getCategories()]);
 
+  // Regrouper par catégorie
   const byCat = services.reduce<Record<string, Service[]>>((acc, s) => {
     const k = s.category || "AUTRES";
     (acc[k] ||= []).push(s);
@@ -45,6 +46,7 @@ export default async function SoinsPage() {
   }, {});
   const presentCats = Object.keys(byCat);
 
+  // Ordre des catégories (défini) puis inconnues (alpha)
   const knownOrder = categories
     .filter(c => presentCats.includes(c.name))
     .sort((a, b) => {
