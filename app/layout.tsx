@@ -19,10 +19,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 </header>
 
         <main className="site-main">{children}</main>
-
-        <footer className="site-footer">
-          © {new Date().getFullYear()} Institut Colibri
-        </footer>
+        <footer className="site-footer card">
+  © 2025 Institut Colibri
+</footer>
       </body>
     </html>
   );
