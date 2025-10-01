@@ -156,7 +156,7 @@ body {
 .brand { display: none; }
 /* Vignette d’accueil douce et transparente */
 .hero-card {
-  background: rgba(125, 108, 113, 0.25);         /* #7D6C71 à ~12% d’opacité */
+  background: rgba(125, 108, 113, 0.20);         /* #7D6C71 à ~12% d’opacité */
   border: 1px solid rgba(125, 108, 113, 0.25);   /* liseré subtil */
   border-radius: 14px;
   padding: 24px 22px;
