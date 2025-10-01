@@ -1,0 +1,70 @@
+/* Reset simple */
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+/* --- Base layout --- */
+.site {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 16px;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  background: #f7f7f8;
+  color: #111;
+}
+
+.site-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.brand {
+  font-size: 22px;
+  font-weight: 700;
+  text-decoration: none;
+  color: inherit;
+  margin-right: auto;
+}
+
+/* --- Nav --- */
+.nav {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.nav-link {
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid #e6e6e9;
+  background: #fff;
+  font-size: 14px;
+}
+
+.nav-link:hover {
+  background: #fafafa;
+}
+
+.nav-link.active {
+  background: #111;
+  color: #fff;
+  border-color: #111;
+}
+
+/* --- Main & footer --- */
+.site-main {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.site-footer {
+  margin-top: 18px;
+  color: #666;
+  font-size: 14px;
+}
