@@ -176,3 +176,12 @@ body {
   margin: 0;
   font-size: 20px;
 }
+/* Style réutilisable pour toutes les vignettes */
+.card {
+  background: rgba(125, 108, 113, 0.10);       /* transparent teinté */
+  border: 1px solid rgba(125, 108, 113, 0.20);
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin: 16px 0;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
