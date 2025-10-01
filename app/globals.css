@@ -62,7 +62,7 @@ body {
 /* Footer */
 .site-footer {
   position: fixed;          /* fixé en bas */
-  right: 16px;              /* distance du bord droit */
+  left: 16px;              /* distance du bord droit */
   bottom: 10px;             /* distance du bas */
   font-size: 14px;
   color: #444;
