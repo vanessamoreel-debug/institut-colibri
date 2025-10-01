@@ -40,7 +40,7 @@ body {
   font-size: 6em;          /* ~6x plus grand */
   font-weight: 600;
   margin: 10px 0 4px;
-  color: #7D6C71;
+  color: #7D6C71;          /* Rouge:125, Vert:108, Bleu:113 */
 }
 
 /* Conteneur du menu */
@@ -66,7 +66,7 @@ body {
   font-size: 14px;
 }
 
-/* --- Bouton Menu --- */
+/* ----- Bouton Menu (☰) ----- */
 .menu-button {
   appearance: none;
   display: inline-flex;
@@ -87,7 +87,7 @@ body {
 .chevron { margin-left: 6px; display: inline-block; transition: transform 0.15s ease; }
 .chevron-up { transform: rotate(180deg); }
 
-/* Panneau du menu */
+/* ----- Panneau du menu ----- */
 .menu-panel {
   position: absolute;
   top: calc(100% + 6px);
@@ -128,10 +128,10 @@ body {
 .menu-link:hover { background: rgba(125, 108, 113, 0.12); }
 .menu-link.active { background: #111; color: #fff; }
 
-/* --- Vignette d’accueil floutée --- */
+/* ----- Vignette d’accueil ----- */
 .hero-card {
-  background: rgba(125, 108, 113, 0.10);         
-  border: 1px solid rgba(125, 108, 113, 0.25);   
+  background: rgba(125, 108, 113, 0.10);
+  border: 1px solid rgba(125, 108, 113, 0.25);
   border-radius: 14px;
   padding: 24px 22px;
   max-width: 760px;
@@ -140,7 +140,7 @@ body {
   font-family: 'Cormorant Garamond', serif;
   line-height: 1.7;
 
-  backdrop-filter: blur(10px);        /* flou verre dépoli */
+  backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
 .hero-card h2 {
@@ -150,7 +150,7 @@ body {
 }
 .hero-card p { margin: 0; font-size: 20px; }
 
-/* --- Style réutilisable pour toutes les vignettes --- */
+/* ----- Style réutilisable pour toutes les vignettes ----- */
 .card {
   background: rgba(125, 108, 113, 0.10);
   border: 1px solid rgba(125, 108, 113, 0.20);
@@ -161,4 +161,88 @@ body {
 
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+}
+
+/* ====== Services — style “magazine” (sans vignette) ====== */
+
+.services-wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 8px 4px;
+}
+
+.services-title {
+  text-align: center;
+  font-family: 'Playfair Display', serif;
+  color: #7D6C71;
+  margin: 6px 0 0;
+}
+.services-sub {
+  text-align: center;
+  margin: 4px 0 18px;
+  color: #444;
+}
+
+.services-section {
+  margin: 26px 0 20px;
+}
+
+.services-cat {
+  font-family: 'Playfair Display', serif;
+  letter-spacing: 0.5px;
+  font-size: 1.3rem;
+  margin: 0 0 10px;
+  color: #3d2f34;
+}
+
+.services-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* espace vertical entre les lignes (hors spacing personnalisé) */
+}
+
+/* Une ligne de soin = nom .... prix */
+.service-row { }
+
+.service-line {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.service-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.05rem;
+  color: #2b2326;
+  font-weight: 600;
+}
+
+/* suite de points/dot leaders entre nom et prix */
+.service-fill {
+  flex: 1;
+  border-bottom: 1px dotted rgba(125,108,113,0.45);
+  transform: translateY(-2px);
+}
+
+.service-price {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* meta sous-ligne : durée et description en discret */
+.service-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: #5a4a50;
+  font-size: 0.95rem;
+  margin-top: 4px;
+}
+
+.service-duration {
+  font-style: italic;
+}
+
+.service-desc {
+  opacity: 0.9;
 }
