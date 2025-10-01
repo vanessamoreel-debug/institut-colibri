@@ -5,20 +5,21 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-const LINKS = [
+const PUBLIC_LINKS = [
   { href: "/", label: "Accueil" },
   { href: "/soins", label: "Soins" },
   { href: "/contact", label: "Contact" },
   { href: "/a-propos", label: "À propos" },
-  { href: "/admin", label: "Admin" }, // utile pour toi; on peut le masquer au public plus tard
 ];
+const ADMIN_LINK = { href: "/admin", label: "Admin" };
 
 export default function NavBar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Fermer si clic à l’extérieur
+  // Clic à l’extérieur → fermer
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
       if (!menuRef.current) return;
@@ -28,10 +29,18 @@ export default function NavBar() {
     return () => document.removeEventListener("click", onClickOutside);
   }, []);
 
-  // Fermer le menu quand on change de page
+  // Changement de page → fermer
+  useEffect(() => setOpen(false), [pathname]);
+
+  // Vérifier si connecté admin (cookie)
   useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
+    fetch("/api/auth/status", { credentials: "include" })
+      .then((r) => r.json())
+      .then((j) => setShowAdmin(!!j?.authed))
+      .catch(() => setShowAdmin(false));
+  }, []);
+
+  const links = showAdmin ? [...PUBLIC_LINKS, ADMIN_LINK] : PUBLIC_LINKS;
 
   return (
     <div className="menu-wrap" ref={menuRef}>
@@ -41,10 +50,9 @@ export default function NavBar() {
         aria-controls="main-menu"
         onClick={() => setOpen((v) => !v)}
       >
-        Menu
-        <span className={open ? "chevron chevron-up" : "chevron"} aria-hidden>
-          ▾
-        </span>
+        <span className="menu-icon" aria-hidden>☰</span>
+        <span>Menu</span>
+        <span className={open ? "chevron chevron-up" : "chevron"} aria-hidden>▾</span>
       </button>
 
       <div
@@ -53,7 +61,7 @@ export default function NavBar() {
         role="menu"
         aria-label="Navigation principale"
       >
-        {LINKS.map((l) => {
+        {links.map((l) => {
           const isActive =
             l.href === "/"
               ? pathname === "/"
