@@ -95,13 +95,15 @@ body {
   top: calc(100% + 6px);
   right: 0;
   min-width: 220px;
-  background: #fff;
-  border: 1px solid #e6e6e9;
-  border-radius: 12px;
-  padding: 6px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-  z-index: 20;
 
+  /* style "card" */
+  background: rgba(125, 108, 113, 0.10);
+  border: 1px solid rgba(125, 108, 113, 0.20);
+  border-radius: 14px;
+  padding: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+
+  z-index: 20;
   opacity: 0;
   transform: translateY(-6px);
   pointer-events: none;
@@ -115,6 +117,7 @@ body {
   visibility: visible;
   transition: opacity .18s ease, transform .18s ease, visibility 0s;
 }
+
 
 .menu-link {
   text-decoration: none;
