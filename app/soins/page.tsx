@@ -83,16 +83,7 @@ export default async function SoinsPage() {
               {sorted.map((s) => {
                 const dur = formatDuration(s);
                 return (
-                  <div
-                    key={s.id}
-                    style={{
-                      background: "#fff",
-                      padding: 14,
-                      borderRadius: 10,
-                      marginBottom: s.spacing ?? 10,
-                      border: "1px solid #eee",
-                    }}
-                  >
+                 <div key={s.id} className="card" style={{ marginBottom: s.spacing ?? 10 }}>
                     <strong>{s.name}</strong>
                     {dur ? <span> {dur}</span> : null}
                     <div style={{ float: "right", fontWeight: 600 }}>{formatPrice(s)}</div>
