@@ -163,8 +163,21 @@ body {
   -webkit-backdrop-filter: blur(6px);
 }
 
-/* ====== Services — style “magazine” (sans vignette) ====== */
+/* ====== Services — conteneur englobant flouté ====== */
+.services-container {
+  background: rgba(255,255,255,0.35);            /* base claire */
+  border: 1px solid rgba(125,108,113,0.25);
+  border-radius: 16px;
+  padding: 20px 18px;
+  margin: 0 auto 18px;
+  max-width: 980px;
 
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+}
+
+/* ====== Services — style “magazine” (sans vignettes par ligne) ====== */
 .services-wrap {
   max-width: 900px;
   margin: 0 auto;
@@ -198,7 +211,7 @@ body {
 .services-list {
   display: flex;
   flex-direction: column;
-  gap: 10px; /* espace vertical entre les lignes (hors spacing personnalisé) */
+  gap: 10px;
 }
 
 /* Une ligne de soin = nom .... prix */
@@ -245,4 +258,11 @@ body {
 
 .service-desc {
   opacity: 0.9;
+}
+
+/* ====== Petits écrans ====== */
+@media (max-width: 520px) {
+  .site-title { font-size: 3rem; }
+  .services-container { padding: 14px 12px; }
+  .service-name { font-size: 1rem; }
 }
