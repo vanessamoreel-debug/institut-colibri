@@ -39,11 +39,11 @@ body {
 
 /* Carte centrale lisible sur le fond */
 .site-main {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid #eee;
-  border-radius: 12px;
-  padding: 16px;
+  background: transparent; /* plus de fond blanc */
+  border: 0;
+  padding: 0;              /* on laisse la vignette gérer son propre padding */
 }
+
 
 .site-footer {
   margin-top: 18px;
