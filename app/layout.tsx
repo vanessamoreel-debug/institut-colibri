@@ -13,10 +13,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fr">
       <body className="site">
-        <header className="site-header">
-          <Link href="/" className="brand">Institut Colibri</Link>
-          <NavBar />
-        </header>
+       <header className="site-header">
+  <h1 className="site-title">Institut Colibri</h1>
+  <NavBar />
+</header>
 
         <main className="site-main">{children}</main>
 
