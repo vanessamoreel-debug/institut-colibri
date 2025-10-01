@@ -1,69 +1,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Cormorant+Garamond:wght@400;500;600&display=swap');
 
-/* --- Reset simple --- */
-html, body { margin: 0; padding: 0; }
-
-/* --- Fond papier peint (moins zoomé) --- */
-body {
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
-  background-image: url("/fond-ecran-institut.jpg");
-  background-repeat: repeat;
-  background-size: 600px auto;   /* +grand = plus zoomé, +petit = motif répété */
-  background-position: top center;
-  color: #111;
-  line-height: 1.6;
+/* --- Reset simple + structure générale --- */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;         /* occupe tout l’écran */
 }
 
-/* --- Structure générale --- */
 .site {
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 16px;
-}
-
-/* Header vertical : Titre centré + Menu en dessous + espace réservé */
-.site-header {
+  min-height: 100%;     /* le site prend toute la hauteur */
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 0;
-  padding-bottom: 72px;     /* espace réservé pour le menu déroulant */
-  position: relative;
-  z-index: 10;
 }
 
-/* Gros titre centré, couleur #7D6C71 */
-.site-title {
-  text-align: center;
-  font-family: 'Playfair Display', serif;
-  font-size: 6em;          /* ~6x plus grand */
-  font-weight: 600;
-  margin: 10px 0 4px;
-  color: #7D6C71;          /* Rouge:125, Vert:108, Bleu:113 */
-}
-
-/* Conteneur du menu */
-.menu-wrap { 
-  align-self: flex-end;
-  position: relative;
-}
-
-/* Ancienne classe brand (non utilisée) */
-.brand { display: none; }
-
-/* Contenu principal */
 .site-main {
+  flex: 1;              /* prend toute la place restante */
   background: transparent;
   border: 0;
   padding: 0;
 }
 
-/* Footer */
+/* Footer collé en bas de page (non flottant) */
 .site-footer {
-  position: fixed;          /* fixé en bas */
-  left: 16px;              /* distance du bord droit */
-  bottom: 10px;             /* distance du bas */
+  align-self: flex-start;  /* collé à gauche */
+  margin: 10px 0 0 16px;
   font-size: 14px;
   color: #444;
 
@@ -74,11 +34,54 @@ body {
 
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-
-  z-index: 1000;
 }
 
-/* ----- Bouton Menu (☰) ----- */
+/* --- Fond papier peint (moins zoomé) --- */
+body {
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
+  background-image: url("/fond-ecran-institut.jpg");
+  background-repeat: repeat;
+  background-size: 600px auto;   /* +grand = plus zoomé, +petit = plus répété */
+  background-position: top center;
+  color: #111;
+  line-height: 1.6;
+}
+
+/* --- Structure générale (conteneur) --- */
+.site {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Header vertical : Titre centré + Menu en dessous */
+.site-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+/* Gros titre centré, couleur #7D6C71 */
+.site-title {
+  text-align: center;
+  font-family: 'Playfair Display', serif;
+  font-size: 6em;
+  font-weight: 600;
+  margin: 10px 0 4px;
+  color: #7D6C71;
+}
+
+/* Ancienne classe brand (non utilisée) */
+.brand { display: none; }
+
+/* ----- Menu déroulant (☰ Menu) ----- */
+.menu-wrap {
+  align-self: flex-end;
+  position: relative;   /* important pour ancrer le panneau */
+}
+
 .menu-button {
   appearance: none;
   display: inline-flex;
@@ -99,7 +102,7 @@ body {
 .chevron { margin-left: 6px; display: inline-block; transition: transform 0.15s ease; }
 .chevron-up { transform: rotate(180deg); }
 
-/* ----- Panneau du menu ----- */
+/* Panneau déroulant */
 .menu-panel {
   position: absolute;
   top: calc(100% + 6px);
@@ -112,10 +115,7 @@ body {
   padding: 6px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 
-  z-index: 1000;
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-
+  z-index: 20;
   opacity: 0;
   transform: translateY(-6px);
   pointer-events: none;
@@ -140,9 +140,9 @@ body {
 .menu-link:hover { background: rgba(125, 108, 113, 0.12); }
 .menu-link.active { background: #111; color: #fff; }
 
-/* ----- Vignette d’accueil ----- */
+/* Vignette d’accueil douce et floutée */
 .hero-card {
-  background: rgba(125, 108, 113, 0.10);
+  background: rgba(255, 255, 255, 0.2);
   border: 1px solid rgba(125, 108, 113, 0.25);
   border-radius: 14px;
   padding: 24px 22px;
@@ -152,8 +152,8 @@ body {
   font-family: 'Cormorant Garamond', serif;
   line-height: 1.7;
 
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 .hero-card h2 {
   margin: 0 0 8px;
@@ -162,7 +162,7 @@ body {
 }
 .hero-card p { margin: 0; font-size: 20px; }
 
-/* ----- Style réutilisable pour toutes les vignettes ----- */
+/* Style réutilisable pour toutes les vignettes */
 .card {
   background: rgba(125, 108, 113, 0.10);
   border: 1px solid rgba(125, 108, 113, 0.20);
@@ -170,111 +170,4 @@ body {
   padding: 16px 20px;
   margin: 16px 0;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-
-/* ====== Services — conteneur englobant flouté ====== */
-.services-container {
-  background: rgba(255,255,255,0.35);            /* base claire */
-  border: 1px solid rgba(125,108,113,0.25);
-  border-radius: 16px;
-  padding: 20px 18px;
-  margin: 0 auto 18px;
-  max-width: 980px;
-
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 8px 28px rgba(0,0,0,0.08);
-}
-
-/* ====== Services — style “magazine” (sans vignettes par ligne) ====== */
-.services-wrap {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 8px 4px;
-}
-
-.services-title {
-  text-align: center;
-  font-family: 'Playfair Display', serif;
-  color: #7D6C71;
-  margin: 6px 0 0;
-}
-.services-sub {
-  text-align: center;
-  margin: 4px 0 18px;
-  color: #444;
-}
-
-.services-section {
-  margin: 26px 0 20px;
-}
-
-.services-cat {
-  font-family: 'Playfair Display', serif;
-  letter-spacing: 0.5px;
-  font-size: 1.3rem;
-  margin: 0 0 10px;
-  color: #3d2f34;
-}
-
-.services-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* Une ligne de soin = nom .... prix */
-.service-row { }
-
-.service-line {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-}
-
-.service-name {
-  font-family: 'Playfair Display', serif;
-  font-size: 1.05rem;
-  color: #2b2326;
-  font-weight: 600;
-}
-
-/* suite de points/dot leaders entre nom et prix */
-.service-fill {
-  flex: 1;
-  border-bottom: 1px dotted rgba(125,108,113,0.45);
-  transform: translateY(-2px);
-}
-
-.service-price {
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-/* meta sous-ligne : durée et description en discret */
-.service-meta {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  color: #5a4a50;
-  font-size: 0.95rem;
-  margin-top: 4px;
-}
-
-.service-duration {
-  font-style: italic;
-}
-
-.service-desc {
-  opacity: 0.9;
-}
-
-/* ====== Petits écrans ====== */
-@media (max-width: 520px) {
-  .site-title { font-size: 3rem; }
-  .services-container { padding: 14px 12px; }
-  .service-name { font-size: 1rem; }
 }
