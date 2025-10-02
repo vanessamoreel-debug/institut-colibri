@@ -1,6 +1,8 @@
 // /app/a-propos/page.tsx
 import { headers } from "next/headers";
 
+export const dynamic = "force-dynamic";
+
 async function getPage(slug: string) {
   const h = await headers();
   const host = h.get("host");
