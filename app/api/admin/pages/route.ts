@@ -2,6 +2,7 @@
 import { NextResponse, NextRequest } from "next/server";
 import { getFirestore } from "firebase-admin/firestore";
 import { initializeApp, getApps, cert } from "firebase-admin/app";
+import { revalidatePath } from "next/cache";
 
 function initAdmin() {
   if (getApps().length) return;
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest) {
     initAdmin();
     const db = getFirestore();
     const qs = await db.collection("pages").get();
-    const out = qs.docs.map(d => ({
+    const out = qs.docs.map((d) => ({
       id: d.id,
       slug: d.id,
       title: d.get("title") || "",
@@ -36,11 +37,14 @@ export async function GET(req: NextRequest) {
     }));
     return NextResponse.json({ data: out });
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: e?.message || "Server error" },
+      { status: 500 }
+    );
   }
 }
 
-// create/update : body { slug, title, body }
+// create/update
 export async function PUT(req: NextRequest) {
   if (!authed(req)) return new NextResponse("Unauthorized", { status: 401 });
   try {
@@ -63,9 +67,12 @@ export async function PUT(req: NextRequest) {
       { merge: true }
     );
 
-    // renvoyer la liste à jour
+    // revalider la page publique concernée
+    if (slug === "contact") revalidatePath("/contact");
+    if (slug === "a-propos") revalidatePath("/a-propos");
+
     const qs = await db.collection("pages").get();
-    const out = qs.docs.map(d => ({
+    const out = qs.docs.map((d) => ({
       id: d.id,
       slug: d.id,
       title: d.get("title") || "",
@@ -74,11 +81,14 @@ export async function PUT(req: NextRequest) {
     }));
     return NextResponse.json({ ok: true, data: out });
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: e?.message || "Server error" },
+      { status: 500 }
+    );
   }
 }
 
-// delete : body { slug }
+// delete
 export async function DELETE(req: NextRequest) {
   if (!authed(req)) return new NextResponse("Unauthorized", { status: 401 });
   try {
@@ -90,8 +100,12 @@ export async function DELETE(req: NextRequest) {
 
     await db.collection("pages").doc(slug).delete();
 
+    // revalider la page publique concernée
+    if (slug === "contact") revalidatePath("/contact");
+    if (slug === "a-propos") revalidatePath("/a-propos");
+
     const qs = await db.collection("pages").get();
-    const out = qs.docs.map(d => ({
+    const out = qs.docs.map((d) => ({
       id: d.id,
       slug: d.id,
       title: d.get("title") || "",
@@ -100,6 +114,9 @@ export async function DELETE(req: NextRequest) {
     }));
     return NextResponse.json({ ok: true, data: out });
   } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: e?.message || "Server error" },
+      { status: 500 }
+    );
   }
 }
