@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Service, Category, PageDoc } from "../../types";
 
-type Tab = "soins" | "pages";
+type Tab = "soins" | "contact" | "a-propos";
 
 // petit helper pour convertir un input en number | null
 function numOrNull(v: any): number | null {
@@ -17,7 +17,7 @@ export default function AdminPage() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("soins");
 
-  // --- Indicateur d'auth ---
+  // --- Indic. Auth ---
   const [authed, setAuthed] = useState<boolean | null>(null);
 
   // --- Soins ---
@@ -32,11 +32,17 @@ export default function AdminPage() {
   const [catForm, setCatForm] = useState<Partial<Category>>({});
   const [catMsg, setCatMsg] = useState<string>("");
 
-  // --- Pages ---
+  // --- Pages: Contact & À propos (séparées) ---
   const [pages, setPages] = useState<PageDoc[]>([]);
   const [pagesLoading, setPagesLoading] = useState(true);
-  const [pageForm, setPageForm] = useState<Partial<PageDoc>>({});
-  const [pageMsg, setPageMsg] = useState<string>("");
+
+  const [contactTitle, setContactTitle] = useState<string>("");
+  const [contactBody, setContactBody] = useState<string>("");
+  const [contactMsg, setContactMsg] = useState<string>("");
+
+  const [aproposTitle, setAproposTitle] = useState<string>("");
+  const [aproposBody, setAproposBody] = useState<string>("");
+  const [aproposMsg, setAproposMsg] = useState<string>("");
 
   function handleUnauthorized(res: Response) {
     if (res.status === 401) {
@@ -52,10 +58,7 @@ export default function AdminPage() {
       const r = await fetch("/api/auth/status", { credentials: "include", cache: "no-store" });
       const j = await r.json().catch(() => ({}));
       setAuthed(!!j?.authed);
-      if (!j?.authed) {
-        // redirige si pas authed
-        router.replace("/login?next=/admin");
-      }
+      if (!j?.authed) router.replace("/login?next=/admin");
     } catch {
       setAuthed(null);
     }
@@ -96,10 +99,20 @@ export default function AdminPage() {
       if (handleUnauthorized(res)) return;
       if (!res.ok) throw new Error(await res.text());
       const json = await res.json();
-      console.log("DEBUG loadPages response", json);
       setPages(json.data || []);
+
+      // Pré-remplir Contact et À-propos si existants
+      const contact = (json.data || []).find((p: PageDoc) => p.slug === "contact");
+      const apropos = (json.data || []).find((p: PageDoc) => p.slug === "a-propos");
+
+      setContactTitle(contact?.title || "Contact");
+      setContactBody(contact?.body || "");
+      setAproposTitle(apropos?.title || "À propos");
+      setAproposBody(apropos?.body || "");
     } catch (e: any) {
-      setPageMsg(e?.message || "Erreur de chargement des pages");
+      // ne bloque pas l'UI, mais affiche le message au besoin
+      setContactMsg(e?.message || "Erreur de chargement des pages");
+      setAproposMsg(e?.message || "Erreur de chargement des pages");
     } finally {
       setPagesLoading(false);
     }
@@ -233,11 +246,11 @@ export default function AdminPage() {
     }
   }
 
-  // --------- CRUD PAGES ----------
-  async function pageSave() {
-    setPageMsg("");
-    if (!pageForm?.slug || !pageForm?.title) {
-      setPageMsg("Slug et Titre sont requis.");
+  // --------- CRUD PAGES (Contact / À-propos) ----------
+  async function savePage(slug: "contact" | "a-propos", title: string, body: string, setMsg: (v: string) => void) {
+    setMsg("");
+    if (!title || !title.trim()) {
+      setMsg("Titre requis.");
       return;
     }
     try {
@@ -245,13 +258,10 @@ export default function AdminPage() {
         method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          slug: String(pageForm.slug).trim(),
-          title: String(pageForm.title).trim(),
-          body: String(pageForm.body || ""),
-        }),
+        body: JSON.stringify({ slug, title: title.trim(), body: body ?? "" }),
       });
 
+      // Logs utiles si souci
       console.log("DEBUG PUT /api/admin/pages status", res.status);
       if (handleUnauthorized(res)) return;
 
@@ -268,55 +278,13 @@ export default function AdminPage() {
       }
 
       let json: any = null;
-      try {
-        json = JSON.parse(text);
-      } catch {
-        throw new Error("Réponse serveur invalide (JSON attendu).");
-      }
-      console.log("DEBUG PUT /api/admin/pages json", json);
+      try { json = JSON.parse(text); } catch { throw new Error("Réponse serveur invalide (JSON attendu)."); }
 
       setPages(json.data || []);
-      setPageForm({});
-      setPageMsg("✔️ Page enregistrée.");
+      setMsg("✔️ Page enregistrée.");
     } catch (e: any) {
       console.error("DEBUG PUT /api/admin/pages error", e);
-      setPageMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
-    }
-  }
-
-  async function pageDelete(slug: string) {
-    setPageMsg("");
-    try {
-      const res = await fetch("/api/admin/pages", {
-        method: "DELETE",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug }),
-      });
-
-      console.log("DEBUG DELETE /api/admin/pages status", res.status);
-      if (handleUnauthorized(res)) return;
-
-      const text = await res.text();
-      console.log("DEBUG DELETE /api/admin/pages raw", text);
-
-      if (!res.ok) {
-        try {
-          const err = JSON.parse(text);
-          throw new Error(err?.error || text);
-        } catch {
-          throw new Error(text);
-        }
-      }
-
-      const json = JSON.parse(text);
-      console.log("DEBUG DELETE /api/admin/pages json", json);
-
-      setPages(json.data || []);
-      setPageMsg("✔️ Page supprimée.");
-    } catch (e: any) {
-      console.error("DEBUG DELETE /api/admin/pages error", e);
-      setPageMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
+      setMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
     }
   }
 
@@ -342,7 +310,7 @@ export default function AdminPage() {
     <div>
       <h2>Administration</h2>
 
-      {/* statut auth */}
+      {/* statut auth + logout */}
       <div style={{ display: "flex", justifyContent: "space-between", margin: "12px 0" }}>
         <div style={{ fontSize: 13, color: authed ? "green" : "crimson" }}>
           Statut admin : {authed == null ? "…" : authed ? "OK" : "NON CONNECTÉ"}
@@ -355,12 +323,15 @@ export default function AdminPage() {
         <button onClick={() => setTab("soins")} style={{ fontWeight: tab === "soins" ? 700 : 400 }}>
           Soins
         </button>
-        <button onClick={() => setTab("pages")} style={{ fontWeight: tab === "pages" ? 700 : 400 }}>
-          Pages (Contact / À propos)
+        <button onClick={() => setTab("contact")} style={{ fontWeight: tab === "contact" ? 700 : 400 }}>
+          Contact
+        </button>
+        <button onClick={() => setTab("a-propos")} style={{ fontWeight: tab === "a-propos" ? 700 : 400 }}>
+          À propos
         </button>
       </div>
 
-      {tab === "soins" ? (
+      {tab === "soins" && (
         <>
           {/* --- Bloc Catégories --- */}
           <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
@@ -484,67 +455,80 @@ export default function AdminPage() {
             </table>
           )}
         </>
-      ) : (
-        <>
-          {/* --- Bloc Pages (Contact / À propos) --- */}
-          <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
-            <h3>Pages</h3>
-            <p style={{ marginTop: 0, color: "#666" }}>
-              Modifiez le contenu des pages <strong>Contact</strong> et <strong>À propos</strong>. Le champ <em>slug</em> identifie la page (ex: <code>contact</code>, <code>a-propos</code>).
-            </p>
+      )}
 
-            <div style={{ display: "grid", gap: 8, gridTemplateColumns: "160px 1fr" }}>
-              <input
-                placeholder="slug (ex: contact)"
-                value={pageForm.slug || ""}
-                onChange={e => setPageForm({ ...pageForm, slug: e.target.value.trim() })}
+      {tab === "contact" && (
+        <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
+          <h3>Page Contact</h3>
+          <p style={{ marginTop: 0, color: "#666" }}>Cette page est publique sur <code>/contact</code>.</p>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div>
+              <label style={{ display: "block", fontWeight: 600, marginBottom: 4 }}>Titre</label>
+              <input value={contactTitle} onChange={e => setContactTitle(e.target.value)} placeholder="Contact" />
+
+              <label style={{ display: "block", fontWeight: 600, margin: "12px 0 4px" }}>Contenu</label>
+              <textarea
+                value={contactBody}
+                onChange={e => setContactBody(e.target.value)}
+                placeholder="Adresse, téléphone, e-mail, horaires…"
+                style={{ width: "100%", height: 220 }}
               />
-              <input
-                placeholder="Titre (ex: Contact)"
-                value={pageForm.title || ""}
-                onChange={e => setPageForm({ ...pageForm, title: e.target.value })}
-              />
+
+              <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+                <button onClick={() => savePage("contact", contactTitle, contactBody, setContactMsg)}>Enregistrer</button>
+                <button onClick={loadPages}>Recharger</button>
+              </div>
+
+              {contactMsg ? <p style={{ color: contactMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{contactMsg}</p> : null}
             </div>
 
-            <textarea
-              placeholder="Contenu (texte ou Markdown simple)"
-              value={pageForm.body || ""}
-              onChange={e => setPageForm({ ...pageForm, body: e.target.value })}
-              style={{ width: "100%", height: 180, marginTop: 8 }}
-            />
-
-            <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
-              <button onClick={pageSave}>{pageForm?.slug ? "Enregistrer" : "Ajouter"}</button>
-              {pageForm?.slug ? <button onClick={() => setPageForm({})}>Annuler</button> : null}
+            <div>
+              <div style={{ fontWeight: 700, marginBottom: 8 }}>Aperçu</div>
+              <div className="card" style={{ minHeight: 220 }}>
+                <h2 style={{ marginTop: 0 }}>{contactTitle || "Contact"}</h2>
+                <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 }}>{contactBody || "—"}</pre>
+              </div>
             </div>
-
-            {pageMsg ? <p style={{ color: pageMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{pageMsg}</p> : null}
-
-            {pagesLoading ? <p>Chargement des pages…</p> : (
-              <table style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10, marginTop: 12 }}>
-                <thead>
-                  <tr><th style={{ textAlign: "left" }}>Slug</th><th>Titre</th><th>Modifiée</th><th>Actions</th></tr>
-                </thead>
-                <tbody>
-                  {pages.map(p => (
-                    <tr key={p.slug}>
-                      <td>{p.slug}</td>
-                      <td>{p.title}</td>
-                      <td style={{ textAlign: "center" }}>
-                        {p.updatedAt ? new Date(p.updatedAt).toLocaleString() : "—"}
-                      </td>
-                      <td style={{ textAlign: "center" }}>
-                        <button onClick={() => setPageForm(p)}>Modifier</button>
-                        <button onClick={() => pageDelete(p.slug)} style={{ marginLeft: 8 }}>Supprimer</button>
-                      </td>
-                    </tr>
-                  ))}
-                  {pages.length === 0 ? <tr><td colSpan={4} style={{ color: "#666", padding: 8 }}>Aucune page.</td></tr> : null}
-                </tbody>
-              </table>
-            )}
           </div>
-        </>
+        </div>
+      )}
+
+      {tab === "a-propos" && (
+        <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
+          <h3>Page À propos</h3>
+          <p style={{ marginTop: 0, color: "#666" }}>Cette page est publique sur <code>/a-propos</code>.</p>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div>
+              <label style={{ display: "block", fontWeight: 600, marginBottom: 4 }}>Titre</label>
+              <input value={aproposTitle} onChange={e => setAproposTitle(e.target.value)} placeholder="À propos" />
+
+              <label style={{ display: "block", fontWeight: 600, margin: "12px 0 4px" }}>Contenu</label>
+              <textarea
+                value={aproposBody}
+                onChange={e => setAproposBody(e.target.value)}
+                placeholder="Votre histoire, votre philosophie, l’équipe…"
+                style={{ width: "100%", height: 220 }}
+              />
+
+              <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+                <button onClick={() => savePage("a-propos", aproposTitle, aproposBody, setAproposMsg)}>Enregistrer</button>
+                <button onClick={loadPages}>Recharger</button>
+              </div>
+
+              {aproposMsg ? <p style={{ color: aproposMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{aproposMsg}</p> : null}
+            </div>
+
+            <div>
+              <div style={{ fontWeight: 700, marginBottom: 8 }}>Aperçu</div>
+              <div className="card" style={{ minHeight: 220 }}>
+                <h2 style={{ marginTop: 0 }}>{aproposTitle || "À propos"}</h2>
+                <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 }}>{aproposBody || "—"}</pre>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
