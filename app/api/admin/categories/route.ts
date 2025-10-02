@@ -1,11 +1,18 @@
-// /app/api/admin/categories/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminDb } from "../../../../lib/firebaseAdmin";
 
 export const dynamic = "force-dynamic";
 
+// ✅ accepte colibri_admin et autres variantes
 function isAuthed(req: NextRequest) {
-  return req.cookies.get("colibri_admin")?.value === "1";
+  const c = req.cookies;
+  const val =
+    c.get("colibri_admin")?.value ||
+    c.get("colibri")?.value ||
+    c.get("colibri_auth")?.value ||
+    c.get("colibriAuthed")?.value ||
+    "";
+  return val === "1" || val === "true";
 }
 
 async function listAllSorted() {
