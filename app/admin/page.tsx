@@ -438,11 +438,14 @@ export default function AdminPage() {
                     <td style={{ textAlign: "center" }}>{formatDuration(s)}</td>
                     <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
                     <td style={{ textAlign: "center", fontWeight: 600 }}>
-                      {s.priceMin != null && s.priceMax != null
-                        ? `${s.priceMin}–${s.priceMax} CHF`
-                        : s.price != null
-                          ? `${s.price} CHF`
-                          : "—"}
+  {s.priceMin != null && s.priceMax != null
+    ? `${s.priceMin}–${s.priceMax} CHF`
+    : s.priceMin != null
+      ? `${s.priceMin} CHF`
+      : s.price != null
+        ? `${s.price} CHF`
+        : "—"}
+</td>
                     </td>
                     <td style={{ textAlign: "center" }}>
                       <button onClick={() => setForm(s)}>Modifier</button>
