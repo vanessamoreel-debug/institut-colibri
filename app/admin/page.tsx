@@ -285,7 +285,42 @@ async function pageSave() {
     setPageMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
   }
 }
+// --------- CRUD PAGES (delete) ----------
+async function pageDelete(slug: string) {
+  setPageMsg("");
+  try {
+    const res = await fetch("/api/admin/pages", {
+      method: "DELETE",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug }),
+    });
 
+    console.log("DEBUG DELETE /api/admin/pages status", res.status);
+    if (handleUnauthorized(res)) return;
+
+    const text = await res.text();
+    console.log("DEBUG DELETE /api/admin/pages raw", text);
+
+    if (!res.ok) {
+      try {
+        const err = JSON.parse(text);
+        throw new Error(err?.error || text);
+      } catch {
+        throw new Error(text);
+      }
+    }
+
+    const json = JSON.parse(text);
+    console.log("DEBUG DELETE /api/admin/pages json", json);
+
+    setPages(json.data || []);
+    setPageMsg("✔️ Page supprimée.");
+  } catch (e: any) {
+    console.error("DEBUG DELETE /api/admin/pages error", e);
+    setPageMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
+  }
+}
 
   // --------- UI ----------
   return (
