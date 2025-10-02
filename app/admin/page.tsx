@@ -232,53 +232,60 @@ export default function AdminPage() {
     }
   }
 
-  // --------- CRUD PAGES ----------
-  async function pageSave() {
-    setPageMsg("");
-    if (!pageForm?.slug || !pageForm?.title) {
-      setPageMsg("Slug et Titre sont requis.");
-      return;
-    }
-    try {
-      const res = await fetch("/api/admin/pages", {
-        method: "PUT",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          slug: String(pageForm.slug).trim(),
-          title: String(pageForm.title).trim(),
-          body: String(pageForm.body || ""),
-        }),
-      });
-      if (handleUnauthorized(res)) return;
-      if (!res.ok) throw new Error(await res.text());
-      const json = await res.json();
-      setPages(json.data || []);
-      setPageForm({});
-      setPageMsg("✔️ Page enregistrée.");
-    } catch (e: any) {
-      setPageMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
-    }
+// --------- CRUD PAGES ----------
+async function pageSave() {
+  setPageMsg("");
+  if (!pageForm?.slug || !pageForm?.title) {
+    setPageMsg("Slug et Titre sont requis.");
+    return;
   }
+  try {
+    const res = await fetch("/api/admin/pages", {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        slug: String(pageForm.slug).trim(),
+        title: String(pageForm.title).trim(),
+        body: String(pageForm.body || ""),
+      }),
+    });
 
-  async function pageDelete(slug: string) {
-    setPageMsg("");
-    try {
-      const res = await fetch("/api/admin/pages", {
-        method: "DELETE",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug }),
-      });
-      if (handleUnauthorized(res)) return;
-      if (!res.ok) throw new Error(await res.text());
-      const json = await res.json();
-      setPages(json.data || []);
-      setPageMsg("✔️ Page supprimée.");
-    } catch (e: any) {
-      setPageMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
+    // DEBUG et gestion d'erreurs robustes
+    console.log("DEBUG PUT /api/admin/pages status", res.status);
+    if (handleUnauthorized(res)) return;
+
+    const text = await res.text();
+    console.log("DEBUG PUT /api/admin/pages raw", text);
+
+    if (!res.ok) {
+      // essaie de décoder json d'erreur pour message plus clair
+      try {
+        const err = JSON.parse(text);
+        throw new Error(err?.error || text);
+      } catch {
+        throw new Error(text);
+      }
     }
+
+    // parse JSON sûr
+    let json: any = null;
+    try {
+      json = JSON.parse(text);
+    } catch {
+      throw new Error("Réponse serveur invalide (JSON attendu).");
+    }
+    console.log("DEBUG PUT /api/admin/pages json", json);
+
+    setPages(json.data || []);
+    setPageForm({});
+    setPageMsg("✔️ Page enregistrée.");
+  } catch (e: any) {
+    console.error("DEBUG PUT /api/admin/pages error", e);
+    setPageMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
   }
+}
+
 
   // --------- UI ----------
   return (
