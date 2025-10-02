@@ -2,11 +2,10 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Service, Category, PageDoc } from "../../types";
+import type { Service, Category, PageDoc } from "../../types";
 
 type Tab = "soins" | "contact" | "a-propos";
 
-// petit helper pour convertir un input en number | null
 function numOrNull(v: any): number | null {
   if (v === "" || v === undefined || v === null) return null;
   const n = Number(v);
@@ -17,22 +16,22 @@ export default function AdminPage() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("soins");
 
-  // --- Indic. Auth ---
+  // Auth
   const [authed, setAuthed] = useState<boolean | null>(null);
 
-  // --- Soins ---
+  // Soins
   const [data, setData] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState<Partial<Service>>({});
   const [msg, setMsg] = useState<string>("");
 
-  // --- Catégories ---
+  // Catégories
   const [cats, setCats] = useState<Category[]>([]);
   const [catsLoading, setCatsLoading] = useState(true);
   const [catForm, setCatForm] = useState<Partial<Category>>({});
   const [catMsg, setCatMsg] = useState<string>("");
 
-  // --- Pages: Contact & À propos (séparées) ---
+  // Pages
   const [pages, setPages] = useState<PageDoc[]>([]);
   const [pagesLoading, setPagesLoading] = useState(true);
 
@@ -52,7 +51,7 @@ export default function AdminPage() {
     return false;
   }
 
-  // --------- LOADERS ---------
+  // LOADERS
   async function loadAuth() {
     try {
       const r = await fetch("/api/auth/status", { credentials: "include", cache: "no-store" });
@@ -101,7 +100,6 @@ export default function AdminPage() {
       const json = await res.json();
       setPages(json.data || []);
 
-      // Pré-remplir Contact et À-propos si existants
       const contact = (json.data || []).find((p: PageDoc) => p.slug === "contact");
       const apropos = (json.data || []).find((p: PageDoc) => p.slug === "a-propos");
 
@@ -110,7 +108,6 @@ export default function AdminPage() {
       setAproposTitle(apropos?.title || "À propos");
       setAproposBody(apropos?.body || "");
     } catch (e: any) {
-      // ne bloque pas l'UI, mais affiche le message au besoin
       setContactMsg(e?.message || "Erreur de chargement des pages");
       setAproposMsg(e?.message || "Erreur de chargement des pages");
     } finally {
@@ -125,7 +122,7 @@ export default function AdminPage() {
     loadPages();
   }, []);
 
-  // --------- CRUD SOINS ----------
+  // SOINS
   async function addOrUpdate() {
     setMsg("");
 
@@ -185,18 +182,25 @@ export default function AdminPage() {
     }
   }
 
-  async function logout() {
-    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-    router.replace("/login");
-  }
-
   function formatDuration(s: Service) {
     if (s.duration == null) return "—";
     const v = Math.round(s.duration);
     return s.approxDuration ? `± ${v} min` : `${v} min`;
   }
 
-  // --------- CRUD CATEGORIES ----------
+  function formatPriceAdmin(s: Service) {
+    if (s.priceMin != null && s.priceMax != null) return `${s.priceMin}–${s.priceMax} CHF`;
+    if (s.priceMin != null) return `${s.priceMin} CHF`;
+    if (s.price != null) return `${s.price} CHF`;
+    return "—";
+  }
+
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    router.replace("/login");
+  }
+
+  // CATEGORIES
   async function catAddOrUpdate() {
     setCatMsg("");
     if (!catForm?.name || !String(catForm.name).trim()) {
@@ -246,8 +250,13 @@ export default function AdminPage() {
     }
   }
 
-  // --------- CRUD PAGES (Contact / À-propos) ----------
-  async function savePage(slug: "contact" | "a-propos", title: string, body: string, setMsg: (v: string) => void) {
+  // PAGES
+  async function savePage(
+    slug: "contact" | "a-propos",
+    title: string,
+    body: string,
+    setMsg: (v: string) => void
+  ) {
     setMsg("");
     if (!title || !title.trim()) {
       setMsg("Titre requis.");
@@ -261,7 +270,6 @@ export default function AdminPage() {
         body: JSON.stringify({ slug, title: title.trim(), body: body ?? "" }),
       });
 
-      // Logs utiles si souci
       console.log("DEBUG PUT /api/admin/pages status", res.status);
       if (handleUnauthorized(res)) return;
 
@@ -278,7 +286,11 @@ export default function AdminPage() {
       }
 
       let json: any = null;
-      try { json = JSON.parse(text); } catch { throw new Error("Réponse serveur invalide (JSON attendu)."); }
+      try {
+        json = JSON.parse(text);
+      } catch {
+        throw new Error("Réponse serveur invalide (JSON attendu).");
+      }
 
       setPages(json.data || []);
       setMsg("✔️ Page enregistrée.");
@@ -288,7 +300,7 @@ export default function AdminPage() {
     }
   }
 
-  // --------- Tri local soins ----------
+  // Tri local soins
   const dataSorted = useMemo(() => {
     const copy = [...data];
     copy.sort((a, b) => {
@@ -305,12 +317,11 @@ export default function AdminPage() {
     return copy;
   }, [data, cats]);
 
-  // --------- UI ----------
+  // UI
   return (
     <div>
       <h2>Administration</h2>
 
-      {/* statut auth + logout */}
       <div style={{ display: "flex", justifyContent: "space-between", margin: "12px 0" }}>
         <div style={{ fontSize: 13, color: authed ? "green" : "crimson" }}>
           Statut admin : {authed == null ? "…" : authed ? "OK" : "NON CONNECTÉ"}
@@ -318,7 +329,6 @@ export default function AdminPage() {
         <button onClick={logout}>Se déconnecter</button>
       </div>
 
-      {/* Onglets */}
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
         <button onClick={() => setTab("soins")} style={{ fontWeight: tab === "soins" ? 700 : 400 }}>
           Soins
@@ -333,7 +343,7 @@ export default function AdminPage() {
 
       {tab === "soins" && (
         <>
-          {/* --- Bloc Catégories --- */}
+          {/* Catégories */}
           <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
             <h3>Catégories (ordre des sections)</h3>
             <p style={{ marginTop: 0, color: "#666" }}>MAJUSCULES, avec un numéro d'ordre (1 en haut, puis 2, 3...).</p>
@@ -342,13 +352,13 @@ export default function AdminPage() {
               <input
                 placeholder="Nom de la catégorie (ex: SOINS DU VISAGE)"
                 value={catForm.name || ""}
-                onChange={e => setCatForm({ ...(catForm as any), name: e.target.value.toUpperCase() })}
+                onChange={(e) => setCatForm({ ...(catForm as any), name: e.target.value.toUpperCase() })}
               />
               <input
                 placeholder="Ordre (ex: 1)"
                 type="number"
                 value={catForm.order?.toString() || ""}
-                onChange={e => setCatForm({ ...(catForm as any), order: numOrNull(e.target.value) as any })}
+                onChange={(e) => setCatForm({ ...(catForm as any), order: numOrNull(e.target.value) as any })}
               />
               <div style={{ display: "flex", gap: 8 }}>
                 <button onClick={catAddOrUpdate}>{(catForm as any).id ? "Enregistrer" : "Ajouter"}</button>
@@ -358,56 +368,113 @@ export default function AdminPage() {
 
             {catMsg ? <p style={{ color: catMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{catMsg}</p> : null}
 
-            {catsLoading ? <p>Chargement des catégories…</p> : (
+            {catsLoading ? (
+              <p>Chargement des catégories…</p>
+            ) : (
               <table style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10, marginTop: 12 }}>
                 <thead>
-                  <tr><th style={{ textAlign: "left" }}>Nom</th><th style={{ width: 120 }}>Ordre</th><th style={{ width: 180 }}>Actions</th></tr>
+                  <tr>
+                    <th style={{ textAlign: "left" }}>Nom</th>
+                    <th style={{ width: 120 }}>Ordre</th>
+                    <th style={{ width: 180 }}>Actions</th>
+                  </tr>
                 </thead>
                 <tbody>
-                  {[...cats].sort((a, b) => {
-                    const oa = a.order ?? 9999, ob = b.order ?? 9999;
-                    if (oa !== ob) return oa - ob;
-                    return (a.name || "").localeCompare(b.name || "");
-                  }).map(c => (
-                    <tr key={c.id}>
-                      <td>{c.name}</td>
-                      <td style={{ textAlign: "center" }}>{c.order ?? "—"}</td>
-                      <td style={{ textAlign: "center" }}>
-                        <button onClick={() => setCatForm(c)}>Modifier</button>
-                        <button onClick={() => catRemove(c.id)} style={{ marginLeft: 8 }}>Supprimer</button>
+                  {[...cats]
+                    .sort((a, b) => {
+                      const oa = a.order ?? 9999,
+                        ob = b.order ?? 9999;
+                      if (oa !== ob) return oa - ob;
+                      return (a.name || "").localeCompare(b.name || "");
+                    })
+                    .map((c) => (
+                      <tr key={c.id}>
+                        <td>{c.name}</td>
+                        <td style={{ textAlign: "center" }}>{c.order ?? "—"}</td>
+                        <td style={{ textAlign: "center" }}>
+                          <button onClick={() => setCatForm(c)}>Modifier</button>
+                          <button onClick={() => catRemove(c.id)} style={{ marginLeft: 8 }}>
+                            Supprimer
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  {cats.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} style={{ color: "#666", padding: 8 }}>
+                        Aucune catégorie.
                       </td>
                     </tr>
-                  ))}
-                  {cats.length === 0 ? <tr><td colSpan={3} style={{ color: "#666", padding: 8 }}>Aucune catégorie.</td></tr> : null}
+                  ) : null}
                 </tbody>
               </table>
             )}
           </div>
 
-          {/* --- Bloc Soins --- */}
+          {/* Soins */}
           <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
             <h3>{form?.id ? "Modifier un soin" : "Ajouter un soin"}</h3>
 
             <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 110px 110px 90px 90px 1fr" }}>
-              <input placeholder="Nom" value={form.name || ""} onChange={e => setForm({ ...form, name: e.target.value })} />
-              <input placeholder="Prix (CHF)" type="number" value={form.price?.toString() || ""} onChange={e => setForm({ ...form, price: numOrNull(e.target.value) as any })} />
-              <input placeholder="Prix max (facultatif)" type="number" value={form.priceMax?.toString() || ""} onChange={e => setForm({ ...form, priceMax: numOrNull(e.target.value) as any })} />
-              <input placeholder="Durée (min)" type="number" value={form.duration?.toString() || ""} onChange={e => setForm({ ...form, duration: numOrNull(e.target.value) as any })} />
-              <input placeholder="Ordre" type="number" value={form.order?.toString() || ""} onChange={e => setForm({ ...form, order: numOrNull(e.target.value) as any })} />
-              <input list="colibri-cats" placeholder="Catégorie" value={form.category || ""} onChange={e => setForm({ ...form, category: e.target.value.toUpperCase() })} />
+              <input placeholder="Nom" value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <input
+                placeholder="Prix (CHF)"
+                type="number"
+                value={form.price?.toString() || ""}
+                onChange={(e) => setForm({ ...form, price: numOrNull(e.target.value) as any })}
+              />
+              <input
+                placeholder="Prix max (facultatif)"
+                type="number"
+                value={form.priceMax?.toString() || ""}
+                onChange={(e) => setForm({ ...form, priceMax: numOrNull(e.target.value) as any })}
+              />
+              <input
+                placeholder="Durée (min)"
+                type="number"
+                value={form.duration?.toString() || ""}
+                onChange={(e) => setForm({ ...form, duration: numOrNull(e.target.value) as any })}
+              />
+              <input
+                placeholder="Ordre"
+                type="number"
+                value={form.order?.toString() || ""}
+                onChange={(e) => setForm({ ...form, order: numOrNull(e.target.value) as any })}
+              />
+              <input
+                list="colibri-cats"
+                placeholder="Catégorie"
+                value={form.category || ""}
+                onChange={(e) => setForm({ ...form, category: e.target.value.toUpperCase() })}
+              />
               <datalist id="colibri-cats">
-                {cats.map(c => <option key={c.id} value={c.name} />)}
+                {cats.map((c) => (
+                  <option key={c.id} value={c.name} />
+                ))}
               </datalist>
             </div>
 
             <label style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-              <input type="checkbox" checked={!!form.approxDuration} onChange={e => setForm({ ...form, approxDuration: e.target.checked })} />
+              <input
+                type="checkbox"
+                checked={!!form.approxDuration}
+                onChange={(e) => setForm({ ...form, approxDuration: e.target.checked })}
+              />
               Durée approximative (±)
             </label>
 
             <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 110px" }}>
-              <textarea placeholder="Description (optionnel)" value={form.description || ""} onChange={e => setForm({ ...form, description: e.target.value })} />
-              <input placeholder="Espacement (px)" type="number" value={form.spacing?.toString() || ""} onChange={e => setForm({ ...form, spacing: numOrNull(e.target.value) as any })} />
+              <textarea
+                placeholder="Description (optionnel)"
+                value={form.description || ""}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+              />
+              <input
+                placeholder="Espacement (px)"
+                type="number"
+                value={form.spacing?.toString() || ""}
+                onChange={(e) => setForm({ ...form, spacing: numOrNull(e.target.value) as any })}
+              />
             </div>
 
             <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
@@ -418,7 +485,9 @@ export default function AdminPage() {
 
           {msg ? <p style={{ color: msg.startsWith("✔") ? "green" : "crimson" }}>{msg}</p> : null}
 
-          {loading ? <p>Chargement…</p> : (
+          {loading ? (
+            <p>Chargement…</p>
+          ) : (
             <table style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10 }}>
               <thead>
                 <tr>
@@ -437,23 +506,22 @@ export default function AdminPage() {
                     <td style={{ textAlign: "center" }}>{s.category || "—"}</td>
                     <td style={{ textAlign: "center" }}>{formatDuration(s)}</td>
                     <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
-                    <td style={{ textAlign: "center", fontWeight: 600 }}>
-  {s.priceMin != null && s.priceMax != null
-    ? `${s.priceMin}–${s.priceMax} CHF`
-    : s.priceMin != null
-      ? `${s.priceMin} CHF`
-      : s.price != null
-        ? `${s.price} CHF`
-        : "—"}
-</td>
-                    </td>
+                    <td style={{ textAlign: "center", fontWeight: 600 }}>{formatPriceAdmin(s)}</td>
                     <td style={{ textAlign: "center" }}>
                       <button onClick={() => setForm(s)}>Modifier</button>
-                      <button onClick={() => remove(s.id)} style={{ marginLeft: 8 }}>Supprimer</button>
+                      <button onClick={() => remove(s.id)} style={{ marginLeft: 8 }}>
+                        Supprimer
+                      </button>
                     </td>
                   </tr>
                 ))}
-                {dataSorted.length === 0 ? <tr><td colSpan={6} style={{ color: "#666", padding: 8 }}>Aucun soin.</td></tr> : null}
+                {dataSorted.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} style={{ color: "#666", padding: 8 }}>
+                      Aucun soin.
+                    </td>
+                  </tr>
+                ) : null}
               </tbody>
             </table>
           )}
@@ -463,17 +531,19 @@ export default function AdminPage() {
       {tab === "contact" && (
         <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
           <h3>Page Contact</h3>
-          <p style={{ marginTop: 0, color: "#666" }}>Cette page est publique sur <code>/contact</code>.</p>
+          <p style={{ marginTop: 0, color: "#666" }}>
+            Cette page est publique sur <code>/contact</code>.
+          </p>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             <div>
               <label style={{ display: "block", fontWeight: 600, marginBottom: 4 }}>Titre</label>
-              <input value={contactTitle} onChange={e => setContactTitle(e.target.value)} placeholder="Contact" />
+              <input value={contactTitle} onChange={(e) => setContactTitle(e.target.value)} placeholder="Contact" />
 
               <label style={{ display: "block", fontWeight: 600, margin: "12px 0 4px" }}>Contenu</label>
               <textarea
                 value={contactBody}
-                onChange={e => setContactBody(e.target.value)}
+                onChange={(e) => setContactBody(e.target.value)}
                 placeholder="Adresse, téléphone, e-mail, horaires…"
                 style={{ width: "100%", height: 220 }}
               />
@@ -483,7 +553,9 @@ export default function AdminPage() {
                 <button onClick={loadPages}>Recharger</button>
               </div>
 
-              {contactMsg ? <p style={{ color: contactMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{contactMsg}</p> : null}
+              {contactMsg ? (
+                <p style={{ color: contactMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{contactMsg}</p>
+              ) : null}
             </div>
 
             <div>
@@ -500,17 +572,19 @@ export default function AdminPage() {
       {tab === "a-propos" && (
         <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
           <h3>Page À propos</h3>
-          <p style={{ marginTop: 0, color: "#666" }}>Cette page est publique sur <code>/a-propos</code>.</p>
+          <p style={{ marginTop: 0, color: "#666" }}>
+            Cette page est publique sur <code>/a-propos</code>.
+          </p>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             <div>
               <label style={{ display: "block", fontWeight: 600, marginBottom: 4 }}>Titre</label>
-              <input value={aproposTitle} onChange={e => setAproposTitle(e.target.value)} placeholder="À propos" />
+              <input value={aproposTitle} onChange={(e) => setAproposTitle(e.target.value)} placeholder="À propos" />
 
               <label style={{ display: "block", fontWeight: 600, margin: "12px 0 4px" }}>Contenu</label>
               <textarea
                 value={aproposBody}
-                onChange={e => setAproposBody(e.target.value)}
+                onChange={(e) => setAproposBody(e.target.value)}
                 placeholder="Votre histoire, votre philosophie, l’équipe…"
                 style={{ width: "100%", height: 220 }}
               />
@@ -520,7 +594,9 @@ export default function AdminPage() {
                 <button onClick={loadPages}>Recharger</button>
               </div>
 
-              {aproposMsg ? <p style={{ color: aproposMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{aproposMsg}</p> : null}
+              {aproposMsg ? (
+                <p style={{ color: aproposMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{aproposMsg}</p>
+              ) : null}
             </div>
 
             <div>
