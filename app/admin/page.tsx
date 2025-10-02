@@ -17,6 +17,9 @@ export default function AdminPage() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("soins");
 
+  // --- Indicateur d'auth ---
+  const [authed, setAuthed] = useState<boolean | null>(null);
+
   // --- Soins ---
   const [data, setData] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,6 +47,20 @@ export default function AdminPage() {
   }
 
   // --------- LOADERS ---------
+  async function loadAuth() {
+    try {
+      const r = await fetch("/api/auth/status", { credentials: "include", cache: "no-store" });
+      const j = await r.json().catch(() => ({}));
+      setAuthed(!!j?.authed);
+      if (!j?.authed) {
+        // redirige si pas authed
+        router.replace("/login?next=/admin");
+      }
+    } catch {
+      setAuthed(null);
+    }
+  }
+
   async function loadServices() {
     setLoading(true);
     try {
@@ -79,6 +96,7 @@ export default function AdminPage() {
       if (handleUnauthorized(res)) return;
       if (!res.ok) throw new Error(await res.text());
       const json = await res.json();
+      console.log("DEBUG loadPages response", json);
       setPages(json.data || []);
     } catch (e: any) {
       setPageMsg(e?.message || "Erreur de chargement des pages");
@@ -88,28 +106,11 @@ export default function AdminPage() {
   }
 
   useEffect(() => {
-    // charge tout au démarrage
+    loadAuth();
     loadServices();
     loadCats();
     loadPages();
   }, []);
-
-  // Tri local pour affichage admin Soins
-  const dataSorted = useMemo(() => {
-    const copy = [...data];
-    copy.sort((a, b) => {
-      const ca = String(a.category || "");
-      const cb = String(b.category || "");
-      const ia = cats.find((c) => c.name === ca)?.order ?? 9999;
-      const ib = cats.find((c) => c.name === cb)?.order ?? 9999;
-      if (ia !== ib) return ia - ib;
-      const oa = a.order ?? 9999;
-      const ob = b.order ?? 9999;
-      if (oa !== ob) return oa - ob;
-      return a.name.localeCompare(b.name);
-    });
-    return copy;
-  }, [data, cats]);
 
   // --------- CRUD SOINS ----------
   async function addOrUpdate() {
@@ -232,101 +233,120 @@ export default function AdminPage() {
     }
   }
 
-// --------- CRUD PAGES ----------
-async function pageSave() {
-  setPageMsg("");
-  if (!pageForm?.slug || !pageForm?.title) {
-    setPageMsg("Slug et Titre sont requis.");
-    return;
-  }
-  try {
-    const res = await fetch("/api/admin/pages", {
-      method: "PUT",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        slug: String(pageForm.slug).trim(),
-        title: String(pageForm.title).trim(),
-        body: String(pageForm.body || ""),
-      }),
-    });
-
-    // DEBUG et gestion d'erreurs robustes
-    console.log("DEBUG PUT /api/admin/pages status", res.status);
-    if (handleUnauthorized(res)) return;
-
-    const text = await res.text();
-    console.log("DEBUG PUT /api/admin/pages raw", text);
-
-    if (!res.ok) {
-      // essaie de décoder json d'erreur pour message plus clair
-      try {
-        const err = JSON.parse(text);
-        throw new Error(err?.error || text);
-      } catch {
-        throw new Error(text);
-      }
+  // --------- CRUD PAGES ----------
+  async function pageSave() {
+    setPageMsg("");
+    if (!pageForm?.slug || !pageForm?.title) {
+      setPageMsg("Slug et Titre sont requis.");
+      return;
     }
-
-    // parse JSON sûr
-    let json: any = null;
     try {
-      json = JSON.parse(text);
-    } catch {
-      throw new Error("Réponse serveur invalide (JSON attendu).");
-    }
-    console.log("DEBUG PUT /api/admin/pages json", json);
+      const res = await fetch("/api/admin/pages", {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug: String(pageForm.slug).trim(),
+          title: String(pageForm.title).trim(),
+          body: String(pageForm.body || ""),
+        }),
+      });
 
-    setPages(json.data || []);
-    setPageForm({});
-    setPageMsg("✔️ Page enregistrée.");
-  } catch (e: any) {
-    console.error("DEBUG PUT /api/admin/pages error", e);
-    setPageMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
-  }
-}
-// --------- CRUD PAGES (delete) ----------
-async function pageDelete(slug: string) {
-  setPageMsg("");
-  try {
-    const res = await fetch("/api/admin/pages", {
-      method: "DELETE",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ slug }),
-    });
+      console.log("DEBUG PUT /api/admin/pages status", res.status);
+      if (handleUnauthorized(res)) return;
 
-    console.log("DEBUG DELETE /api/admin/pages status", res.status);
-    if (handleUnauthorized(res)) return;
+      const text = await res.text();
+      console.log("DEBUG PUT /api/admin/pages raw", text);
 
-    const text = await res.text();
-    console.log("DEBUG DELETE /api/admin/pages raw", text);
-
-    if (!res.ok) {
-      try {
-        const err = JSON.parse(text);
-        throw new Error(err?.error || text);
-      } catch {
-        throw new Error(text);
+      if (!res.ok) {
+        try {
+          const err = JSON.parse(text);
+          throw new Error(err?.error || text);
+        } catch {
+          throw new Error(text);
+        }
       }
+
+      let json: any = null;
+      try {
+        json = JSON.parse(text);
+      } catch {
+        throw new Error("Réponse serveur invalide (JSON attendu).");
+      }
+      console.log("DEBUG PUT /api/admin/pages json", json);
+
+      setPages(json.data || []);
+      setPageForm({});
+      setPageMsg("✔️ Page enregistrée.");
+    } catch (e: any) {
+      console.error("DEBUG PUT /api/admin/pages error", e);
+      setPageMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
     }
-
-    const json = JSON.parse(text);
-    console.log("DEBUG DELETE /api/admin/pages json", json);
-
-    setPages(json.data || []);
-    setPageMsg("✔️ Page supprimée.");
-  } catch (e: any) {
-    console.error("DEBUG DELETE /api/admin/pages error", e);
-    setPageMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
   }
-}
+
+  async function pageDelete(slug: string) {
+    setPageMsg("");
+    try {
+      const res = await fetch("/api/admin/pages", {
+        method: "DELETE",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug }),
+      });
+
+      console.log("DEBUG DELETE /api/admin/pages status", res.status);
+      if (handleUnauthorized(res)) return;
+
+      const text = await res.text();
+      console.log("DEBUG DELETE /api/admin/pages raw", text);
+
+      if (!res.ok) {
+        try {
+          const err = JSON.parse(text);
+          throw new Error(err?.error || text);
+        } catch {
+          throw new Error(text);
+        }
+      }
+
+      const json = JSON.parse(text);
+      console.log("DEBUG DELETE /api/admin/pages json", json);
+
+      setPages(json.data || []);
+      setPageMsg("✔️ Page supprimée.");
+    } catch (e: any) {
+      console.error("DEBUG DELETE /api/admin/pages error", e);
+      setPageMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
+    }
+  }
+
+  // --------- Tri local soins ----------
+  const dataSorted = useMemo(() => {
+    const copy = [...data];
+    copy.sort((a, b) => {
+      const ca = String(a.category || "");
+      const cb = String(b.category || "");
+      const ia = cats.find((c) => c.name === ca)?.order ?? 9999;
+      const ib = cats.find((c) => c.name === cb)?.order ?? 9999;
+      if (ia !== ib) return ia - ib;
+      const oa = a.order ?? 9999;
+      const ob = b.order ?? 9999;
+      if (oa !== ob) return oa - ob;
+      return a.name.localeCompare(b.name);
+    });
+    return copy;
+  }, [data, cats]);
 
   // --------- UI ----------
   return (
     <div>
       <h2>Administration</h2>
-      <div style={{ display: "flex", justifyContent: "flex-end", margin: "12px 0" }}>
+
+      {/* statut auth */}
+      <div style={{ display: "flex", justifyContent: "space-between", margin: "12px 0" }}>
+        <div style={{ fontSize: 13, color: authed ? "green" : "crimson" }}>
+          Statut admin : {authed == null ? "…" : authed ? "OK" : "NON CONNECTÉ"}
+        </div>
         <button onClick={logout}>Se déconnecter</button>
       </div>
 
