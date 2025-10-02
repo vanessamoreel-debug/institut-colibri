@@ -12,9 +12,11 @@ function initAdmin() {
   initializeApp({ credential: cert({ projectId, clientEmail, privateKey }) });
 }
 
+// ✅ IMPORTANT : on reconnaît aussi le cookie "colibri_admin"
 function authed(req: NextRequest) {
   const c = req.cookies;
   const val =
+    c.get("colibri_admin")?.value ||   // ← ajouté
     c.get("colibri")?.value ||
     c.get("colibri_auth")?.value ||
     c.get("colibriAuthed")?.value ||
@@ -59,11 +61,7 @@ export async function PUT(req: NextRequest) {
     if (!title) return new NextResponse("title requis", { status: 400 });
 
     await db.collection("pages").doc(slug).set(
-      {
-        title,
-        body,
-        updatedAt: Date.now(),
-      },
+      { title, body, updatedAt: Date.now() },
       { merge: true }
     );
 
