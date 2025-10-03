@@ -72,7 +72,7 @@ body {
   color: #7D6C71;
 }
 
-.brand { display: false; } /* plus utilisé */
+.brand { display: none; } /* corrigé */
 
 /* --- Menu --- */
 .menu-wrap {
@@ -162,7 +162,7 @@ body {
 }
 .hero-card p { margin: 0; font-size: 20px; }
 
-/* --- Classe .card générique --- */
+/* --- Carte générique (si utilisée ailleurs) --- */
 .card {
   background: rgba(125, 108, 113, 0.10);
   border: 1px solid rgba(125, 108, 113, 0.20);
@@ -214,7 +214,7 @@ body {
   letter-spacing: 0.5px;
   font-size: 1.3rem;
   margin: 0 0 10px;
-  color: #3d2f34;
+  color: #7D6C71; /* cat en couleur titre */
 }
 
 .services-list {
@@ -233,7 +233,7 @@ body {
 .service-name {
   font-family: 'Playfair Display', serif;
   font-size: 1.05rem;
-  color: #2b2326;
+  color: #111;           /* soins en noir */
   font-weight: 600;
 }
 .service-fill {
@@ -244,6 +244,7 @@ body {
 .service-price {
   font-weight: 700;
   white-space: nowrap;
+  color: #111;           /* prix en noir pour cohérence */
 }
 
 /* meta (durée / description) */
@@ -251,12 +252,12 @@ body {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  color: #5a4a50;
+  color: #111;           /* durée + description en noir */
   font-size: 0.95rem;
   margin-top: 4px;
 }
 .service-duration { font-style: italic; }
-.service-desc { opacity: 0.9; }
+.service-desc { opacity: 1; }  /* plus de grisé */
 
 /* ====== Petits écrans ====== */
 @media (max-width: 520px) {
@@ -264,7 +265,19 @@ body {
   .services-container { padding: 14px 12px; }
   .service-name { font-size: 1rem; }
 }
-/* Variante de la vignette soins, même rendu, padding un peu plus généreux */
+
+/* ====== Vignettes floutées réutilisables (Contact / À-propos) ====== */
+.pricelist {
+  background: rgba(255, 255, 255, 0.42);
+  border: 1px solid rgba(125, 108, 113, 0.25);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Variante possible si tu préfères un nom dédié */
 .info-panel {
   background: rgba(255,255,255,0.42);
   border: 1px solid rgba(125,108,113,0.20);
@@ -272,4 +285,5 @@ body {
   padding: 20px;
   box-shadow: 0 12px 28px rgba(0,0,0,0.12);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
