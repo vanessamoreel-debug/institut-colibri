@@ -1,5 +1,6 @@
 // /app/admin/page.tsx
 "use client";
+
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Service, Category, PageDoc } from "../../types";
@@ -7,43 +8,34 @@ import type { Service, Category, PageDoc } from "../../types";
 type Tab = "soins" | "contact" | "a-propos";
 type PriceMode = "single" | "range";
 
+// helper: input -> number | null
 function numOrNull(v: any): number | null {
   if (v === "" || v === undefined || v === null) return null;
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 }
 
-// Calcule l'ordre suivant pour une catégorie (max + 1)
-function getNextOrderForCat(catName: string, all: Service[]): number {
-  if (!catName) return 1;
-  const up = catName.toUpperCase();
-  const sameCat = all.filter((s) => (s.category || "").toUpperCase() === up);
-  if (sameCat.length === 0) return 1;
-  const maxOrder = Math.max(...sameCat.map((s) => (s.order ?? 0)));
-  return (Number.isFinite(maxOrder) ? maxOrder : 0) + 1;
-}
-
 export default function AdminPage() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("soins");
 
-  // Auth
+  // --- Auth status (info + redirection si 401) ---
   const [authed, setAuthed] = useState<boolean | null>(null);
 
-  // Soins
+  // --- Soins ---
   const [data, setData] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState<Partial<Service>>({});
   const [priceMode, setPriceMode] = useState<PriceMode>("single");
   const [msg, setMsg] = useState<string>("");
 
-  // Catégories
+  // --- Catégories ---
   const [cats, setCats] = useState<Category[]>([]);
   const [catsLoading, setCatsLoading] = useState(true);
   const [catForm, setCatForm] = useState<Partial<Category>>({});
   const [catMsg, setCatMsg] = useState<string>("");
 
-  // Pages
+  // --- Pages ---
   const [pages, setPages] = useState<PageDoc[]>([]);
   const [pagesLoading, setPagesLoading] = useState(true);
 
@@ -63,7 +55,7 @@ export default function AdminPage() {
     return false;
   }
 
-  // ---------- LOADERS ----------
+  // -------- LOADERS --------
   async function loadAuth() {
     try {
       const r = await fetch("/api/auth/status", { credentials: "include", cache: "no-store" });
@@ -110,18 +102,20 @@ export default function AdminPage() {
       if (handleUnauthorized(res)) return;
       if (!res.ok) throw new Error(await res.text());
       const json = await res.json();
-      setPages(json.data || []);
+      const list: PageDoc[] = json.data || [];
+      setPages(list);
 
-      const contact = (json.data || []).find((p: PageDoc) => p.slug === "contact");
-      const apropos = (json.data || []).find((p: PageDoc) => p.slug === "a-propos");
+      const contact = list.find((p) => p.slug === "contact");
+      const apropos = list.find((p) => p.slug === "a-propos");
 
       setContactTitle(contact?.title || "Contact");
       setContactBody(contact?.body || "");
       setAproposTitle(apropos?.title || "À propos");
       setAproposBody(apropos?.body || "");
     } catch (e: any) {
-      setContactMsg(e?.message || "Erreur de chargement des pages");
-      setAproposMsg(e?.message || "Erreur de chargement des pages");
+      const m = e?.message || "Erreur de chargement des pages";
+      setContactMsg(m);
+      setAproposMsg(m);
     } finally {
       setPagesLoading(false);
     }
@@ -134,7 +128,7 @@ export default function AdminPage() {
     loadPages();
   }, []);
 
-  // ---------- HELPERS PRIX ----------
+  // --- Helpers prix (UI) ---
   function inferPriceMode(s: Partial<Service>): PriceMode {
     if (s.priceMin != null && s.priceMax != null) return "range";
     return "single";
@@ -157,7 +151,7 @@ export default function AdminPage() {
     });
   }
 
-  // ---------- CRUD SOINS ----------
+  // -------- CRUD SOINS --------
   async function addOrUpdate() {
     setMsg("");
     if (!form?.name) return setMsg("Nom requis.");
@@ -175,7 +169,7 @@ export default function AdminPage() {
 
     const payload = {
       ...form,
-      // Normalisation: on n'envoie pas price (serveur stocke min/max)
+      // Normalisation: stockage = priceMin/priceMax (price unique via priceMin)
       price: null,
       priceMin:
         priceMode === "single"
@@ -187,7 +181,6 @@ export default function AdminPage() {
       approxDuration: !!form.approxDuration,
       order: form.order == null ? null : Number(form.order),
       spacing: form.spacing == null ? null : Number(form.spacing),
-      id: form.id, // important pour PUT
     };
 
     const method = form?.id ? "PUT" : "POST";
@@ -235,7 +228,7 @@ export default function AdminPage() {
     setPriceMode(inferPriceMode(s));
   }
 
-  // ---------- CRUD CATEGORIES ----------
+  // -------- CRUD CATEGORIES --------
   async function catAddOrUpdate() {
     setCatMsg("");
     if (!catForm?.name || !String(catForm.name).trim()) {
@@ -285,16 +278,16 @@ export default function AdminPage() {
     }
   }
 
-  // ---------- PAGES (Contact / À-propos) ----------
+  // -------- CRUD PAGES (Contact / À-propos) --------
   async function savePage(
     slug: "contact" | "a-propos",
     title: string,
     body: string,
-    setMsgFn: (v: string) => void
+    setMsg: (v: string) => void
   ) {
-    setMsgFn("");
+    setMsg("");
     if (!title || !title.trim()) {
-      setMsgFn("Titre requis.");
+      setMsg("Titre requis.");
       return;
     }
     try {
@@ -304,32 +297,35 @@ export default function AdminPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug, title: title.trim(), body: body ?? "" }),
       });
-
       if (handleUnauthorized(res)) return;
-
-      const text = await res.text();
-      if (!res.ok) {
-        try {
-          const err = JSON.parse(text);
-          throw new Error(err?.error || text);
-        } catch {
-          throw new Error(text);
-        }
-      }
-      const json = JSON.parse(text);
+      if (!res.ok) throw new Error(await res.text());
+      const json = await res.json();
       setPages(json.data || []);
-      setMsgFn("✔️ Page enregistrée.");
+      setMsg("✔️ Page enregistrée.");
+      // rafraîchir l’aperçu local
+      const updated = (json.data || []) as PageDoc[];
+      const c = updated.find((p) => p.slug === "contact");
+      const a = updated.find((p) => p.slug === "a-propos");
+      if (c) {
+        setContactTitle(c.title);
+        setContactBody(c.body);
+      }
+      if (a) {
+        setAproposTitle(a.title);
+        setAproposBody(a.body);
+      }
     } catch (e: any) {
-      setMsgFn(`❌ Erreur: ${e?.message || "action refusée"}`);
+      setMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
     }
   }
 
-  // ---------- Helpers affichage ----------
+  // -------- Helpers affichage --------
   function formatDuration(s: Service) {
     if (s.duration == null) return "—";
     const v = Math.round(s.duration);
     return s.approxDuration ? `± ${v} min` : `${v} min`;
   }
+
   function formatPriceAdmin(s: Service) {
     if (s.priceMin != null && s.priceMax != null) return `${s.priceMin}–${s.priceMax} CHF`;
     if (s.priceMin != null) return `${s.priceMin} CHF`;
@@ -342,7 +338,7 @@ export default function AdminPage() {
     router.replace("/login");
   }
 
-  // Tri local soins
+  // Tri local soins (cat -> order -> name)
   const dataSorted = useMemo(() => {
     const copy = [...data];
     copy.sort((a, b) => {
@@ -359,11 +355,12 @@ export default function AdminPage() {
     return copy;
   }, [data, cats]);
 
-  // ---------- UI ----------
+  // -------- UI --------
   return (
     <div>
       <h2>Administration</h2>
 
+      {/* Statut + Logout */}
       <div style={{ display: "flex", justifyContent: "space-between", margin: "12px 0" }}>
         <div style={{ fontSize: 13, color: authed ? "green" : "crimson" }}>
           Statut admin : {authed == null ? "…" : authed ? "OK" : "NON CONNECTÉ"}
@@ -371,6 +368,7 @@ export default function AdminPage() {
         <button onClick={logout}>Se déconnecter</button>
       </div>
 
+      {/* Onglets */}
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
         <button onClick={() => setTab("soins")} style={{ fontWeight: tab === "soins" ? 700 : 400 }}>
           Soins
@@ -385,10 +383,12 @@ export default function AdminPage() {
 
       {tab === "soins" && (
         <>
-          {/* Catégories */}
+          {/* --- Bloc Catégories --- */}
           <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
             <h3>Catégories (ordre des sections)</h3>
-            <p style={{ marginTop: 0, color: "#666" }}>MAJUSCULES, avec un numéro d'ordre (1 en haut, puis 2, 3...).</p>
+            <p style={{ marginTop: 0, color: "#666" }}>
+              MAJUSCULES, avec un numéro d'ordre (1 en haut, puis 2, 3...).
+            </p>
 
             <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 120px 180px" }}>
               <input
@@ -408,7 +408,9 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {catMsg ? <p style={{ color: catMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{catMsg}</p> : null}
+            {catMsg ? (
+              <p style={{ color: catMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{catMsg}</p>
+            ) : null}
 
             {catsLoading ? (
               <p>Chargement des catégories…</p>
@@ -424,8 +426,8 @@ export default function AdminPage() {
                 <tbody>
                   {[...cats]
                     .sort((a, b) => {
-                      const oa = a.order ?? 9999,
-                        ob = b.order ?? 9999;
+                      const oa = a.order ?? 9999;
+                      const ob = b.order ?? 9999;
                       if (oa !== ob) return oa - ob;
                       return (a.name || "").localeCompare(b.name || "");
                     })
@@ -453,11 +455,11 @@ export default function AdminPage() {
             )}
           </div>
 
-          {/* Soins */}
+          {/* --- Bloc Soins --- */}
           <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
             <h3>{form?.id ? "Modifier un soin" : "Ajouter un soin"}</h3>
 
-            {/* Toggle mode prix */}
+            {/* Toggle type de prix */}
             <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 8 }}>
               <span style={{ fontWeight: 600 }}>Type de prix :</span>
               <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
@@ -524,23 +526,11 @@ export default function AdminPage() {
                 value={form.order?.toString() || ""}
                 onChange={(e) => setForm({ ...form, order: numOrNull(e.target.value) as any })}
               />
-
-              {/* Catégorie avec auto-proposition d'ordre */}
               <input
                 list="colibri-cats"
                 placeholder="Catégorie"
                 value={form.category || ""}
-                onChange={(e) => {
-                  const newCat = e.target.value.toUpperCase();
-                  setForm((prev) => {
-                    const copy: Partial<Service> = { ...prev, category: newCat };
-                    // Nouveau soin (pas d'id) ET pas d'ordre déjà saisi => proposer auto
-                    if (!prev.id && (prev.order == null || prev.order === undefined || prev.order === ("" as any))) {
-                      copy.order = getNextOrderForCat(newCat, data);
-                    }
-                    return copy;
-                  });
-                }}
+                onChange={(e) => setForm({ ...form, category: e.target.value.toUpperCase() })}
               />
               <datalist id="colibri-cats">
                 {cats.map((c) => (
@@ -571,6 +561,10 @@ export default function AdminPage() {
                 onChange={(e) => setForm({ ...form, spacing: numOrNull(e.target.value) as any })}
               />
             </div>
+            <small style={{ color: "#666" }}>
+              Astuce : utilisez <code>**double astérisque**</code> pour mettre en gras. Exemple : Massage
+              <code> **relaxant** </code> du dos.
+            </small>
 
             <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
               <button onClick={addOrUpdate}>{form?.id ? "Enregistrer" : "Ajouter"}</button>
