@@ -273,7 +273,58 @@ export default function AdminPage() {
       setMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
     }
   }
+// --- PAGES CRUD (Contact / À-propos)
+async function savePage(
+  slug: "contact" | "a-propos",
+  title: string,
+  body: string,
+  setMsg: (v: string) => void
+) {
+  setMsg("");
+  if (!title || !title.trim()) {
+    setMsg("Titre requis.");
+    return;
+  }
+  try {
+    const res = await fetch("/api/admin/pages", {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug, title: title.trim(), body: body ?? "" }),
+    });
 
+    console.log("DEBUG PUT /api/admin/pages status", res.status);
+
+    // Si pas autorisé, on redirige ailleurs via handleUnauthorized
+    if (handleUnauthorized(res)) return;
+
+    const text = await res.text();
+    console.log("DEBUG PUT /api/admin/pages raw", text);
+
+    if (!res.ok) {
+      try {
+        const err = JSON.parse(text);
+        throw new Error(err?.error || text);
+      } catch {
+        throw new Error(text);
+      }
+    }
+
+    let json: any = null;
+    try {
+      json = JSON.parse(text);
+    } catch {
+      throw new Error("Réponse serveur invalide (JSON attendu).");
+    }
+
+    // MàJ de la liste locale si on la garde
+    setPages(json.data || []);
+    setMsg("✔️ Page enregistrée.");
+  } catch (e: any) {
+    console.error("DEBUG PUT /api/admin/pages error", e);
+    setMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
+  }
+}
   // --- Helpers affichage
   function formatDuration(s: Service) {
     if (s.duration == null) return "—";
