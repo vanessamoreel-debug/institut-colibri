@@ -98,7 +98,7 @@ export default async function SoinsPage() {
                           <span className="service-name" style={{ color: "#000", fontWeight: 500 }}>
                             {s.name}
                             {dur ? (
-                              <span style={{ marginLeft: 8, color: "#666", fontWeight: 400 }}>
+                              <span style={{ marginLeft: 8, color: "#000", fontWeight: 400 }}>
                                 ({dur})
                               </span>
                             ) : null}
