@@ -124,7 +124,7 @@ export default function AdminPage() {
     loadPages();
   }, []);
 
-  // Helpers prix
+  // --- Helpers prix (UI)
   function inferPriceMode(s: Partial<Service>): PriceMode {
     if (s.priceMin != null && s.priceMax != null) return "range";
     return "single";
@@ -135,28 +135,24 @@ export default function AdminPage() {
     setForm((prev) => {
       const copy = { ...prev };
       if (next === "single") {
-        // Si on passe à "prix unique", recopier une base dans price
         const base = copy.priceMin ?? copy.price ?? null;
         copy.price = base;
         copy.priceMax = null;
-        // on laisse priceMin tel quel (il sera recalculé à l’envoi)
       } else {
-        // Si on passe à "intervalle", recopier la valeur unique en min si besoin
         const base = copy.price ?? copy.priceMin ?? null;
         copy.priceMin = base;
-        copy.price = null; // on n’utilise pas price en intervalle
+        copy.price = null;
       }
       return copy;
     });
   }
 
-  // SOINS
+  // --- SOINS CRUD
   async function addOrUpdate() {
     setMsg("");
-
     if (!form?.name) return setMsg("Nom requis.");
 
-    // Validation prix selon le mode
+    // Validation prix selon mode
     if (priceMode === "single") {
       const uniqueVal = numOrNull(form.price ?? form.priceMin);
       if (uniqueVal == null) return setMsg("Prix requis.");
@@ -169,15 +165,13 @@ export default function AdminPage() {
 
     const payload = {
       ...form,
-      // Normalisation du prix côté API :
-      // - mode single → on force price=null et on remplit priceMin (simple et cohérent avec l’affichage public)
-      price: priceMode === "single" ? null : null, // on n'utilise plus price côté stockage
+      // Normalisation: on n'utilise plus 'price' en stockage. Prix unique = priceMin rempli, range = min/max.
+      price: null,
       priceMin:
         priceMode === "single"
           ? numOrNull(form.price ?? form.priceMin)
           : numOrNull(form.priceMin),
       priceMax: priceMode === "range" ? numOrNull(form.priceMax) : null,
-
       category: form.category ? String(form.category).toUpperCase() : null,
       duration: form.duration == null ? null : Number(form.duration),
       approxDuration: !!form.approxDuration,
@@ -230,11 +224,57 @@ export default function AdminPage() {
     setPriceMode(inferPriceMode(s));
   }
 
-  async function logout() {
-    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-    router.replace("/login");
+  // --- PAGES CRUD (Contact / À-propos)
+  async function savePage(
+    slug: "contact" | "a-propos",
+    title: string,
+    body: string,
+    setMsg: (v: string) => void
+  ) {
+    setMsg("");
+    if (!title || !title.trim()) {
+      setMsg("Titre requis.");
+      return;
+    }
+    try {
+      const res = await fetch("/api/admin/pages", {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slug, title: title.trim(), body: body ?? "" }),
+      });
+
+      console.log("DEBUG PUT /api/admin/pages status", res.status);
+      if (handleUnauthorized(res)) return;
+
+      const text = await res.text();
+      console.log("DEBUG PUT /api/admin/pages raw", text);
+
+      if (!res.ok) {
+        try {
+          const err = JSON.parse(text);
+          throw new Error(err?.error || text);
+        } catch {
+          throw new Error(text);
+        }
+      }
+
+      let json: any = null;
+      try {
+        json = JSON.parse(text);
+      } catch {
+        throw new Error("Réponse serveur invalide (JSON attendu).");
+      }
+
+      setPages(json.data || []);
+      setMsg("✔️ Page enregistrée.");
+    } catch (e: any) {
+      console.error("DEBUG PUT /api/admin/pages error", e);
+      setMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
+    }
   }
 
+  // --- Helpers affichage
   function formatDuration(s: Service) {
     if (s.duration == null) return "—";
     const v = Math.round(s.duration);
@@ -248,110 +288,10 @@ export default function AdminPage() {
     return "—";
   }
 
-  // CATEGORIES
-  async function catAddOrUpdate() {
-    setCatMsg("");
-    if (!catForm?.name || !String(catForm.name).trim()) {
-      setCatMsg("Nom de catégorie requis.");
-      return;
-    }
-    const payload = {
-      id: (catForm as any).id,
-      name: String(catForm.name).trim().toUpperCase(),
-      order: catForm.order == null ? null : Number(catForm.order),
-    };
-    const method = (catForm as any).id ? "PUT" : "POST";
-    try {
-      const res = await fetch("/api/admin/categories", {
-        method,
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (handleUnauthorized(res)) return;
-      if (!res.ok) throw new Error(await res.text());
-      const json = await res.json();
-      setCats(json.data || []);
-      setCatForm({});
-      setCatMsg("✔️ Catégorie enregistrée.");
-    } catch (e: any) {
-      setCatMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
-    }
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    router.replace("/login");
   }
-
-  async function catRemove(id: string) {
-    setCatMsg("");
-    try {
-      const res = await fetch("/api/admin/categories", {
-        method: "DELETE",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
-      });
-      if (handleUnauthorized(res)) return;
-      if (!res.ok) throw new Error(await res.text());
-      const json = await res.json();
-      setCats(json.data || []);
-      setCatMsg("✔️ Catégorie supprimée.");
-    } catch (e: any) {
-      setCatMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
-    }
-  }
-// --- À coller dans AdminPage(), avant const dataSorted = useMemo(...)
-
-async function savePage(
-  slug: "contact" | "a-propos",
-  title: string,
-  body: string,
-  setMsg: (v: string) => void
-) {
-  setMsg("");
-  if (!title || !title.trim()) {
-    setMsg("Titre requis.");
-    return;
-  }
-  try {
-    const res = await fetch("/api/admin/pages", {
-      method: "PUT",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ slug, title: title.trim(), body: body ?? "" }),
-    });
-
-    console.log("DEBUG PUT /api/admin/pages status", res.status);
-    if (res.status === 401) {
-      // pas connecté → redirection login faite ailleurs, on affiche juste le msg
-      setMsg("❌ Non connecté (401).");
-      return;
-    }
-
-    const text = await res.text();
-    console.log("DEBUG PUT /api/admin/pages raw", text);
-
-    if (!res.ok) {
-      try {
-        const err = JSON.parse(text);
-        throw new Error(err?.error || text);
-      } catch {
-        throw new Error(text);
-      }
-    }
-
-    let json: any = null;
-    try {
-      json = JSON.parse(text);
-    } catch {
-      throw new Error("Réponse serveur invalide (JSON attendu).");
-    }
-
-    // Optionnel: si tu gardes un state pages:
-    // setPages(json.data || []);
-    setMsg("✔️ Page enregistrée.");
-  } catch (e: any) {
-    console.error("DEBUG PUT /api/admin/pages error", e);
-    setMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
-  }
-}
 
   // Tri local soins
   const dataSorted = useMemo(() => {
@@ -573,7 +513,16 @@ async function savePage(
 
             <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
               <button onClick={addOrUpdate}>{form?.id ? "Enregistrer" : "Ajouter"}</button>
-              {form?.id ? <button onClick={() => { setForm({}); setPriceMode("single"); }}>Annuler</button> : null}
+              {form?.id ? (
+                <button
+                  onClick={() => {
+                    setForm({});
+                    setPriceMode("single");
+                  }}
+                >
+                  Annuler
+                </button>
+              ) : null}
             </div>
           </div>
 
