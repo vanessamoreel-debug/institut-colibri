@@ -13,6 +13,16 @@ function numOrNull(v: any): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+// Calcule l'ordre suivant pour une catégorie (max + 1)
+function getNextOrderForCat(catName: string, all: Service[]): number {
+  if (!catName) return 1;
+  const up = catName.toUpperCase();
+  const sameCat = all.filter((s) => (s.category || "").toUpperCase() === up);
+  if (sameCat.length === 0) return 1;
+  const maxOrder = Math.max(...sameCat.map((s) => (s.order ?? 0)));
+  return (Number.isFinite(maxOrder) ? maxOrder : 0) + 1;
+}
+
 export default function AdminPage() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("soins");
@@ -53,7 +63,7 @@ export default function AdminPage() {
     return false;
   }
 
-  // LOADERS
+  // ---------- LOADERS ----------
   async function loadAuth() {
     try {
       const r = await fetch("/api/auth/status", { credentials: "include", cache: "no-store" });
@@ -124,7 +134,7 @@ export default function AdminPage() {
     loadPages();
   }, []);
 
-  // --- Helpers prix (UI)
+  // ---------- HELPERS PRIX ----------
   function inferPriceMode(s: Partial<Service>): PriceMode {
     if (s.priceMin != null && s.priceMax != null) return "range";
     return "single";
@@ -147,7 +157,7 @@ export default function AdminPage() {
     });
   }
 
-  // --- SOINS CRUD
+  // ---------- CRUD SOINS ----------
   async function addOrUpdate() {
     setMsg("");
     if (!form?.name) return setMsg("Nom requis.");
@@ -165,7 +175,7 @@ export default function AdminPage() {
 
     const payload = {
       ...form,
-      // Normalisation stockage: prix unique → priceMin; intervalle → min/max; on n'utilise pas `price`.
+      // Normalisation: on n'envoie pas price (serveur stocke min/max)
       price: null,
       priceMin:
         priceMode === "single"
@@ -177,6 +187,7 @@ export default function AdminPage() {
       approxDuration: !!form.approxDuration,
       order: form.order == null ? null : Number(form.order),
       spacing: form.spacing == null ? null : Number(form.spacing),
+      id: form.id, // important pour PUT
     };
 
     const method = form?.id ? "PUT" : "POST";
@@ -224,7 +235,7 @@ export default function AdminPage() {
     setPriceMode(inferPriceMode(s));
   }
 
-  // --- CATEGORIES CRUD (ajoutées ici)
+  // ---------- CRUD CATEGORIES ----------
   async function catAddOrUpdate() {
     setCatMsg("");
     if (!catForm?.name || !String(catForm.name).trim()) {
@@ -274,16 +285,16 @@ export default function AdminPage() {
     }
   }
 
-  // --- PAGES CRUD (Contact / À-propos)
+  // ---------- PAGES (Contact / À-propos) ----------
   async function savePage(
     slug: "contact" | "a-propos",
     title: string,
     body: string,
-    setMsg: (v: string) => void
+    setMsgFn: (v: string) => void
   ) {
-    setMsg("");
+    setMsgFn("");
     if (!title || !title.trim()) {
-      setMsg("Titre requis.");
+      setMsgFn("Titre requis.");
       return;
     }
     try {
@@ -294,12 +305,9 @@ export default function AdminPage() {
         body: JSON.stringify({ slug, title: title.trim(), body: body ?? "" }),
       });
 
-      console.log("DEBUG PUT /api/admin/pages status", res.status);
       if (handleUnauthorized(res)) return;
 
       const text = await res.text();
-      console.log("DEBUG PUT /api/admin/pages raw", text);
-
       if (!res.ok) {
         try {
           const err = JSON.parse(text);
@@ -308,29 +316,20 @@ export default function AdminPage() {
           throw new Error(text);
         }
       }
-
-      let json: any = null;
-      try {
-        json = JSON.parse(text);
-      } catch {
-        throw new Error("Réponse serveur invalide (JSON attendu).");
-      }
-
+      const json = JSON.parse(text);
       setPages(json.data || []);
-      setMsg("✔️ Page enregistrée.");
+      setMsgFn("✔️ Page enregistrée.");
     } catch (e: any) {
-      console.error("DEBUG PUT /api/admin/pages error", e);
-      setMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
+      setMsgFn(`❌ Erreur: ${e?.message || "action refusée"}`);
     }
   }
 
-  // --- Helpers affichage
+  // ---------- Helpers affichage ----------
   function formatDuration(s: Service) {
     if (s.duration == null) return "—";
     const v = Math.round(s.duration);
     return s.approxDuration ? `± ${v} min` : `${v} min`;
   }
-
   function formatPriceAdmin(s: Service) {
     if (s.priceMin != null && s.priceMax != null) return `${s.priceMin}–${s.priceMax} CHF`;
     if (s.priceMin != null) return `${s.priceMin} CHF`;
@@ -360,7 +359,7 @@ export default function AdminPage() {
     return copy;
   }, [data, cats]);
 
-  // UI
+  // ---------- UI ----------
   return (
     <div>
       <h2>Administration</h2>
@@ -525,11 +524,23 @@ export default function AdminPage() {
                 value={form.order?.toString() || ""}
                 onChange={(e) => setForm({ ...form, order: numOrNull(e.target.value) as any })}
               />
+
+              {/* Catégorie avec auto-proposition d'ordre */}
               <input
                 list="colibri-cats"
                 placeholder="Catégorie"
                 value={form.category || ""}
-                onChange={(e) => setForm({ ...form, category: e.target.value.toUpperCase() })}
+                onChange={(e) => {
+                  const newCat = e.target.value.toUpperCase();
+                  setForm((prev) => {
+                    const copy: Partial<Service> = { ...prev, category: newCat };
+                    // Nouveau soin (pas d'id) ET pas d'ordre déjà saisi => proposer auto
+                    if (!prev.id && (prev.order == null || prev.order === undefined || prev.order === ("" as any))) {
+                      copy.order = getNextOrderForCat(newCat, data);
+                    }
+                    return copy;
+                  });
+                }}
               />
               <datalist id="colibri-cats">
                 {cats.map((c) => (
