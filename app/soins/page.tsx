@@ -35,6 +35,13 @@ function formatPrice(s: Service) {
   return "—";
 }
 
+// mini-parser: transforme **gras** -> <strong>gras</strong>
+function formatDescription(desc: string) {
+  if (!desc) return null;
+  const html = desc.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  return <span dangerouslySetInnerHTML={{ __html: html }} />;
+}
+
 export default async function SoinsPage() {
   const [services, categories] = await Promise.all([getServices(), getCategories()]);
 
@@ -48,17 +55,17 @@ export default async function SoinsPage() {
 
   // Ordre des catégories
   const knownOrder = categories
-    .filter(c => presentCats.includes(c.name))
+    .filter((c) => presentCats.includes(c.name))
     .sort((a, b) => {
       const oa = a.order ?? 9999;
       const ob = b.order ?? 9999;
       if (oa !== ob) return oa - ob;
       return (a.name || "").localeCompare(b.name || "");
     })
-    .map(c => c.name);
+    .map((c) => c.name);
 
   const unknown = presentCats
-    .filter(name => !knownOrder.includes(name))
+    .filter((name) => !knownOrder.includes(name))
     .sort((a, b) => a.localeCompare(b));
 
   const orderedCats = [...knownOrder, ...unknown];
@@ -83,7 +90,7 @@ export default async function SoinsPage() {
 
             return (
               <section key={cat} className="services-section">
-                {/* Catégorie = couleur spécifique */}
+                {/* Catégorie en couleur spécifique */}
                 <h3 className="services-cat" style={{ color: "#7D6C71" }}>
                   {cat}
                 </h3>
@@ -109,7 +116,7 @@ export default async function SoinsPage() {
                         {s.description ? (
                           <div className="service-meta">
                             <span className="service-desc" style={{ color: "#000" }}>
-                              {s.description}
+                              {formatDescription(s.description)}
                             </span>
                           </div>
                         ) : null}
