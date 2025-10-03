@@ -15,7 +15,7 @@ async function getPage(slug: string) {
   return res.json();
 }
 
-/** Échappe le HTML (on ne fait confiance qu’au texte), puis on réinsère des <a> sûrs */
+/** Échappe le HTML (sécurité) */
 function escapeHtml(s: string) {
   return s
     .replaceAll(/&/g, "&amp;")
@@ -24,60 +24,70 @@ function escapeHtml(s: string) {
     .replaceAll(/"/g, "&quot;");
 }
 
-/** Garde seulement les chiffres (utile pour wa.me) ; normalise "00.." → international */
+/** Garde seulement les chiffres d’un numéro (utile pour tel: et wa.me) */
 function digitsOnly(s: string) {
   const d = s.replace(/[^\d]/g, "");
-  return d.startsWith("00") ? d.slice(2) : d;
+  return d.startsWith("00") ? d.slice(2) : d; // normalise "00.." → international
 }
 
-/** Transforme le corps en HTML avec liens tel/mail/whatsapp/maps */
+/** Transforme le corps en HTML avec icônes + liens */
 function linkifyContact(body: string): string {
   const lines = body.split(/\r?\n/);
 
   const emailRe = /\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi;
-  const phoneRe = /(?:\+?\d[\d\s().-]{6,}\d)/g; // ex: +41 79 123 45 67
+  const phoneRe = /(?:\+?\d[\d\s().-]{6,}\d)/g;
   const waHintRe = /\bwhats?app\b/i;
 
   const htmlLines = lines.map((rawLine) => {
-    // 1) Échapper le HTML
     let line = escapeHtml(rawLine);
 
-    // 2) Emails → mailto:
-    line = line.replace(emailRe, (m) => `<a href="mailto:${m}">${m}</a>`);
-
-    // 3) Téléphones :
-    //    - si la ligne mentionne "WhatsApp" => lien WhatsApp (wa.me)
-    //    - sinon => tel:
-    const looksLikeWhatsapp = waHintRe.test(rawLine);
-
-    line = line.replace(phoneRe, (m) => {
-      // href tel: → on garde + si présent, sinon on retire espaces/ponctuation
-      const telClean = m.replace(/[^\d+]/g, "");
-      const waClean = digitsOnly(m);
-      if (waClean.length < 6) return m; // trop court → ne pas lier
-
-      if (looksLikeWhatsapp) {
-        return `<a href="https://wa.me/${waClean}" target="_blank" rel="noopener">${m}</a>`;
-      }
-      return `<a href="tel:${telClean}">${m}</a>`;
+    // Emails ✉️
+    line = line.replace(emailRe, (m) => {
+      const href = `mailto:${m}`;
+      return `<a href="${href}">✉️ ${m}</a>`;
     });
 
-    // 4) Adresse → Google Maps (heuristique simple)
+    // Téléphones 📞
+    line = line.replace(phoneRe, (m) => {
+      if (m.includes("&lt;") || m.includes("&gt;")) return m;
+      const digits = digitsOnly(m);
+      if (digits.length < 6) return m;
+      const href = `tel:+${digits.startsWith("0") ? digits : digits}`;
+      return `<a href="${href}">📞 ${m}</a>`;
+    });
+
+    // WhatsApp 💬
+    if (waHintRe.test(rawLine)) {
+      const match = rawLine.match(phoneRe);
+      if (match?.[0]) {
+        const w = digitsOnly(match[0]);
+        if (w.length >= 6) {
+          const url = `https://wa.me/${w}`;
+          line = line.replace(
+            /(Whats?App)/i,
+            `<a href="${url}" target="_blank" rel="noopener">💬 $1</a>`
+          );
+        }
+      }
+    }
+
+    // Adresse 📍
     const looksLikeAddress =
       /\d/.test(rawLine) &&
-      /(rue|avenue|av\.?|chemin|ch\.?|route|place|bd|boulevard|impasse|quai|grand[-\s]?rue|pl\.?)/i.test(rawLine) &&
+      /(rue|avenue|av\.?|chemin|ch\.?|route|place|bd|boulevard|impasse|quai|grand[-\s]rue|pl\.?)/i.test(
+        rawLine
+      ) &&
       !emailRe.test(rawLine);
 
     if (looksLikeAddress) {
       const q = encodeURIComponent(rawLine.trim());
       const maps = `https://www.google.com/maps/search/?api=1&query=${q}`;
-      line = `<a href="${maps}" target="_blank" rel="noopener">${line}</a>`;
+      line = `<a href="${maps}" target="_blank" rel="noopener">📍 ${line}</a>`;
     }
 
     return line;
   });
 
-  // 5) Conserver les retours à la ligne de façon lisible
   return htmlLines
     .map((l) => (l.trim() === "" ? "<br/>" : `<p style="margin:6px 0">${l}</p>`))
     .join("");
@@ -91,7 +101,7 @@ export default async function ContactPage() {
   const html = linkifyContact(body);
 
   return (
-    <div className="pricelist">
+    <div className="pricelist info-panel">
       <h2 className="page-title">{title}</h2>
       <div dangerouslySetInnerHTML={{ __html: html }} />
     </div>
