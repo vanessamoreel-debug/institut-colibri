@@ -32,11 +32,10 @@ function linkifyContact(body: string): string {
   const phoneRe = /(?:\+?\d[\d\s().-]{6,}\d)/g;
   const waHintRe = /\bwhats?app\b/i;
 
-  const whatsappUrl = `https://wa.me/41795307564`; // ✅ ton numéro intégré ici
+  const whatsappUrl = `https://wa.me/41795307564`; // ✅ ton numéro WhatsApp
 
   const whatsappIcon = `
-    <svg xmlns="http://www.w3.org/2000/svg" 
-         width="18" height="18" viewBox="0 0 32 32" 
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 32 32"
          style="vertical-align:middle; margin-right:6px">
       <path fill="#25D366" d="M16 0C7.163 0 0 7.163 0 16c0 2.82.733 5.527 2.126 7.937L0 32l8.297-2.08A15.93 15.93 0 0 0 16 32c8.837 0 16-7.163 16-16S24.837 0 16 0z"/>
       <path fill="#FFF" d="M24.26 19.58c-.367-.184-2.172-1.07-2.508-1.191-.337-.123-.584-.184-.83.185-.246.367-.953 1.191-1.169 1.438-.215.246-.43.277-.797.092-.367-.184-1.548-.57-2.947-1.817-1.089-.97-1.823-2.17-2.038-2.537-.215-.367-.023-.565.161-.749.166-.165.368-.43.552-.645.185-.215.246-.368.369-.614.122-.246.061-.461-.03-.645-.092-.184-.83-1.997-1.137-2.737-.299-.718-.602-.62-.83-.63l-.707-.013c-.246 0-.645.092-.983.461-.337.368-1.291 1.262-1.291 3.077s1.322 3.564 1.506 3.809c.184.246 2.602 3.978 6.308 5.573.882.379 1.568.605 2.105.773.885.28 1.691.24 2.326.146.709-.106 2.172-.889 2.479-1.748.307-.86.307-1.597.215-1.748-.091-.151-.337-.245-.704-.429z"/>
@@ -58,19 +57,21 @@ function linkifyContact(body: string): string {
       return `<a href="${href}">📞 ${m}</a>`;
     });
 
-    // WhatsApp : toujours remplacer par ton lien unique
+    // WhatsApp → lien unique vers ton numéro (texte “WhatsApp” + logo)
     if (waHintRe.test(rawLine)) {
       line = `<a href="${whatsappUrl}" target="_blank" rel="noopener">${whatsappIcon}WhatsApp</a>`;
     }
 
-    // Adresse 📍
+    // Adresse 📍 → forcer “Institut Colibri, [adresse]” pour Google Maps
     const looksLikeAddress =
       /\d/.test(rawLine) &&
       /(rue|avenue|av\.?|chemin|ch\.?|route|place|bd|boulevard|impasse|quai|grand[-\s]rue|pl\.?)/i.test(rawLine) &&
       !emailRe.test(rawLine);
 
     if (looksLikeAddress) {
-      const q = encodeURIComponent(rawLine.trim());
+      const hasBrand = /institut\s+colibri/i.test(rawLine);
+      const query = hasBrand ? rawLine.trim() : `Institut Colibri, ${rawLine.trim()}`;
+      const q = encodeURIComponent(query);
       const maps = `https://www.google.com/maps/search/?api=1&query=${q}`;
       line = `<a href="${maps}" target="_blank" rel="noopener">📍 ${line}</a>`;
     }
