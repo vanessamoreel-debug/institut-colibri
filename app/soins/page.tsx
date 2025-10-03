@@ -91,7 +91,8 @@ export default async function SoinsPage() {
                     return (
                       <div key={s.id} className="service-row" style={{ marginBottom: s.spacing ?? 10 }}>
                         <div className="service-line">
-                          <span className="service-name">{s.name}</span>
+                          {/* Nom du soin en #7D6C71 (couleur du titre du site) */}
+                          <span className="service-name" style={{ color: "#7D6C71" }}>{s.name}</span>
                           <span className="service-fill" aria-hidden="true" />
                           <strong className="service-price">{formatPrice(s)}</strong>
                         </div>
