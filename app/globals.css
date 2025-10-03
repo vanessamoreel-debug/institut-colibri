@@ -297,3 +297,14 @@ body {
   font-size: 2rem;       /* ajuste selon ton rendu */
   font-weight: 600;
 }
+
+/* Liens stylés pour les pages info (contact, à-propos, etc.) */
+.pricelist a {
+  color: #7D6C71;              /* même couleur que le titre */
+  text-decoration: none;       /* enlève le souligné */
+  font-weight: 600;            /* un peu plus marqué */
+}
+
+.pricelist a:hover {
+  text-decoration: underline;  /* juste un souligné au survol, élégant */
+}
