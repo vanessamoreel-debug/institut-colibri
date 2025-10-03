@@ -165,7 +165,7 @@ export default function AdminPage() {
 
     const payload = {
       ...form,
-      // Normalisation: on n'utilise plus 'price' en stockage. Prix unique = priceMin, range = min/max.
+      // Normalisation stockage: prix unique → priceMin; intervalle → min/max; on n'utilise pas `price`.
       price: null,
       priceMin:
         priceMode === "single"
@@ -224,7 +224,57 @@ export default function AdminPage() {
     setPriceMode(inferPriceMode(s));
   }
 
-  // --- PAGES CRUD (Contact / À-propos)  <<< LA FONCTION QUI MANQUAIT
+  // --- CATEGORIES CRUD (ajoutées ici)
+  async function catAddOrUpdate() {
+    setCatMsg("");
+    if (!catForm?.name || !String(catForm.name).trim()) {
+      setCatMsg("Nom de catégorie requis.");
+      return;
+    }
+    const payload = {
+      id: (catForm as any).id,
+      name: String(catForm.name).trim().toUpperCase(),
+      order: catForm.order == null ? null : Number(catForm.order),
+    };
+    const method = (catForm as any).id ? "PUT" : "POST";
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method,
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (handleUnauthorized(res)) return;
+      if (!res.ok) throw new Error(await res.text());
+      const json = await res.json();
+      setCats(json.data || []);
+      setCatForm({});
+      setCatMsg("✔️ Catégorie enregistrée.");
+    } catch (e: any) {
+      setCatMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
+    }
+  }
+
+  async function catRemove(id: string) {
+    setCatMsg("");
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method: "DELETE",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (handleUnauthorized(res)) return;
+      if (!res.ok) throw new Error(await res.text());
+      const json = await res.json();
+      setCats(json.data || []);
+      setCatMsg("✔️ Catégorie supprimée.");
+    } catch (e: any) {
+      setCatMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
+    }
+  }
+
+  // --- PAGES CRUD (Contact / À-propos)
   async function savePage(
     slug: "contact" | "a-propos",
     title: string,
