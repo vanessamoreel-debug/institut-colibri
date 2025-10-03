@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Service, Category, PageDoc } from "../../types";
 
 type Tab = "soins" | "contact" | "a-propos";
+type PriceMode = "single" | "range";
 
 function numOrNull(v: any): number | null {
   if (v === "" || v === undefined || v === null) return null;
@@ -23,6 +24,7 @@ export default function AdminPage() {
   const [data, setData] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState<Partial<Service>>({});
+  const [priceMode, setPriceMode] = useState<PriceMode>("single");
   const [msg, setMsg] = useState<string>("");
 
   // Catégories
@@ -122,21 +124,61 @@ export default function AdminPage() {
     loadPages();
   }, []);
 
+  // Helpers prix
+  function inferPriceMode(s: Partial<Service>): PriceMode {
+    if (s.priceMin != null && s.priceMax != null) return "range";
+    return "single";
+  }
+
+  function onChangePriceMode(next: PriceMode) {
+    setPriceMode(next);
+    setForm((prev) => {
+      const copy = { ...prev };
+      if (next === "single") {
+        // Si on passe à "prix unique", recopier une base dans price
+        const base = copy.priceMin ?? copy.price ?? null;
+        copy.price = base;
+        copy.priceMax = null;
+        // on laisse priceMin tel quel (il sera recalculé à l’envoi)
+      } else {
+        // Si on passe à "intervalle", recopier la valeur unique en min si besoin
+        const base = copy.price ?? copy.priceMin ?? null;
+        copy.priceMin = base;
+        copy.price = null; // on n’utilise pas price en intervalle
+      }
+      return copy;
+    });
+  }
+
   // SOINS
   async function addOrUpdate() {
     setMsg("");
 
     if (!form?.name) return setMsg("Nom requis.");
-    const minOk = form.priceMin == null || Number.isFinite(Number(form.priceMin));
-    const maxOk = form.priceMax == null || Number.isFinite(Number(form.priceMax));
-    if (!minOk || !maxOk) return setMsg("Prix incorrect.");
+
+    // Validation prix selon le mode
+    if (priceMode === "single") {
+      const uniqueVal = numOrNull(form.price ?? form.priceMin);
+      if (uniqueVal == null) return setMsg("Prix requis.");
+    } else {
+      const pmin = numOrNull(form.priceMin);
+      const pmax = numOrNull(form.priceMax);
+      if (pmin == null) return setMsg("Prix min requis.");
+      if (pmax != null && pmax < pmin) return setMsg("Prix max doit être ≥ prix min.");
+    }
 
     const payload = {
       ...form,
+      // Normalisation du prix côté API :
+      // - mode single → on force price=null et on remplit priceMin (simple et cohérent avec l’affichage public)
+      price: priceMode === "single" ? null : null, // on n'utilise plus price côté stockage
+      priceMin:
+        priceMode === "single"
+          ? numOrNull(form.price ?? form.priceMin)
+          : numOrNull(form.priceMin),
+      priceMax: priceMode === "range" ? numOrNull(form.priceMax) : null,
+
       category: form.category ? String(form.category).toUpperCase() : null,
-      price: form.price == null ? null : Number(form.price),
-      priceMin: form.priceMin == null ? null : Number(form.priceMin),
-      priceMax: form.priceMax == null ? null : Number(form.priceMax),
       duration: form.duration == null ? null : Number(form.duration),
       approxDuration: !!form.approxDuration,
       order: form.order == null ? null : Number(form.order),
@@ -156,6 +198,7 @@ export default function AdminPage() {
       const json = await res.json();
       setData(json.data || []);
       setForm({});
+      setPriceMode("single");
       setMsg("✔️ Sauvegardé.");
       await loadCats();
     } catch (e: any) {
@@ -182,6 +225,16 @@ export default function AdminPage() {
     }
   }
 
+  function editService(s: Service) {
+    setForm(s);
+    setPriceMode(inferPriceMode(s));
+  }
+
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+    router.replace("/login");
+  }
+
   function formatDuration(s: Service) {
     if (s.duration == null) return "—";
     const v = Math.round(s.duration);
@@ -193,11 +246,6 @@ export default function AdminPage() {
     if (s.priceMin != null) return `${s.priceMin} CHF`;
     if (s.price != null) return `${s.price} CHF`;
     return "—";
-  }
-
-  async function logout() {
-    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-    router.replace("/login");
   }
 
   // CATEGORIES
@@ -247,56 +295,6 @@ export default function AdminPage() {
       setCatMsg("✔️ Catégorie supprimée.");
     } catch (e: any) {
       setCatMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
-    }
-  }
-
-  // PAGES
-  async function savePage(
-    slug: "contact" | "a-propos",
-    title: string,
-    body: string,
-    setMsg: (v: string) => void
-  ) {
-    setMsg("");
-    if (!title || !title.trim()) {
-      setMsg("Titre requis.");
-      return;
-    }
-    try {
-      const res = await fetch("/api/admin/pages", {
-        method: "PUT",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slug, title: title.trim(), body: body ?? "" }),
-      });
-
-      console.log("DEBUG PUT /api/admin/pages status", res.status);
-      if (handleUnauthorized(res)) return;
-
-      const text = await res.text();
-      console.log("DEBUG PUT /api/admin/pages raw", text);
-
-      if (!res.ok) {
-        try {
-          const err = JSON.parse(text);
-          throw new Error(err?.error || text);
-        } catch {
-          throw new Error(text);
-        }
-      }
-
-      let json: any = null;
-      try {
-        json = JSON.parse(text);
-      } catch {
-        throw new Error("Réponse serveur invalide (JSON attendu).");
-      }
-
-      setPages(json.data || []);
-      setMsg("✔️ Page enregistrée.");
-    } catch (e: any) {
-      console.error("DEBUG PUT /api/admin/pages error", e);
-      setMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
     }
   }
 
@@ -415,20 +413,61 @@ export default function AdminPage() {
           <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
             <h3>{form?.id ? "Modifier un soin" : "Ajouter un soin"}</h3>
 
-            <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 110px 110px 90px 90px 1fr" }}>
-              <input placeholder="Nom" value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            {/* Toggle mode prix */}
+            <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 8 }}>
+              <span style={{ fontWeight: 600 }}>Type de prix :</span>
+              <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <input
+                  type="radio"
+                  name="priceMode"
+                  checked={priceMode === "single"}
+                  onChange={() => onChangePriceMode("single")}
+                />
+                Prix unique
+              </label>
+              <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <input
+                  type="radio"
+                  name="priceMode"
+                  checked={priceMode === "range"}
+                  onChange={() => onChangePriceMode("range")}
+                />
+                Intervalle (min–max)
+              </label>
+            </div>
+
+            <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 1fr 90px 90px 1fr" }}>
               <input
-                placeholder="Prix (CHF)"
-                type="number"
-                value={form.price?.toString() || ""}
-                onChange={(e) => setForm({ ...form, price: numOrNull(e.target.value) as any })}
+                placeholder="Nom"
+                value={form.name || ""}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
               />
-              <input
-                placeholder="Prix max (facultatif)"
-                type="number"
-                value={form.priceMax?.toString() || ""}
-                onChange={(e) => setForm({ ...form, priceMax: numOrNull(e.target.value) as any })}
-              />
+
+              {/* Prix */}
+              {priceMode === "single" ? (
+                <input
+                  placeholder="Prix (CHF)"
+                  type="number"
+                  value={(form.price ?? form.priceMin ?? "").toString()}
+                  onChange={(e) => setForm({ ...form, price: numOrNull(e.target.value) as any })}
+                />
+              ) : (
+                <>
+                  <input
+                    placeholder="Prix min (CHF)"
+                    type="number"
+                    value={(form.priceMin ?? "").toString()}
+                    onChange={(e) => setForm({ ...form, priceMin: numOrNull(e.target.value) as any })}
+                  />
+                  <input
+                    placeholder="Prix max (CHF)"
+                    type="number"
+                    value={(form.priceMax ?? "").toString()}
+                    onChange={(e) => setForm({ ...form, priceMax: numOrNull(e.target.value) as any })}
+                  />
+                </>
+              )}
+
               <input
                 placeholder="Durée (min)"
                 type="number"
@@ -479,7 +518,7 @@ export default function AdminPage() {
 
             <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
               <button onClick={addOrUpdate}>{form?.id ? "Enregistrer" : "Ajouter"}</button>
-              {form?.id ? <button onClick={() => setForm({})}>Annuler</button> : null}
+              {form?.id ? <button onClick={() => { setForm({}); setPriceMode("single"); }}>Annuler</button> : null}
             </div>
           </div>
 
@@ -508,7 +547,7 @@ export default function AdminPage() {
                     <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
                     <td style={{ textAlign: "center", fontWeight: 600 }}>{formatPriceAdmin(s)}</td>
                     <td style={{ textAlign: "center" }}>
-                      <button onClick={() => setForm(s)}>Modifier</button>
+                      <button onClick={() => editService(s)}>Modifier</button>
                       <button onClick={() => remove(s.id)} style={{ marginLeft: 8 }}>
                         Supprimer
                       </button>
