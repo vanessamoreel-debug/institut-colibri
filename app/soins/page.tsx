@@ -83,7 +83,7 @@ export default async function SoinsPage() {
 
             return (
               <section key={cat} className="services-section">
-                {/* Catégorie en couleur spécifique */}
+                {/* Catégorie = couleur spécifique */}
                 <h3 className="services-cat" style={{ color: "#7D6C71" }}>
                   {cat}
                 </h3>
@@ -108,7 +108,9 @@ export default async function SoinsPage() {
                         </div>
                         {s.description ? (
                           <div className="service-meta">
-                            <span className="service-desc">{s.description}</span>
+                            <span className="service-desc" style={{ color: "#000" }}>
+                              {s.description}
+                            </span>
                           </div>
                         ) : null}
                       </div>
