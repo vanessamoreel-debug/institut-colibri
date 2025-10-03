@@ -287,3 +287,13 @@ body {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
 }
+
+/* Titres des pages Contact et À propos */
+.page-title {
+  text-align: center;
+  font-family: 'Playfair Display', serif;
+  color: #7D6C71;
+  margin: 6px 0 16px;
+  font-size: 2rem;       /* ajuste selon ton rendu */
+  font-weight: 600;
+}
