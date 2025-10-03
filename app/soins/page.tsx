@@ -83,8 +83,8 @@ export default async function SoinsPage() {
 
             return (
               <section key={cat} className="services-section">
-                {/* Catégorie en couleur accent */}
-                <h3 className="services-cat" style={{ color: "var(--accent-color)" }}>
+                {/* Catégorie en couleur spécifique */}
+                <h3 className="services-cat" style={{ color: "#7D6C71" }}>
                   {cat}
                 </h3>
 
@@ -94,7 +94,7 @@ export default async function SoinsPage() {
                     return (
                       <div key={s.id} className="service-row" style={{ marginBottom: s.spacing ?? 10 }}>
                         <div className="service-line">
-                          {/* Nom du soin en noir */}
+                          {/* Nom + Durée en noir */}
                           <span className="service-name" style={{ color: "#000", fontWeight: 500 }}>
                             {s.name}
                             {dur ? (
