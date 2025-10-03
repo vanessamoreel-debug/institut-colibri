@@ -22,7 +22,7 @@ export default async function ContactPage() {
   const body = data?.body || "Adresse, téléphone, e-mail, horaires…";
 
   return (
-    <div className="card">
+    <div className="pricelist" style={{ padding: 20 }}>
       <h2 style={{ marginTop: 0 }}>{title}</h2>
       <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 }}>
         {body}
