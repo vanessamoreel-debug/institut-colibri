@@ -83,7 +83,10 @@ export default async function SoinsPage() {
 
             return (
               <section key={cat} className="services-section">
-                <h3 className="services-cat">{cat}</h3>
+                {/* Catégorie en couleur accent */}
+                <h3 className="services-cat" style={{ color: "var(--accent-color)" }}>
+                  {cat}
+                </h3>
 
                 <div className="services-list">
                   {sorted.map((s) => {
@@ -91,9 +94,14 @@ export default async function SoinsPage() {
                     return (
                       <div key={s.id} className="service-row" style={{ marginBottom: s.spacing ?? 10 }}>
                         <div className="service-line">
-                          <span className="service-name">
+                          {/* Nom du soin en noir */}
+                          <span className="service-name" style={{ color: "#000", fontWeight: 500 }}>
                             {s.name}
-                            {dur ? <span style={{ marginLeft: 8, color: "#666", fontWeight: 400 }}>({dur})</span> : null}
+                            {dur ? (
+                              <span style={{ marginLeft: 8, color: "#666", fontWeight: 400 }}>
+                                ({dur})
+                              </span>
+                            ) : null}
                           </span>
                           <span className="service-fill" aria-hidden="true" />
                           <strong className="service-price">{formatPrice(s)}</strong>
