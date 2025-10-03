@@ -297,6 +297,61 @@ export default function AdminPage() {
       setCatMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
     }
   }
+// --- À coller dans AdminPage(), avant const dataSorted = useMemo(...)
+
+async function savePage(
+  slug: "contact" | "a-propos",
+  title: string,
+  body: string,
+  setMsg: (v: string) => void
+) {
+  setMsg("");
+  if (!title || !title.trim()) {
+    setMsg("Titre requis.");
+    return;
+  }
+  try {
+    const res = await fetch("/api/admin/pages", {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slug, title: title.trim(), body: body ?? "" }),
+    });
+
+    console.log("DEBUG PUT /api/admin/pages status", res.status);
+    if (res.status === 401) {
+      // pas connecté → redirection login faite ailleurs, on affiche juste le msg
+      setMsg("❌ Non connecté (401).");
+      return;
+    }
+
+    const text = await res.text();
+    console.log("DEBUG PUT /api/admin/pages raw", text);
+
+    if (!res.ok) {
+      try {
+        const err = JSON.parse(text);
+        throw new Error(err?.error || text);
+      } catch {
+        throw new Error(text);
+      }
+    }
+
+    let json: any = null;
+    try {
+      json = JSON.parse(text);
+    } catch {
+      throw new Error("Réponse serveur invalide (JSON attendu).");
+    }
+
+    // Optionnel: si tu gardes un state pages:
+    // setPages(json.data || []);
+    setMsg("✔️ Page enregistrée.");
+  } catch (e: any) {
+    console.error("DEBUG PUT /api/admin/pages error", e);
+    setMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
+  }
+}
 
   // Tri local soins
   const dataSorted = useMemo(() => {
