@@ -46,7 +46,7 @@ export default async function SoinsPage() {
   }, {});
   const presentCats = Object.keys(byCat);
 
-  // Ordre des catégories (défini) puis inconnues (alpha)
+  // Ordre des catégories
   const knownOrder = categories
     .filter(c => presentCats.includes(c.name))
     .sort((a, b) => {
@@ -91,17 +91,18 @@ export default async function SoinsPage() {
                     return (
                       <div key={s.id} className="service-row" style={{ marginBottom: s.spacing ?? 10 }}>
                         <div className="service-line">
-                          {/* Nom du soin en #7D6C71 (couleur du titre du site) */}
-                          <span className="service-name" style={{ color: "#7D6C71" }}>{s.name}</span>
+                          <span className="service-name">
+                            {s.name}
+                            {dur ? <span style={{ marginLeft: 8, color: "#666", fontWeight: 400 }}>({dur})</span> : null}
+                          </span>
                           <span className="service-fill" aria-hidden="true" />
                           <strong className="service-price">{formatPrice(s)}</strong>
                         </div>
-                        {(dur || s.description) && (
+                        {s.description ? (
                           <div className="service-meta">
-                            {dur ? <span className="service-duration">{dur}</span> : null}
-                            {s.description ? <span className="service-desc">{s.description}</span> : null}
+                            <span className="service-desc">{s.description}</span>
                           </div>
-                        )}
+                        ) : null}
                       </div>
                     );
                   })}
