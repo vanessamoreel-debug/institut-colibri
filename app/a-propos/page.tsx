@@ -19,9 +19,12 @@ export default async function AProposPage() {
   const body = data?.body || "Votre histoire, votre philosophie, l’équipe…";
 
   return (
-    <div className="pricelist" style={{ padding: 20 }}>
-      <h2 style={{ marginTop: 0 }}>{title}</h2>
-      <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 }}>{body}</pre>
+    <div className="pricelist">
+      <h2 className="page-title">{title}</h2>
+      <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 }}>
+        {body}
+      </pre>
     </div>
   );
 }
+
