@@ -1,14 +1,12 @@
 // /app/admin/page.tsx
 "use client";
-
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Service, Category, PageDoc } from "../../types";
 
-type Tab = "soins" | "contact" | "a-propos";
+type Tab = "soins" | "contact" | "a-propos" | "fermeture";
 type PriceMode = "single" | "range";
 
-// helper: input -> number | null
 function numOrNull(v: any): number | null {
   if (v === "" || v === undefined || v === null) return null;
   const n = Number(v);
@@ -19,33 +17,36 @@ export default function AdminPage() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("soins");
 
-  // --- Auth status (info + redirection si 401) ---
+  // Auth
   const [authed, setAuthed] = useState<boolean | null>(null);
 
-  // --- Soins ---
+  // Soins
   const [data, setData] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState<Partial<Service>>({});
   const [priceMode, setPriceMode] = useState<PriceMode>("single");
   const [msg, setMsg] = useState<string>("");
 
-  // --- Catégories ---
+  // Catégories
   const [cats, setCats] = useState<Category[]>([]);
   const [catsLoading, setCatsLoading] = useState(true);
   const [catForm, setCatForm] = useState<Partial<Category>>({});
   const [catMsg, setCatMsg] = useState<string>("");
 
-  // --- Pages ---
+  // Pages
   const [pages, setPages] = useState<PageDoc[]>([]);
   const [pagesLoading, setPagesLoading] = useState(true);
-
   const [contactTitle, setContactTitle] = useState<string>("");
   const [contactBody, setContactBody] = useState<string>("");
   const [contactMsg, setContactMsg] = useState<string>("");
-
   const [aproposTitle, setAproposTitle] = useState<string>("");
   const [aproposBody, setAproposBody] = useState<string>("");
   const [aproposMsg, setAproposMsg] = useState<string>("");
+
+  // Fermeture (settings)
+  const [closed, setClosed] = useState<boolean>(false);
+  const [closedMessage, setClosedMessage] = useState<string>("");
+  const [closedMsg, setClosedMsg] = useState<string>("");
 
   function handleUnauthorized(res: Response) {
     if (res.status === 401) {
@@ -55,7 +56,7 @@ export default function AdminPage() {
     return false;
   }
 
-  // -------- LOADERS --------
+  // LOADERS
   async function loadAuth() {
     try {
       const r = await fetch("/api/auth/status", { credentials: "include", cache: "no-store" });
@@ -102,22 +103,34 @@ export default function AdminPage() {
       if (handleUnauthorized(res)) return;
       if (!res.ok) throw new Error(await res.text());
       const json = await res.json();
-      const list: PageDoc[] = json.data || [];
-      setPages(list);
+      setPages(json.data || []);
 
-      const contact = list.find((p) => p.slug === "contact");
-      const apropos = list.find((p) => p.slug === "a-propos");
+      const contact = (json.data || []).find((p: PageDoc) => p.slug === "contact");
+      const apropos = (json.data || []).find((p: PageDoc) => p.slug === "a-propos");
 
       setContactTitle(contact?.title || "Contact");
       setContactBody(contact?.body || "");
       setAproposTitle(apropos?.title || "À propos");
       setAproposBody(apropos?.body || "");
     } catch (e: any) {
-      const m = e?.message || "Erreur de chargement des pages";
-      setContactMsg(m);
-      setAproposMsg(m);
+      setContactMsg(e?.message || "Erreur de chargement des pages");
+      setAproposMsg(e?.message || "Erreur de chargement des pages");
     } finally {
       setPagesLoading(false);
+    }
+  }
+
+  async function loadSettings() {
+    try {
+      const res = await fetch("/api/admin/settings", { cache: "no-store", credentials: "include" });
+      if (handleUnauthorized(res)) return;
+      if (!res.ok) throw new Error(await res.text());
+      const json = await res.json();
+      setClosed(!!json.closed);
+      setClosedMessage(String(json.closedMessage || ""));
+    } catch (e: any) {
+      setClosed(false);
+      setClosedMessage("");
     }
   }
 
@@ -126,9 +139,10 @@ export default function AdminPage() {
     loadServices();
     loadCats();
     loadPages();
+    loadSettings();
   }, []);
 
-  // --- Helpers prix (UI) ---
+  // --- Helpers prix (UI)
   function inferPriceMode(s: Partial<Service>): PriceMode {
     if (s.priceMin != null && s.priceMax != null) return "range";
     return "single";
@@ -151,7 +165,7 @@ export default function AdminPage() {
     });
   }
 
-  // -------- CRUD SOINS --------
+  // --- SOINS CRUD
   async function addOrUpdate() {
     setMsg("");
     if (!form?.name) return setMsg("Nom requis.");
@@ -169,12 +183,8 @@ export default function AdminPage() {
 
     const payload = {
       ...form,
-      // Normalisation: stockage = priceMin/priceMax (price unique via priceMin)
       price: null,
-      priceMin:
-        priceMode === "single"
-          ? numOrNull(form.price ?? form.priceMin)
-          : numOrNull(form.priceMin),
+      priceMin: priceMode === "single" ? numOrNull(form.price ?? form.priceMin) : numOrNull(form.priceMin),
       priceMax: priceMode === "range" ? numOrNull(form.priceMax) : null,
       category: form.category ? String(form.category).toUpperCase() : null,
       duration: form.duration == null ? null : Number(form.duration),
@@ -228,57 +238,7 @@ export default function AdminPage() {
     setPriceMode(inferPriceMode(s));
   }
 
-  // -------- CRUD CATEGORIES --------
-  async function catAddOrUpdate() {
-    setCatMsg("");
-    if (!catForm?.name || !String(catForm.name).trim()) {
-      setCatMsg("Nom de catégorie requis.");
-      return;
-    }
-    const payload = {
-      id: (catForm as any).id,
-      name: String(catForm.name).trim().toUpperCase(),
-      order: catForm.order == null ? null : Number(catForm.order),
-    };
-    const method = (catForm as any).id ? "PUT" : "POST";
-    try {
-      const res = await fetch("/api/admin/categories", {
-        method,
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (handleUnauthorized(res)) return;
-      if (!res.ok) throw new Error(await res.text());
-      const json = await res.json();
-      setCats(json.data || []);
-      setCatForm({});
-      setCatMsg("✔️ Catégorie enregistrée.");
-    } catch (e: any) {
-      setCatMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
-    }
-  }
-
-  async function catRemove(id: string) {
-    setCatMsg("");
-    try {
-      const res = await fetch("/api/admin/categories", {
-        method: "DELETE",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
-      });
-      if (handleUnauthorized(res)) return;
-      if (!res.ok) throw new Error(await res.text());
-      const json = await res.json();
-      setCats(json.data || []);
-      setCatMsg("✔️ Catégorie supprimée.");
-    } catch (e: any) {
-      setCatMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
-    }
-  }
-
-  // -------- CRUD PAGES (Contact / À-propos) --------
+  // --- PAGES CRUD
   async function savePage(
     slug: "contact" | "a-propos",
     title: string,
@@ -298,28 +258,43 @@ export default function AdminPage() {
         body: JSON.stringify({ slug, title: title.trim(), body: body ?? "" }),
       });
       if (handleUnauthorized(res)) return;
-      if (!res.ok) throw new Error(await res.text());
-      const json = await res.json();
+
+      const text = await res.text();
+      if (!res.ok) {
+        try {
+          const err = JSON.parse(text);
+          throw new Error(err?.error || text);
+        } catch {
+          throw new Error(text);
+        }
+      }
+      const json = JSON.parse(text);
       setPages(json.data || []);
       setMsg("✔️ Page enregistrée.");
-      // rafraîchir l’aperçu local
-      const updated = (json.data || []) as PageDoc[];
-      const c = updated.find((p) => p.slug === "contact");
-      const a = updated.find((p) => p.slug === "a-propos");
-      if (c) {
-        setContactTitle(c.title);
-        setContactBody(c.body);
-      }
-      if (a) {
-        setAproposTitle(a.title);
-        setAproposBody(a.body);
-      }
     } catch (e: any) {
       setMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
     }
   }
 
-  // -------- Helpers affichage --------
+  // --- SETTINGS (fermeture)
+  async function saveClosedSettings() {
+    setClosedMsg("");
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ closed, closedMessage }),
+      });
+      if (handleUnauthorized(res)) return;
+      if (!res.ok) throw new Error(await res.text());
+      setClosedMsg("✔️ Réglages enregistrés.");
+    } catch (e: any) {
+      setClosedMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
+    }
+  }
+
+  // --- Helpers affichage
   function formatDuration(s: Service) {
     if (s.duration == null) return "—";
     const v = Math.round(s.duration);
@@ -338,7 +313,7 @@ export default function AdminPage() {
     router.replace("/login");
   }
 
-  // Tri local soins (cat -> order -> name)
+  // Tri local soins
   const dataSorted = useMemo(() => {
     const copy = [...data];
     copy.sort((a, b) => {
@@ -355,12 +330,11 @@ export default function AdminPage() {
     return copy;
   }, [data, cats]);
 
-  // -------- UI --------
+  // UI
   return (
     <div>
       <h2>Administration</h2>
 
-      {/* Statut + Logout */}
       <div style={{ display: "flex", justifyContent: "space-between", margin: "12px 0" }}>
         <div style={{ fontSize: 13, color: authed ? "green" : "crimson" }}>
           Statut admin : {authed == null ? "…" : authed ? "OK" : "NON CONNECTÉ"}
@@ -368,7 +342,6 @@ export default function AdminPage() {
         <button onClick={logout}>Se déconnecter</button>
       </div>
 
-      {/* Onglets */}
       <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
         <button onClick={() => setTab("soins")} style={{ fontWeight: tab === "soins" ? 700 : 400 }}>
           Soins
@@ -379,16 +352,18 @@ export default function AdminPage() {
         <button onClick={() => setTab("a-propos")} style={{ fontWeight: tab === "a-propos" ? 700 : 400 }}>
           À propos
         </button>
+        <button onClick={() => setTab("fermeture")} style={{ fontWeight: tab === "fermeture" ? 700 : 400 }}>
+          Fermeture
+        </button>
       </div>
 
+      {/* ----- ONGLET SOINS ----- */}
       {tab === "soins" && (
         <>
-          {/* --- Bloc Catégories --- */}
+          {/* Catégories */}
           <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
             <h3>Catégories (ordre des sections)</h3>
-            <p style={{ marginTop: 0, color: "#666" }}>
-              MAJUSCULES, avec un numéro d'ordre (1 en haut, puis 2, 3...).
-            </p>
+            <p style={{ marginTop: 0, color: "#666" }}>MAJUSCULES, avec un numéro d'ordre (1 en haut, puis 2, 3...).</p>
 
             <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 120px 180px" }}>
               <input
@@ -403,14 +378,12 @@ export default function AdminPage() {
                 onChange={(e) => setCatForm({ ...(catForm as any), order: numOrNull(e.target.value) as any })}
               />
               <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={catAddOrUpdate}>{(catForm as any).id ? "Enregistrer" : "Ajouter"}</button>
+                <button onClick={catAddOrUpdate as any}>{(catForm as any).id ? "Enregistrer" : "Ajouter"}</button>
                 {(catForm as any).id ? <button onClick={() => setCatForm({})}>Annuler</button> : null}
               </div>
             </div>
 
-            {catMsg ? (
-              <p style={{ color: catMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{catMsg}</p>
-            ) : null}
+            {catMsg ? <p style={{ color: catMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{catMsg}</p> : null}
 
             {catsLoading ? (
               <p>Chargement des catégories…</p>
@@ -426,8 +399,8 @@ export default function AdminPage() {
                 <tbody>
                   {[...cats]
                     .sort((a, b) => {
-                      const oa = a.order ?? 9999;
-                      const ob = b.order ?? 9999;
+                      const oa = a.order ?? 9999,
+                        ob = b.order ?? 9999;
                       if (oa !== ob) return oa - ob;
                       return (a.name || "").localeCompare(b.name || "");
                     })
@@ -455,39 +428,25 @@ export default function AdminPage() {
             )}
           </div>
 
-          {/* --- Bloc Soins --- */}
+          {/* Soins */}
           <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
             <h3>{form?.id ? "Modifier un soin" : "Ajouter un soin"}</h3>
 
-            {/* Toggle type de prix */}
+            {/* Toggle mode prix */}
             <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 8 }}>
               <span style={{ fontWeight: 600 }}>Type de prix :</span>
               <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <input
-                  type="radio"
-                  name="priceMode"
-                  checked={priceMode === "single"}
-                  onChange={() => onChangePriceMode("single")}
-                />
+                <input type="radio" name="priceMode" checked={priceMode === "single"} onChange={() => onChangePriceMode("single")} />
                 Prix unique
               </label>
               <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <input
-                  type="radio"
-                  name="priceMode"
-                  checked={priceMode === "range"}
-                  onChange={() => onChangePriceMode("range")}
-                />
+                <input type="radio" name="priceMode" checked={priceMode === "range"} onChange={() => onChangePriceMode("range")} />
                 Intervalle (min–max)
               </label>
             </div>
 
             <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 1fr 90px 90px 1fr" }}>
-              <input
-                placeholder="Nom"
-                value={form.name || ""}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-              />
+              <input placeholder="Nom" value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} />
 
               {/* Prix */}
               {priceMode === "single" ? (
@@ -561,10 +520,6 @@ export default function AdminPage() {
                 onChange={(e) => setForm({ ...form, spacing: numOrNull(e.target.value) as any })}
               />
             </div>
-            <small style={{ color: "#666" }}>
-              Astuce : utilisez <code>**double astérisque**</code> pour mettre en gras. Exemple : Massage
-              <code> **relaxant** </code> du dos.
-            </small>
 
             <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
               <button onClick={addOrUpdate}>{form?.id ? "Enregistrer" : "Ajouter"}</button>
@@ -626,6 +581,7 @@ export default function AdminPage() {
         </>
       )}
 
+      {/* ----- ONGLET CONTACT ----- */}
       {tab === "contact" && (
         <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
           <h3>Page Contact</h3>
@@ -651,9 +607,7 @@ export default function AdminPage() {
                 <button onClick={loadPages}>Recharger</button>
               </div>
 
-              {contactMsg ? (
-                <p style={{ color: contactMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{contactMsg}</p>
-              ) : null}
+              {contactMsg ? <p style={{ color: contactMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{contactMsg}</p> : null}
             </div>
 
             <div>
@@ -667,8 +621,9 @@ export default function AdminPage() {
         </div>
       )}
 
+      {/* ----- ONGLET A PROPOS ----- */}
       {tab === "a-propos" && (
-        <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
+        <div className="card" style={{ background: "#fff", border: "1px solid "#eee" }}>
           <h3>Page À propos</h3>
           <p style={{ marginTop: 0, color: "#666" }}>
             Cette page est publique sur <code>/a-propos</code>.
@@ -692,9 +647,7 @@ export default function AdminPage() {
                 <button onClick={loadPages}>Recharger</button>
               </div>
 
-              {aproposMsg ? (
-                <p style={{ color: aproposMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{aproposMsg}</p>
-              ) : null}
+              {aproposMsg ? <p style={{ color: aproposMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{aproposMsg}</p> : null}
             </div>
 
             <div>
@@ -707,6 +660,103 @@ export default function AdminPage() {
           </div>
         </div>
       )}
+
+      {/* ----- ONGLET FERMETURE ----- */}
+      {tab === "fermeture" && (
+        <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
+          <h3>Fermeture temporaire – Bannière sur le site</h3>
+          <p style={{ marginTop: 0, color: "#666" }}>
+            Activez cette option pour afficher une bannière “Institut fermé” sur toutes les pages publiques (accueil, soins, contact, à propos).
+          </p>
+
+          <label style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <input type="checkbox" checked={closed} onChange={(e) => setClosed(e.target.checked)} />
+            Afficher la bannière de fermeture
+          </label>
+
+          <label style={{ display: "block", fontWeight: 600, margin: "12px 0 4px" }}>
+            Message (ex : “Fermé du 5 au 19 août – congés d’été.”)
+          </label>
+          <textarea
+            value={closedMessage}
+            onChange={(e) => setClosedMessage(e.target.value)}
+            placeholder="Votre message de fermeture (vacances, maladie, exceptionnellement fermé, etc.)."
+            style={{ width: "100%", height: 140 }}
+          />
+
+          <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+            <button onClick={saveClosedSettings}>Enregistrer</button>
+            <button onClick={loadSettings}>Recharger</button>
+          </div>
+
+          {closedMsg ? <p style={{ color: closedMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{closedMsg}</p> : null}
+
+          <div style={{ fontWeight: 700, marginTop: 12, marginBottom: 6 }}>Aperçu</div>
+          <div
+            className="card"
+            style={{
+              background: "rgba(255, 230, 230, 0.6)",
+              borderColor: "rgba(200, 80, 80, 0.35)",
+              color: "#4a2a2a",
+            }}
+          >
+            <strong style={{ display: "block", marginBottom: 4 }}>
+              L’institut est temporairement fermé
+            </strong>
+            <div style={{ whiteSpace: "pre-wrap" }}>{closedMessage || "—"}</div>
+          </div>
+        </div>
+      )}
     </div>
   );
+
+  // ---- Catégories CRUD helpers (placés après le return pour garder le fichier concis) ----
+  async function catAddOrUpdate() {
+    setCatMsg("");
+    if (!catForm?.name || !String(catForm.name).trim()) {
+      setCatMsg("Nom de catégorie requis.");
+      return;
+    }
+    const payload = {
+      id: (catForm as any).id,
+      name: String(catForm.name).trim().toUpperCase(),
+      order: catForm.order == null ? null : Number(catForm.order),
+    };
+    const method = (catForm as any).id ? "PUT" : "POST";
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method,
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (handleUnauthorized(res)) return;
+      if (!res.ok) throw new Error(await res.text());
+      const json = await res.json();
+      setCats(json.data || []);
+      setCatForm({});
+      setCatMsg("✔️ Catégorie enregistrée.");
+    } catch (e: any) {
+      setCatMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
+    }
+  }
+
+  async function catRemove(id: string) {
+    setCatMsg("");
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method: "DELETE",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (handleUnauthorized(res)) return;
+      if (!res.ok) throw new Error(await res.text());
+      const json = await res.json();
+      setCats(json.data || []);
+      setCatMsg("✔️ Catégorie supprimée.");
+    } catch (e: any) {
+      setCatMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
+    }
+  }
 }
