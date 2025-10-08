@@ -1,6 +1,5 @@
 // /app/soins/page.tsx
 import { headers } from "next/headers";
-import ClosedBanner from "../components/ClosedBanner";
 import { Category, Service } from "../../types";
 
 export const dynamic = "force-dynamic";
@@ -75,8 +74,6 @@ export default async function SoinsPage() {
 
   return (
     <>
-      {/* ✅ Bannière fermeture si activée via l’admin */}
-      <ClosedBanner />
 
       <div className="services-container">
         <div className="services-wrap">
