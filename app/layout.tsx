@@ -3,8 +3,9 @@ import "./globals.css";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import Menu from "./components/Menu"; // ✅ menu avec fermeture auto
-import BannerHost from "./components/BannerHost"; // ✅ centralise les bannières
+import ClosedBanner from "./components/ClosedBanner";
+import PromoBanner from "./components/PromoBanner";
+import Menu from "./components/Menu";
 
 export const metadata: Metadata = {
   title: "INSTITUT COLIBRI",
@@ -23,15 +24,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 INSTITUT COLIBRI
               </Link>
             </h1>
-
-            {/* ✅ Menu déroulant à droite */}
             <Menu />
           </header>
 
           {/* ======= Contenu ======= */}
           <main className="site-main">
-            {/* ✅ Bannières (affichées seulement sur le site public) */}
-            <BannerHost />
+            <ClosedBanner />
+            <PromoBanner />
             {children}
           </main>
 
