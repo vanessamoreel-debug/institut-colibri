@@ -9,28 +9,29 @@ async function getSettings() {
   const proto = h.get("x-forwarded-proto") || "https";
   const base = `${proto}://${host}`;
   const res = await fetch(`${base}/api/settings`, { cache: "no-store" });
-  if (!res.ok) return { closed: false, closedMessage: "" };
+  if (!res.ok) return { closed: false, message: "" };
   return res.json();
 }
 
 export default async function ClosedBanner() {
-  const { closed, closedMessage } = await getSettings();
-  if (!closed) return null;
+  const settings = await getSettings();
+  if (!settings.closed) return null;
 
   return (
     <div
-      className="card"
       style={{
-        background: "rgba(255, 230, 230, 0.6)",
-        borderColor: "rgba(200, 80, 80, 0.35)",
-        color: "#4a2a2a",
-        marginBottom: 12,
+        background: "rgba(125, 108, 113, 0.10)",
+        border: "1px solid rgba(125, 108, 113, 0.25)",
+        borderRadius: 12,
+        padding: "10px 14px",
+        margin: "0 0 12px 0",
+        backdropFilter: "blur(6px)",
+        WebkitBackdropFilter: "blur(6px)",
       }}
+      className="card"
     >
-      <strong style={{ display: "block", marginBottom: 4 }}>
-        L’institut est temporairement fermé
-      </strong>
-      <div style={{ whiteSpace: "pre-wrap" }}>{closedMessage || "—"}</div>
+      <strong style={{ color: "#7D6C71" }}>Information :</strong>{" "}
+      <span>{settings.message || "L’institut est actuellement fermé."}</span>
     </div>
   );
 }
