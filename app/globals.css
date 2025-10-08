@@ -402,3 +402,37 @@ body {
 .menu-wrap[open] .chevron {
   transform: rotate(180deg);
 }
+
+/* ======= Bannière fermeture ======= */
+.closed-banner {
+  margin: 10px 0 14px;
+  padding: 0; /* le padding est sur l'inner */
+  display: flex;
+  justify-content: center; /* centre le bloc de texte */
+  width: 100%;
+
+  background: rgba(125, 108, 113, 0.10);
+  border: 1px solid rgba(125, 108, 113, 0.25);
+  border-radius: 12px;
+
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+.closed-banner__inner {
+  /* s’adapte au contenu */
+  padding: 10px 14px;
+  text-align: center;
+
+  /* cohérent avec le site */
+  color: #3d2f34;
+  font-weight: 600;
+  font-family: 'Playfair Display', serif;
+  line-height: 1.5;
+}
+
+/* Responsive : un peu plus de “souffle” sur mobile */
+@media (max-width: 520px) {
+  .closed-banner__inner { padding: 12px 16px; }
+}
