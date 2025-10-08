@@ -1,6 +1,9 @@
 // /app/soins/page.tsx
 import { headers } from "next/headers";
+import ClosedBanner from "../components/ClosedBanner";
 import { Category, Service } from "../../types";
+
+export const dynamic = "force-dynamic";
 
 async function getServices(): Promise<Service[]> {
   const h = await headers();
@@ -53,7 +56,7 @@ export default async function SoinsPage() {
   }, {});
   const presentCats = Object.keys(byCat);
 
-  // Ordre des catégories
+  // Ordre des catégories (définies puis inconnues alpha)
   const knownOrder = categories
     .filter((c) => presentCats.includes(c.name))
     .sort((a, b) => {
@@ -71,77 +74,71 @@ export default async function SoinsPage() {
   const orderedCats = [...knownOrder, ...unknown];
 
   return (
-    import ClosedBanner from "../components/ClosedBanner"; // ajoute cet import en haut
-
-export default async function SoinsPage() {
-  // ...
-  return (
     <>
-      <ClosedBanner />   {/* ⬅️ affiche la bannière si 'closed' = true */}
+      {/* ✅ Bannière fermeture si activée via l’admin */}
+      <ClosedBanner />
+
       <div className="services-container">
-        {/* ... le reste inchangé ... */}
+        <div className="services-wrap">
+          <h2 className="services-title">Nos soins & tarifs</h2>
+          <p className="services-sub">Tarifs indicatifs – modifiables à tout moment via l’admin.</p>
+
+          {orderedCats.length === 0 ? (
+            <p style={{ color: "#666", textAlign: "center" }}>Aucun soin pour le moment.</p>
+          ) : (
+            orderedCats.map((cat) => {
+              const list = byCat[cat] || [];
+              const sorted = [...list].sort((a, b) => {
+                const oa = a.order ?? 9999;
+                const ob = b.order ?? 9999;
+                if (oa !== ob) return oa - ob;
+                return a.name.localeCompare(b.name);
+              });
+
+              return (
+                <section key={cat} className="services-section">
+                  {/* Catégorie en couleur spécifique */}
+                  <h3 className="services-cat" style={{ color: "#7D6C71" }}>
+                    {cat}
+                  </h3>
+
+                  <div className="services-list">
+                    {sorted.map((s) => {
+                      const dur = formatDuration(s);
+                      return (
+                        <div key={s.id} className="service-row" style={{ marginBottom: s.spacing ?? 10 }}>
+                          <div className="service-line">
+                            {/* Nom + (durée) en noir */}
+                            <span className="service-name" style={{ color: "#000", fontWeight: 600 }}>
+                              {s.name}
+                              {dur ? (
+                                <span style={{ marginLeft: 8, color: "#000", fontWeight: 400 }}>
+                                  ({dur})
+                                </span>
+                              ) : null}
+                            </span>
+
+                            <span className="service-fill" aria-hidden="true" />
+                            <strong className="service-price">{formatPrice(s)}</strong>
+                          </div>
+
+                          {s.description ? (
+                            <div className="service-meta">
+                              <span className="service-desc" style={{ color: "#000" }}>
+                                {formatDescription(s.description)}
+                              </span>
+                            </div>
+                          ) : null}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              );
+            })
+          )}
+        </div>
       </div>
     </>
-  );
-}
-    <div className="services-container">
-      <div className="services-wrap">
-        <h2 className="services-title">Nos soins & tarifs</h2>
-        <p className="services-sub">Tarifs indicatifs – modifiables à tout moment via l’admin.</p>
-
-        {orderedCats.length === 0 ? (
-          <p style={{ color: "#666", textAlign: "center" }}>Aucun soin pour le moment.</p>
-        ) : (
-          orderedCats.map((cat) => {
-            const list = byCat[cat] || [];
-            const sorted = [...list].sort((a, b) => {
-              const oa = a.order ?? 9999;
-              const ob = b.order ?? 9999;
-              if (oa !== ob) return oa - ob;
-              return a.name.localeCompare(b.name);
-            });
-
-            return (
-              <section key={cat} className="services-section">
-                {/* Catégorie en couleur spécifique */}
-                <h3 className="services-cat" style={{ color: "#7D6C71" }}>
-                  {cat}
-                </h3>
-
-                <div className="services-list">
-                  {sorted.map((s) => {
-                    const dur = formatDuration(s);
-                    return (
-                      <div key={s.id} className="service-row" style={{ marginBottom: s.spacing ?? 10 }}>
-                        <div className="service-line">
-                          {/* Nom + Durée en noir */}
-                          <span className="service-name" style={{ color: "#000", fontWeight: 500 }}>
-                            {s.name}
-                            {dur ? (
-                              <span style={{ marginLeft: 8, color: "#000", fontWeight: 400 }}>
-                                ({dur})
-                              </span>
-                            ) : null}
-                          </span>
-                          <span className="service-fill" aria-hidden="true" />
-                          <strong className="service-price">{formatPrice(s)}</strong>
-                        </div>
-                        {s.description ? (
-                          <div className="service-meta">
-                            <span className="service-desc" style={{ color: "#000" }}>
-                              {formatDescription(s.description)}
-                            </span>
-                          </div>
-                        ) : null}
-                      </div>
-                    );
-                  })}
-                </div>
-              </section>
-            );
-          })
-        )}
-      </div>
-    </div>
   );
 }
