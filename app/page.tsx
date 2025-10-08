@@ -4,8 +4,6 @@ import Link from "next/link";
 export default function Home() {
   return (
     <>
-      {/* ✅ Bannière “Institut fermé / congés” (automatique si activée dans l’admin) */}
-      <ClosedBanner />
 
       {/* Contenu principal */}
       <div>
