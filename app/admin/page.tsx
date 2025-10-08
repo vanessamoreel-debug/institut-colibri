@@ -152,33 +152,37 @@ export default function AdminPage() {
     }
   }
 
-  async function saveSettings(part: "closed" | "promo" | "both" = "both") {
-    setSettingsMsg("");
-    try {
-      const payload: any = {};
-      if (part === "closed" || part === "both") {
-        payload.closed = closed;
-        payload.message = closedMessage;
-      }
-      if (part === "promo" || part === "both") {
-        payload.promoActive = promoActive;
-        payload.promoText = promoText;
-      }
-
-      const res = await fetch("/api/admin/settings", {
-        method: "PUT",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (handleUnauthorized(res)) return;
-      if (!res.ok) throw new Error(await res.text());
-      await res.json();
-      setSettingsMsg("✔️ Réglages enregistrés.");
-    } catch (e: any) {
-      setSettingsMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
+async function saveSettings(part: "closed" | "promo" | "both" = "both") {
+  setSettingsMsg("");
+  try {
+    const payload: any = {};
+    if (part === "closed" || part === "both") {
+      payload.closed = closed;
+      payload.message = closedMessage;
     }
+    if (part === "promo" || part === "both") {
+      payload.promoActive = promoActive;
+      payload.promoText = promoText;
+    }
+
+    const res = await fetch("/api/admin/settings", {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (handleUnauthorized(res)) return;
+    if (!res.ok) throw new Error(await res.text());
+    await res.json();
+
+    // 👉 recharge depuis le serveur pour refléter exactement ce qui est stocké
+    await loadSettings();
+
+    setSettingsMsg("✔️ Réglages enregistrés.");
+  } catch (e: any) {
+    setSettingsMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
   }
+}
 
   useEffect(() => {
     loadAuth();
