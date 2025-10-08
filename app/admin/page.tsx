@@ -17,6 +17,12 @@ function numOrNull(v: any): number | null {
 export default function AdminPage() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("soins");
+  
+// --- Promo ---
+const [promoActive,    setPromoActive] = useState<boolean>(false);
+const [promoText,      setPromoText]   = useState<string>("");
+const [promoLoading,   setPromoLoading]= useState<boolean>(true);
+const [promoMsg,       setPromoMsg]    = useState<string>("");
 
   // --- Auth ---
   const [authed, setAuthed] = useState<boolean | null>(null);
