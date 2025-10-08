@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Service, Category, PageDoc } from "../../types";
 
-type Tab = "soins" | "contact" | "a-propos";
+type Tab = "soins" | "contact" | "a-propos" | "fermeture";
 type PriceMode = "single" | "range";
 
 function numOrNull(v: any): number | null {
@@ -45,6 +45,11 @@ export default function AdminPage() {
   const [aproposTitle, setAproposTitle] = useState<string>("");
   const [aproposBody, setAproposBody] = useState<string>("");
   const [aproposMsg, setAproposMsg] = useState<string>("");
+
+  // --- Fermeture (bannière) ---
+  const [closed, setClosed] = useState<boolean>(false);
+  const [closedMessage, setClosedMessage] = useState<string>("");
+  const [closedMsg, setClosedMsg] = useState<string>("");
 
   function handleUnauthorized(res: Response) {
     if (res.status === 401) {
@@ -125,11 +130,28 @@ export default function AdminPage() {
     }
   }
 
+  async function loadSettings() {
+    try {
+      const res = await fetch("/api/admin/settings", {
+        cache: "no-store",
+        credentials: "include",
+      });
+      if (handleUnauthorized(res)) return;
+      if (!res.ok) throw new Error(await res.text());
+      const json = await res.json();
+      setClosed(!!json.closed);
+      setClosedMessage(json.message || "");
+    } catch (e: any) {
+      setClosedMsg(e?.message || "Erreur de chargement des réglages");
+    }
+  }
+
   useEffect(() => {
     loadAuth();
     loadServices();
     loadCats();
     loadPages();
+    loadSettings();
   }, []);
 
   // --------- HELPERS PRIX (UI) ----------
@@ -151,7 +173,6 @@ export default function AdminPage() {
         const base = copy.price ?? copy.priceMin ?? null;
         copy.price = null;
         copy.priceMin = base;
-        // priceMax laissé tel quel
       }
       return copy;
     });
@@ -178,7 +199,6 @@ export default function AdminPage() {
 
     const payload = {
       ...form,
-      // On stocke en mode “intervalle” par défaut : prix unique => priceMin, range => min/max
       price: null,
       priceMin:
         priceMode === "single"
@@ -289,7 +309,7 @@ export default function AdminPage() {
     }
   }
 
-  // --------- CRUD PAGES (Contact / À-propos) ----------
+  // --------- PAGES (Contact / A-propos) ----------
   async function savePage(
     slug: "contact" | "a-propos",
     title: string,
@@ -308,7 +328,6 @@ export default function AdminPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ slug, title: title.trim(), body: body ?? "" }),
       });
-
       if (handleUnauthorized(res)) return;
 
       const text = await res.text();
@@ -320,18 +339,29 @@ export default function AdminPage() {
           throw new Error(text);
         }
       }
-
-      let json: any = null;
-      try {
-        json = JSON.parse(text);
-      } catch {
-        throw new Error("Réponse serveur invalide (JSON attendu).");
-      }
-
+      const json = JSON.parse(text);
       setPages(json.data || []);
       setMsg("✔️ Page enregistrée.");
     } catch (e: any) {
       setMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
+    }
+  }
+
+  // --------- SETTINGS (Fermeture) ----------
+  async function saveSettings() {
+    setClosedMsg("");
+    try {
+      const res = await fetch("/api/admin/settings", {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ closed, message: closedMessage }),
+      });
+      if (handleUnauthorized(res)) return;
+      if (!res.ok) throw new Error(await res.text());
+      setClosedMsg("✔️ Réglages enregistrés.");
+    } catch (e: any) {
+      setClosedMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
     }
   }
 
@@ -376,13 +406,7 @@ export default function AdminPage() {
     <div>
       <h2>Administration</h2>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          margin: "12px 0",
-        }}
-      >
+      <div style={{ display: "flex", justifyContent: "space-between", margin: "12px 0" }}>
         <div style={{ fontSize: 13, color: authed ? "green" : "crimson" }}>
           Statut admin : {authed == null ? "…" : authed ? "OK" : "NON CONNECTÉ"}
         </div>
@@ -390,105 +414,53 @@ export default function AdminPage() {
       </div>
 
       {/* Onglets */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        <button
-          onClick={() => setTab("soins")}
-          style={{ fontWeight: tab === "soins" ? 700 : 400 }}
-        >
+      <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>
+        <button onClick={() => setTab("soins")} style={{ fontWeight: tab === "soins" ? 700 : 400 }}>
           Soins
         </button>
-        <button
-          onClick={() => setTab("contact")}
-          style={{ fontWeight: tab === "contact" ? 700 : 400 }}
-        >
+        <button onClick={() => setTab("contact")} style={{ fontWeight: tab === "contact" ? 700 : 400 }}>
           Contact
         </button>
-        <button
-          onClick={() => setTab("a-propos")}
-          style={{ fontWeight: tab === "a-propos" ? 700 : 400 }}
-        >
+        <button onClick={() => setTab("a-propos")} style={{ fontWeight: tab === "a-propos" ? 700 : 400 }}>
           À propos
+        </button>
+        <button onClick={() => setTab("fermeture")} style={{ fontWeight: tab === "fermeture" ? 700 : 400 }}>
+          Fermeture
         </button>
       </div>
 
+      {/* =================== ONGLET SOINS =================== */}
       {tab === "soins" && (
         <>
-          {/* --- Bloc Catégories --- */}
-          <div
-            style={{
-              background: "#fff",
-              padding: 14,
-              borderRadius: 10,
-              border: "1px solid #eee",
-              marginBottom: 20,
-            }}
-          >
+          {/* Catégories */}
+          <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
             <h3>Catégories (ordre des sections)</h3>
-            <p style={{ marginTop: 0, color: "#666" }}>
-              MAJUSCULES, avec un numéro d'ordre (1 en haut, puis 2, 3...).
-            </p>
+            <p style={{ marginTop: 0, color: "#666" }}>MAJUSCULES, avec un numéro d'ordre (1 en haut, puis 2, 3...).</p>
 
-            <div
-              style={{
-                display: "grid",
-                gap: 8,
-                gridTemplateColumns: "1fr 120px 180px",
-              }}
-            >
+            <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 120px 180px" }}>
               <input
                 placeholder="Nom de la catégorie (ex: SOINS DU VISAGE)"
                 value={catForm.name || ""}
-                onChange={(e) =>
-                  setCatForm({
-                    ...(catForm as any),
-                    name: e.target.value.toUpperCase(),
-                  })
-                }
+                onChange={(e) => setCatForm({ ...(catForm as any), name: e.target.value.toUpperCase() })}
               />
               <input
                 placeholder="Ordre (ex: 1)"
                 type="number"
                 value={catForm.order?.toString() || ""}
-                onChange={(e) =>
-                  setCatForm({
-                    ...(catForm as any),
-                    order: numOrNull(e.target.value) as any,
-                  })
-                }
+                onChange={(e) => setCatForm({ ...(catForm as any), order: numOrNull(e.target.value) as any })}
               />
               <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={catAddOrUpdate}>
-                  {(catForm as any).id ? "Enregistrer" : "Ajouter"}
-                </button>
-                {(catForm as any).id ? (
-                  <button onClick={() => setCatForm({})}>Annuler</button>
-                ) : null}
+                <button onClick={catAddOrUpdate}>{(catForm as any).id ? "Enregistrer" : "Ajouter"}</button>
+                {(catForm as any).id ? <button onClick={() => setCatForm({})}>Annuler</button> : null}
               </div>
             </div>
 
-            {catMsg ? (
-              <p
-                style={{
-                  color: catMsg.startsWith("✔") ? "green" : "crimson",
-                  marginTop: 8,
-                }}
-              >
-                {catMsg}
-              </p>
-            ) : null}
+            {catMsg ? <p style={{ color: catMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{catMsg}</p> : null}
 
             {catsLoading ? (
               <p>Chargement des catégories…</p>
             ) : (
-              <table
-                style={{
-                  width: "100%",
-                  background: "#fff",
-                  border: "1px solid #eee",
-                  borderRadius: 10,
-                  marginTop: 12,
-                }}
-              >
+              <table style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10, marginTop: 12 }}>
                 <thead>
                   <tr>
                     <th style={{ textAlign: "left" }}>Nom</th>
@@ -507,15 +479,10 @@ export default function AdminPage() {
                     .map((c) => (
                       <tr key={c.id}>
                         <td>{c.name}</td>
-                        <td style={{ textAlign: "center" }}>
-                          {c.order ?? "—"}
-                        </td>
+                        <td style={{ textAlign: "center" }}>{c.order ?? "—"}</td>
                         <td style={{ textAlign: "center" }}>
                           <button onClick={() => setCatForm(c)}>Modifier</button>
-                          <button
-                            onClick={() => catRemove(c.id)}
-                            style={{ marginLeft: 8 }}
-                          >
+                          <button onClick={() => catRemove(c.id)} style={{ marginLeft: 8 }}>
                             Supprimer
                           </button>
                         </td>
@@ -533,44 +500,19 @@ export default function AdminPage() {
             )}
           </div>
 
-          {/* --- Bloc Soins --- */}
-          <div
-            style={{
-              background: "#fff",
-              padding: 14,
-              borderRadius: 10,
-              border: "1px solid #eee",
-              marginBottom: 20,
-            }}
-          >
+          {/* Soins */}
+          <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
             <h3>{form?.id ? "Modifier un soin" : "Ajouter un soin"}</h3>
 
             {/* Toggle mode prix */}
-            <div
-              style={{
-                display: "flex",
-                gap: 16,
-                alignItems: "center",
-                marginBottom: 8,
-              }}
-            >
+            <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 8 }}>
               <span style={{ fontWeight: 600 }}>Type de prix :</span>
               <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <input
-                  type="radio"
-                  name="priceMode"
-                  checked={priceMode === "single"}
-                  onChange={() => onChangePriceMode("single")}
-                />
+                <input type="radio" name="priceMode" checked={priceMode === "single"} onChange={() => onChangePriceMode("single")} />
                 Prix unique
               </label>
               <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <input
-                  type="radio"
-                  name="priceMode"
-                  checked={priceMode === "range"}
-                  onChange={() => onChangePriceMode("range")}
-                />
+                <input type="radio" name="priceMode" checked={priceMode === "range"} onChange={() => onChangePriceMode("range")} />
                 Intervalle (min–max)
               </label>
             </div>
@@ -579,26 +521,17 @@ export default function AdminPage() {
               style={{
                 display: "grid",
                 gap: 8,
-                gridTemplateColumns: priceMode === "single"
-                  ? "1fr 1fr 90px 90px 1fr"
-                  : "1fr 1fr 1fr 90px 90px 1fr",
+                gridTemplateColumns: priceMode === "single" ? "1fr 1fr 90px 90px 1fr" : "1fr 1fr 1fr 90px 90px 1fr",
               }}
             >
-              <input
-                placeholder="Nom"
-                value={form.name || ""}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-              />
+              <input placeholder="Nom" value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} />
 
-              {/* Prix */}
               {priceMode === "single" ? (
                 <input
                   placeholder="Prix (CHF)"
                   type="number"
                   value={(form.price ?? form.priceMin ?? "").toString()}
-                  onChange={(e) =>
-                    setForm({ ...form, price: numOrNull(e.target.value) as any })
-                  }
+                  onChange={(e) => setForm({ ...form, price: numOrNull(e.target.value) as any })}
                 />
               ) : (
                 <>
@@ -606,23 +539,13 @@ export default function AdminPage() {
                     placeholder="Prix min (CHF)"
                     type="number"
                     value={(form.priceMin ?? "").toString()}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        priceMin: numOrNull(e.target.value) as any,
-                      })
-                    }
+                    onChange={(e) => setForm({ ...form, priceMin: numOrNull(e.target.value) as any })}
                   />
                   <input
                     placeholder="Prix max (CHF)"
                     type="number"
                     value={(form.priceMax ?? "").toString()}
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        priceMax: numOrNull(e.target.value) as any,
-                      })
-                    }
+                    onChange={(e) => setForm({ ...form, priceMax: numOrNull(e.target.value) as any })}
                   />
                 </>
               )}
@@ -631,25 +554,19 @@ export default function AdminPage() {
                 placeholder="Durée (min)"
                 type="number"
                 value={form.duration?.toString() || ""}
-                onChange={(e) =>
-                  setForm({ ...form, duration: numOrNull(e.target.value) as any })
-                }
+                onChange={(e) => setForm({ ...form, duration: numOrNull(e.target.value) as any })}
               />
               <input
                 placeholder="Ordre"
                 type="number"
                 value={form.order?.toString() || ""}
-                onChange={(e) =>
-                  setForm({ ...form, order: numOrNull(e.target.value) as any })
-                }
+                onChange={(e) => setForm({ ...form, order: numOrNull(e.target.value) as any })}
               />
               <input
                 list="colibri-cats"
                 placeholder="Catégorie"
                 value={form.category || ""}
-                onChange={(e) =>
-                  setForm({ ...form, category: e.target.value.toUpperCase() })
-                }
+                onChange={(e) => setForm({ ...form, category: e.target.value.toUpperCase() })}
               />
               <datalist id="colibri-cats">
                 {cats.map((c) => (
@@ -658,20 +575,11 @@ export default function AdminPage() {
               </datalist>
             </div>
 
-            <label
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                marginTop: 8,
-              }}
-            >
+            <label style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 8 }}>
               <input
                 type="checkbox"
                 checked={!!form.approxDuration}
-                onChange={(e) =>
-                  setForm({ ...form, approxDuration: e.target.checked })
-                }
+                onChange={(e) => setForm({ ...form, approxDuration: e.target.checked })}
               />
               Durée approximative (±)
             </label>
@@ -686,16 +594,12 @@ export default function AdminPage() {
                 placeholder="Espacement (px)"
                 type="number"
                 value={form.spacing?.toString() || ""}
-                onChange={(e) =>
-                  setForm({ ...form, spacing: numOrNull(e.target.value) as any })
-                }
+                onChange={(e) => setForm({ ...form, spacing: numOrNull(e.target.value) as any })}
               />
             </div>
 
             <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
-              <button onClick={addOrUpdate}>
-                {form?.id ? "Enregistrer" : "Ajouter"}
-              </button>
+              <button onClick={addOrUpdate}>{form?.id ? "Enregistrer" : "Ajouter"}</button>
               {form?.id ? (
                 <button
                   onClick={() => {
@@ -709,21 +613,12 @@ export default function AdminPage() {
             </div>
           </div>
 
-          {msg ? (
-            <p style={{ color: msg.startsWith("✔") ? "green" : "crimson" }}>{msg}</p>
-          ) : null}
+          {msg ? <p style={{ color: msg.startsWith("✔") ? "green" : "crimson" }}>{msg}</p> : null}
 
           {loading ? (
             <p>Chargement…</p>
           ) : (
-            <table
-              style={{
-                width: "100%",
-                background: "#fff",
-                border: "1px solid #eee",
-                borderRadius: 10,
-              }}
-            >
+            <table style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10 }}>
               <thead>
                 <tr>
                   <th style={{ textAlign: "left" }}>Nom</th>
@@ -741,15 +636,10 @@ export default function AdminPage() {
                     <td style={{ textAlign: "center" }}>{s.category || "—"}</td>
                     <td style={{ textAlign: "center" }}>{formatDuration(s)}</td>
                     <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
-                    <td style={{ textAlign: "center", fontWeight: 600 }}>
-                      {formatPriceAdmin(s)}
-                    </td>
+                    <td style={{ textAlign: "center", fontWeight: 600 }}>{formatPriceAdmin(s)}</td>
                     <td style={{ textAlign: "center" }}>
                       <button onClick={() => editService(s)}>Modifier</button>
-                      <button
-                        onClick={() => remove(s.id)}
-                        style={{ marginLeft: 8 }}
-                      >
+                      <button onClick={() => remove(s.id)} style={{ marginLeft: 8 }}>
                         Supprimer
                       </button>
                     </td>
@@ -768,11 +658,9 @@ export default function AdminPage() {
         </>
       )}
 
+      {/* =================== ONGLET CONTACT =================== */}
       {tab === "contact" && (
-        <div
-          className="card"
-          style={{ background: "#fff", border: "1px solid #eee" }}
-        >
+        <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
           <h3>Page Contact</h3>
           <p style={{ marginTop: 0, color: "#666" }}>
             Cette page est publique sur <code>/contact</code>.
@@ -780,24 +668,10 @@ export default function AdminPage() {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             <div>
-              <label style={{ display: "block", fontWeight: 600, marginBottom: 4 }}>
-                Titre
-              </label>
-              <input
-                value={contactTitle}
-                onChange={(e) => setContactTitle(e.target.value)}
-                placeholder="Contact"
-              />
+              <label style={{ display: "block", fontWeight: 600, marginBottom: 4 }}>Titre</label>
+              <input value={contactTitle} onChange={(e) => setContactTitle(e.target.value)} placeholder="Contact" />
 
-              <label
-                style={{
-                  display: "block",
-                  fontWeight: 600,
-                  margin: "12px 0 4px",
-                }}
-              >
-                Contenu
-              </label>
+              <label style={{ display: "block", fontWeight: 600, margin: "12px 0 4px" }}>Contenu</label>
               <textarea
                 value={contactBody}
                 onChange={(e) => setContactBody(e.target.value)}
@@ -806,25 +680,12 @@ export default function AdminPage() {
               />
 
               <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
-                <button
-                  onClick={() =>
-                    savePage("contact", contactTitle, contactBody, setContactMsg)
-                  }
-                >
-                  Enregistrer
-                </button>
+                <button onClick={() => savePage("contact", contactTitle, contactBody, setContactMsg)}>Enregistrer</button>
                 <button onClick={loadPages}>Recharger</button>
               </div>
 
               {contactMsg ? (
-                <p
-                  style={{
-                    color: contactMsg.startsWith("✔") ? "green" : "crimson",
-                    marginTop: 8,
-                  }}
-                >
-                  {contactMsg}
-                </p>
+                <p style={{ color: contactMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{contactMsg}</p>
               ) : null}
             </div>
 
@@ -832,26 +693,16 @@ export default function AdminPage() {
               <div style={{ fontWeight: 700, marginBottom: 8 }}>Aperçu</div>
               <div className="card" style={{ minHeight: 220 }}>
                 <h2 style={{ marginTop: 0 }}>{contactTitle || "Contact"}</h2>
-                <pre
-                  style={{
-                    whiteSpace: "pre-wrap",
-                    fontFamily: "inherit",
-                    margin: 0,
-                  }}
-                >
-                  {contactBody || "—"}
-                </pre>
+                <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 }}>{contactBody || "—"}</pre>
               </div>
             </div>
           </div>
         </div>
       )}
 
+      {/* =================== ONGLET A PROPOS =================== */}
       {tab === "a-propos" && (
-        <div
-          className="card"
-          style={{ background: "#fff", border: "1px solid #eee" }}
-        >
+        <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
           <h3>Page À propos</h3>
           <p style={{ marginTop: 0, color: "#666" }}>
             Cette page est publique sur <code>/a-propos</code>.
@@ -859,24 +710,10 @@ export default function AdminPage() {
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
             <div>
-              <label style={{ display: "block", fontWeight: 600, marginBottom: 4 }}>
-                Titre
-              </label>
-              <input
-                value={aproposTitle}
-                onChange={(e) => setAproposTitle(e.target.value)}
-                placeholder="À propos"
-              />
+              <label style={{ display: "block", fontWeight: 600, marginBottom: 4 }}>Titre</label>
+              <input value={aproposTitle} onChange={(e) => setAproposTitle(e.target.value)} placeholder="À propos" />
 
-              <label
-                style={{
-                  display: "block",
-                  fontWeight: 600,
-                  margin: "12px 0 4px",
-                }}
-              >
-                Contenu
-              </label>
+              <label style={{ display: "block", fontWeight: 600, margin: "12px 0 4px" }}>Contenu</label>
               <textarea
                 value={aproposBody}
                 onChange={(e) => setAproposBody(e.target.value)}
@@ -885,30 +722,12 @@ export default function AdminPage() {
               />
 
               <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
-                <button
-                  onClick={() =>
-                    savePage(
-                      "a-propos",
-                      aproposTitle,
-                      aproposBody,
-                      setAproposMsg
-                    )
-                  }
-                >
-                  Enregistrer
-                </button>
+                <button onClick={() => savePage("a-propos", aproposTitle, aproposBody, setAproposMsg)}>Enregistrer</button>
                 <button onClick={loadPages}>Recharger</button>
               </div>
 
               {aproposMsg ? (
-                <p
-                  style={{
-                    color: aproposMsg.startsWith("✔") ? "green" : "crimson",
-                    marginTop: 8,
-                  }}
-                >
-                  {aproposMsg}
-                </p>
+                <p style={{ color: aproposMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{aproposMsg}</p>
               ) : null}
             </div>
 
@@ -916,18 +735,43 @@ export default function AdminPage() {
               <div style={{ fontWeight: 700, marginBottom: 8 }}>Aperçu</div>
               <div className="card" style={{ minHeight: 220 }}>
                 <h2 style={{ marginTop: 0 }}>{aproposTitle || "À propos"}</h2>
-                <pre
-                  style={{
-                    whiteSpace: "pre-wrap",
-                    fontFamily: "inherit",
-                    margin: 0,
-                  }}
-                >
-                  {aproposBody || "—"}
-                </pre>
+                <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 }}>{aproposBody || "—"}</pre>
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* =================== ONGLET FERMETURE =================== */}
+      {tab === "fermeture" && (
+        <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
+          <h3>Bannière de fermeture (congés / indisponibilité)</h3>
+          <p style={{ marginTop: 0, color: "#666" }}>
+            Active une bannière visible en haut des pages publiques (Accueil, Soins, Contact, À&nbsp;propos).
+          </p>
+
+          <label style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <input type="checkbox" checked={closed} onChange={(e) => setClosed(e.target.checked)} />
+            Afficher la bannière de fermeture
+          </label>
+
+          <div style={{ marginTop: 12 }}>
+            <textarea
+              placeholder="Message (ex : L’institut est fermé du 5 au 20 août inclus — merci pour votre compréhension.)"
+              value={closedMessage}
+              onChange={(e) => setClosedMessage(e.target.value)}
+              style={{ width: "100%", height: 120 }}
+            />
+          </div>
+
+          <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+            <button onClick={saveSettings}>Enregistrer</button>
+            <button onClick={loadSettings}>Recharger</button>
+          </div>
+
+          {closedMsg ? (
+            <p style={{ color: closedMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{closedMsg}</p>
+          ) : null}
         </div>
       )}
     </div>
