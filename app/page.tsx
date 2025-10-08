@@ -1,6 +1,5 @@
 // /app/page.tsx
 import Link from "next/link";
-import ClosedBanner from "./components/ClosedBanner"; // ✅ import de la bannière
 
 export default function Home() {
   return (
