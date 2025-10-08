@@ -316,3 +316,12 @@ body {
   font-size: 18px;
   line-height: 1.7;
 }
+
+/* Mise en avant d'une ligne d'information (contact) */
+.notice-strong {
+  display: inline-block;
+  font-weight: 700;
+  font-size: 2em;          /* ≈ x2 la taille courante */
+  line-height: 1.2;
+  margin: 4px 0 8px;
+}
