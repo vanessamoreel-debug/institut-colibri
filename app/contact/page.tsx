@@ -1,6 +1,5 @@
 // /app/contact/page.tsx
 import { headers } from "next/headers";
-import ClosedBanner from "../components/ClosedBanner";
 
 export const dynamic = "force-dynamic"; // pas de SSG/caching
 
@@ -102,7 +101,6 @@ export default async function ContactPage() {
 
   return (
     <>
-      <ClosedBanner />
       <div className="pricelist info-panel">
         <h2 className="page-title">{title}</h2>
         <div className="page-content" dangerouslySetInnerHTML={{ __html: html }} />
