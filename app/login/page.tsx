@@ -1,54 +1,59 @@
-// /app/login/page.tsx
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
   const router = useRouter();
+  const sp = useSearchParams();
+  const next = sp.get("next") || "/admin";
 
-  // on stocke ici la cible vers laquelle rediriger après login
-  const [nextPath, setNextPath] = useState<string>("/admin");
-  const [user, setUser] = useState("");
-  const [pass, setPass] = useState("");
+  const [code, setCode] = useState("");
+  const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState("");
-
-  // On lit le paramètre ?next=… sans useSearchParams (pour éviter l’erreur build)
-  useEffect(() => {
-    if (typeof window !== "object") return;
-    const url = new URL(window.location.href);
-    const n = url.searchParams.get("next");
-    if (n) setNextPath(n);
-    const el = document.getElementById("user");
-    if (el) (el as HTMLInputElement).focus();
-  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setMsg("");
+    setLoading(true);
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ user, pass }),
+        cache: "no-store",
+        body: JSON.stringify({ code }),
       });
       if (!res.ok) throw new Error(await res.text());
-      router.replace(nextPath || "/admin");
-    } catch (err: any) {
-      setMsg(err?.message || "Identifiants invalides");
+      router.replace(next);
+    } catch (e: any) {
+      setMsg(e?.message || "Connexion refusée.");
+    } finally {
+      setLoading(false);
     }
   }
 
   return (
-    <div style={{ maxWidth: 420, margin: "40px auto", background: "#fff", padding: 20, borderRadius: 12, border: "1px solid #eee" }}>
-      <h2>Connexion administrateur</h2>
-      <p style={{ color: "#666" }}>Entrez vos identifiants admin pour gérer les soins.</p>
-      <form onSubmit={submit} style={{ display: "grid", gap: 10, marginTop: 10 }}>
-        <input id="user" placeholder="Identifiant (ADMIN_USER)" value={user} onChange={e => setUser(e.target.value)} />
-        <input placeholder="Mot de passe (ADMIN_PASS)" type="password" value={pass} onChange={e => setPass(e.target.value)} />
-        <button type="submit">Se connecter</button>
+    <div className="info-panel" style={{ maxWidth: 420, margin: "30px auto" }}>
+      <h2 className="page-title" style={{ textAlign: "center" }}>Connexion</h2>
+      <p style={{ color: "#555", marginTop: 0, textAlign: "center" }}>
+        Accès réservé à l’administration.
+      </p>
+      <form onSubmit={submit} style={{ display: "grid", gap: 10 }}>
+        <input
+          type="password"
+          placeholder="Code d’accès"
+          value={code}
+          onChange={(e) => setCode(e.target.value)}
+          autoFocus
+        />
+        <button type="submit" disabled={loading}>
+          {loading ? "Connexion…" : "Se connecter"}
+        </button>
+        {msg ? <p style={{ color: "crimson", margin: 0 }}>{msg}</p> : null}
       </form>
-      {msg ? <p style={{ color: "crimson", marginTop: 10 }}>{msg}</p> : null}
+      <p style={{ marginTop: 10, fontSize: 12, color: "#666", textAlign: "center" }}>
+        Cette page n’est pas indexée par les moteurs de recherche.
+      </p>
     </div>
   );
 }
