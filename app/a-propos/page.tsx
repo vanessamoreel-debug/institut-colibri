@@ -2,7 +2,7 @@
 import { headers } from "next/headers";
 import ClosedBanner from "../components/ClosedBanner";
 
-export const dynamic = "force-dynamic"; // toujours dynamique
+export const dynamic = "force-dynamic";
 
 async function getPage(slug: string) {
   const h = await headers();
@@ -21,20 +21,10 @@ export default async function AProposPage() {
 
   return (
     <>
-      {/* ✅ Bannière de fermeture (affichée seulement si activée dans l’admin) */}
       <ClosedBanner />
-
       <div className="pricelist info-panel">
         <h2 className="page-title">{title}</h2>
-        <pre
-          style={{
-            whiteSpace: "pre-wrap",
-            fontFamily: "inherit",
-            margin: 0,
-            color: "#2b2326",
-            lineHeight: 1.6,
-          }}
-        >
+        <pre className="page-content" style={{ whiteSpace: "pre-wrap", margin: 0 }}>
           {body}
         </pre>
       </div>
