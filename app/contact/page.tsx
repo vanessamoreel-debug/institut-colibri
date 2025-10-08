@@ -1,5 +1,6 @@
 // /app/contact/page.tsx
 import { headers } from "next/headers";
+import ClosedBanner from "../components/ClosedBanner";
 
 export const dynamic = "force-dynamic"; // pas de SSG/caching
 
@@ -33,7 +34,6 @@ function linkifyContact(body: string): string {
   const waHintRe = /\bwhats?app\b/i;
 
   const whatsappUrl = `https://wa.me/41795307564`; // ✅ ton numéro WhatsApp
-
   const whatsappIcon = `
     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 32 32"
          style="vertical-align:middle; margin-right:6px">
@@ -44,25 +44,25 @@ function linkifyContact(body: string): string {
   const htmlLines = lines.map((rawLine) => {
     let line = escapeHtml(rawLine);
 
-    // Emails ✉️
+    // ✉️ E-mails
     line = line.replace(emailRe, (m) => {
       const href = `mailto:${m}`;
-      return `<a href="${href}">✉️ ${m}</a>`;
+      return `<a class="link-clean" href="${href}">✉️ ${m}</a>`;
     });
 
-    // Téléphones 📞
+    // 📞 Téléphones
     line = line.replace(phoneRe, (m) => {
       if (m.includes("&lt;") || m.includes("&gt;")) return m;
       const href = `tel:${m.replace(/\s+/g, "")}`;
-      return `<a href="${href}">📞 ${m}</a>`;
+      return `<a class="link-clean" href="${href}">📞 ${m}</a>`;
     });
 
-    // WhatsApp → lien unique vers ton numéro (texte “WhatsApp” + logo)
+    // 💬 WhatsApp — remplace “WhatsApp” par le lien avec icône
     if (waHintRe.test(rawLine)) {
-      line = `<a href="${whatsappUrl}" target="_blank" rel="noopener">${whatsappIcon}WhatsApp</a>`;
+      line = `<a class="link-clean" href="${whatsappUrl}" target="_blank" rel="noopener">${whatsappIcon}WhatsApp</a>`;
     }
 
-    // Adresse 📍 → forcer “Institut Colibri, [adresse]” pour Google Maps
+    // 📍 Adresse — ajoute “Institut Colibri” dans la recherche
     const looksLikeAddress =
       /\d/.test(rawLine) &&
       /(rue|avenue|av\.?|chemin|ch\.?|route|place|bd|boulevard|impasse|quai|grand[-\s]rue|pl\.?)/i.test(rawLine) &&
@@ -73,7 +73,7 @@ function linkifyContact(body: string): string {
       const query = hasBrand ? rawLine.trim() : `Institut Colibri, ${rawLine.trim()}`;
       const q = encodeURIComponent(query);
       const maps = `https://www.google.com/maps/search/?api=1&query=${q}`;
-      line = `<a href="${maps}" target="_blank" rel="noopener">📍 ${line}</a>`;
+      line = `<a class="link-clean" href="${maps}" target="_blank" rel="noopener">📍 ${line}</a>`;
     }
 
     return line;
@@ -92,9 +92,14 @@ export default async function ContactPage() {
   const html = linkifyContact(body);
 
   return (
-    <div className="pricelist info-panel">
-      <h2 className="page-title">{title}</h2>
-      <div dangerouslySetInnerHTML={{ __html: html }} />
-    </div>
+    <>
+      {/* ✅ Bannière “fermeture” */}
+      <ClosedBanner />
+
+      <div className="pricelist info-panel">
+        <h2 className="page-title">{title}</h2>
+        <div dangerouslySetInnerHTML={{ __html: html }} />
+      </div>
+    </>
   );
 }
