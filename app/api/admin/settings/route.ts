@@ -8,38 +8,35 @@ function isAuthed(req: NextRequest) {
   return req.cookies.get("colibri_admin")?.value === "1";
 }
 
-// GET (admin) : lire les réglages
+const DOC_PATH = { col: "settings", id: "site" };
+
 export async function GET(req: NextRequest) {
   if (!isAuthed(req)) return new NextResponse("Unauthorized", { status: 401 });
   const db = getAdminDb();
-  const snap = await db.collection("settings").doc("site").get();
-  const data = snap.exists
-    ? (snap.data() as any)
-    : { closed: false, closedMessage: "" };
+  const snap = await db.collection(DOC_PATH.col).doc(DOC_PATH.id).get();
+  const data = snap.exists ? (snap.data() as any) : {};
   return NextResponse.json({
     closed: !!data.closed,
-    closedMessage: String(data.closedMessage || ""),
-    updatedAt: data.updatedAt || null,
+    message: data.message ?? "",
+    updatedAt: data.updatedAt ?? null,
   });
 }
 
-// PUT (admin) : enregistrer { closed: boolean, closedMessage: string }
 export async function PUT(req: NextRequest) {
   if (!isAuthed(req)) return new NextResponse("Unauthorized", { status: 401 });
-  const db = getAdminDb();
-
   const body = await req.json().catch(() => ({}));
   const closed = !!body.closed;
-  const closedMessage = String(body.closedMessage || "");
+  const message = typeof body.message === "string" ? body.message : "";
 
-  await db.collection("settings").doc("site").set(
+  const db = getAdminDb();
+  await db.collection(DOC_PATH.col).doc(DOC_PATH.id).set(
     {
       closed,
-      closedMessage,
+      message,
       updatedAt: Date.now(),
     },
     { merge: true }
   );
 
-  return NextResponse.json({ ok: true, closed, closedMessage });
+  return NextResponse.json({ ok: true, closed, message });
 }
