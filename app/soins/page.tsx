@@ -71,6 +71,19 @@ export default async function SoinsPage() {
   const orderedCats = [...knownOrder, ...unknown];
 
   return (
+    import ClosedBanner from "../components/ClosedBanner"; // ajoute cet import en haut
+
+export default async function SoinsPage() {
+  // ...
+  return (
+    <>
+      <ClosedBanner />   {/* ⬅️ affiche la bannière si 'closed' = true */}
+      <div className="services-container">
+        {/* ... le reste inchangé ... */}
+      </div>
+    </>
+  );
+}
     <div className="services-container">
       <div className="services-wrap">
         <h2 className="services-title">Nos soins & tarifs</h2>
