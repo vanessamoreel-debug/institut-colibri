@@ -51,11 +51,12 @@ function linkifyContact(body: string): string {
     });
 
     // 📞 Téléphones
-    line = line.replace(phoneRe, (m) => {
-      if (m.includes("&lt;") || m.includes("&gt;")) return m;
-      const href = `tel:${m.replace(/\s+/g, "")}`;
-      return `<a class="link-clean" href="${href}">📞 ${m}</a>`;
-    });
+line = line.replace(phoneRe, (m) => {
+  if (m.includes("&lt;") || m.includes("&gt;")) return m;
+  const cleaned = m.replace(/[\s().-]+/g, "");      // retire espaces, (), . et -
+  const href = cleaned.startsWith("+") ? `tel:${cleaned}` : `tel:${cleaned}`;
+  return `<a class="link-clean" href="${href}">📞 ${m}</a>`;
+});
 
     // 💬 WhatsApp — remplace “WhatsApp” par le lien avec icône
     if (waHintRe.test(rawLine)) {
