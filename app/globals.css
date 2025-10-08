@@ -317,11 +317,13 @@ body {
   line-height: 1.7;
 }
 
-/* Mise en avant d'une ligne d'information (contact) */
+/* Ligne mise en avant sur la page Contact */
 .notice-strong {
   display: inline-block;
   font-weight: 700;
-  font-size: 2em;          /* ≈ x2 la taille courante */
-  line-height: 1.2;
+  font-size: 1.5em;       /* un peu plus grand, mais pas excessif */
+  line-height: 1.3;
+  color: #7D6C71;         /* couleur Institut Colibri */
   margin: 4px 0 8px;
 }
+
