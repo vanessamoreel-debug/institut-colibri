@@ -1,7 +1,8 @@
 // /app/a-propos/page.tsx
 import { headers } from "next/headers";
+import ClosedBanner from "../components/ClosedBanner";
 
-export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic"; // toujours dynamique
 
 async function getPage(slug: string) {
   const h = await headers();
@@ -19,12 +20,24 @@ export default async function AProposPage() {
   const body = data?.body || "Votre histoire, votre philosophie, l’équipe…";
 
   return (
-    <div className="pricelist">
-      <h2 className="page-title">{title}</h2>
-      <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 }}>
-        {body}
-      </pre>
-    </div>
+    <>
+      {/* ✅ Bannière de fermeture (affichée seulement si activée dans l’admin) */}
+      <ClosedBanner />
+
+      <div className="pricelist info-panel">
+        <h2 className="page-title">{title}</h2>
+        <pre
+          style={{
+            whiteSpace: "pre-wrap",
+            fontFamily: "inherit",
+            margin: 0,
+            color: "#2b2326",
+            lineHeight: 1.6,
+          }}
+        >
+          {body}
+        </pre>
+      </div>
+    </>
   );
 }
-
