@@ -308,3 +308,11 @@ body {
 .pricelist a:hover {
   text-decoration: underline;  /* juste un souligné au survol, élégant */
 }
+
+/* Contenu des pages (Contact / À propos) : même police que le site, en noir */
+.page-content {
+  font-family: 'Cormorant Garamond', serif; /* déjà importée dans ton globals.css */
+  color: #000;
+  font-size: 18px;
+  line-height: 1.7;
+}
