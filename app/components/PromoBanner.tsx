@@ -1,3 +1,4 @@
+// /app/components/PromoBanner.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -38,7 +39,7 @@ export default function PromoBanner() {
     <div
       style={{
         width: "100%",
-        textAlign: "center",
+        maxWidth: 900,
         margin: "12px auto 14px",
         padding: "12px 20px",
         borderRadius: 14,
@@ -48,36 +49,41 @@ export default function PromoBanner() {
         backdropFilter: "blur(8px)",
         WebkitBackdropFilter: "blur(8px)",
         color: "#3d2f34",
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 10,
-        fontSize: "1.05rem",
-        fontWeight: 500,
-        maxWidth: 900,
+        textAlign: "center", // 👈 centre le contenu
       }}
-      className="promo-banner"
     >
       <span
-        aria-hidden
         style={{
-          display: "inline-flex",
-          width: 26,
-          height: 26,
-          borderRadius: "50%",
-          background: "#7D6C71",
-          color: "#fff",
-          fontWeight: 700,
+          display: "inline-flex",           // 👈 ligne centrée dans le bloc
           alignItems: "center",
           justifyContent: "center",
-          fontSize: 15,
-          flexShrink: 0,
+          gap: 10,
+          fontSize: "1.05rem",
+          fontWeight: 500,
+          lineHeight: 1.4,
         }}
-        title="Promotion"
       >
-        %
+        <span
+          aria-hidden
+          style={{
+            display: "inline-flex",
+            width: 26,
+            height: 26,
+            borderRadius: "50%",
+            background: "#7D6C71",
+            color: "#fff",
+            fontWeight: 700,
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 15,
+            flexShrink: 0,
+          }}
+          title="Promotion"
+        >
+          %
+        </span>
+        <span style={{ fontWeight: 600 }}>{text}</span>
       </span>
-      <span style={{ fontWeight: 600, lineHeight: 1.4 }}>{text}</span>
     </div>
   );
 }
