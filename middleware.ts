@@ -1,27 +1,38 @@
 // /middleware.ts
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 
 export function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+  const { pathname, search } = req.nextUrl;
 
-  const isProtected = pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
-  const isLogin = pathname === "/login";
+  const isAdminPage = pathname.startsWith("/admin");
+  const isAdminApi  = pathname.startsWith("/api/admin");
+  const isLogin     = pathname === "/login";
 
-  const session = req.cookies.get("colibri_admin")?.value === "1";
+  const authed = req.cookies.get("colibri_admin")?.value === "1";
 
-  // Si on va sur /login alors qu'on est déjà connecté → redirige /admin
-  if (isLogin && session) {
+  // Déjà connecté → /login => /admin
+  if (isLogin && authed) {
     const url = req.nextUrl.clone();
     url.pathname = "/admin";
+    url.search = "";
     return NextResponse.redirect(url);
   }
 
-  // Si route protégée et pas connecté → redirige vers /login
-  if (isProtected && !session) {
+  // Protection admin (pages + API)
+  if ((isAdminPage || isAdminApi) && !authed) {
+    // Pour les API, mieux vaut répondre 401 JSON qu'une redirection HTML
+    if (isAdminApi) {
+      return new NextResponse(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "content-type": "application/json" },
+      });
+    }
+
+    // Pour les pages, redirection vers /login en conservant le chemin + la query
     const url = req.nextUrl.clone();
     url.pathname = "/login";
-    url.search = `?next=${encodeURIComponent(pathname)}`;
+    const next = pathname + (search || "");
+    url.search = `?next=${encodeURIComponent(next)}`;
     return NextResponse.redirect(url);
   }
 
