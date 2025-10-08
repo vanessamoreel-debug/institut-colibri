@@ -11,7 +11,16 @@ export default function Home() {
       {/* Contenu principal */}
       <div>
         <div className="hero-card" style={{ textAlign: "center" }}>
-          <h2>Bienvenue à l’Institut Colibri</h2>
+          <h2
+            style={{
+              color: "#7D6C71",
+              fontFamily: "'Playfair Display', serif",
+              marginBottom: "10px",
+            }}
+          >
+            Bienvenue à l’Institut Colibri
+          </h2>
+
           <p>
             Un havre de paix au cœur de votre bien-être.
             Découvrez nos soins visage, nos massages relaxants et nos rituels de beauté.
