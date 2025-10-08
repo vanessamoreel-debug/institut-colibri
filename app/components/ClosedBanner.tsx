@@ -14,24 +14,15 @@ async function getSettings() {
 }
 
 export default async function ClosedBanner() {
-  const settings = await getSettings();
-  if (!settings.closed) return null;
+  const { closed, message } = await getSettings();
+
+  if (!closed) return null;
 
   return (
-    <div
-      style={{
-        background: "rgba(125, 108, 113, 0.10)",
-        border: "1px solid rgba(125, 108, 113, 0.25)",
-        borderRadius: 12,
-        padding: "10px 14px",
-        margin: "0 0 12px 0",
-        backdropFilter: "blur(6px)",
-        WebkitBackdropFilter: "blur(6px)",
-      }}
-      className="card"
-    >
-      <strong style={{ color: "#7D6C71" }}>Information :</strong>{" "}
-      <span>{settings.message || "L’institut est actuellement fermé."}</span>
+    <div className="closed-banner" role="status" aria-live="polite">
+      <div className="closed-banner__inner">
+        {message?.trim() ? message : "L’institut est momentanément fermé."}
+      </div>
     </div>
   );
 }
