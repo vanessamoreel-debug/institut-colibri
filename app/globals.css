@@ -367,3 +367,38 @@ body {
   letter-spacing: 0.3px;
 }
 
+/* ===== Menu déroulant (details/summary) ===== */
+.menu-wrap {
+  position: relative; /* ancrage du panneau */
+}
+
+/* Retire le triangle par défaut de summary */
+.menu-wrap > summary {
+  list-style: none;
+  cursor: pointer;
+}
+.menu-wrap > summary::-webkit-details-marker {
+  display: none;
+}
+
+/* Ouvre/ferme le panneau avec <details> */
+.menu-panel {
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity .18s ease, transform .18s ease, visibility .18s step-end;
+}
+
+.menu-wrap[open] .menu-panel {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+  visibility: visible;
+  transition: opacity .18s ease, transform .18s ease, visibility 0s;
+}
+
+/* Rotation du chevron quand c'est ouvert */
+.menu-wrap[open] .chevron {
+  transform: rotate(180deg);
+}
