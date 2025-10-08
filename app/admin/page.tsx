@@ -468,6 +468,9 @@ async function savePromo() {
         <button onClick={() => setTab("fermeture")} style={{ fontWeight: tab === "fermeture" ? 700 : 400 }}>
           Fermeture
         </button>
+        <button onClick={() => setTab("promo")} style={{ fontWeight: tab === "promo" ? 700 : 400 }}>
+          Promo
+        </button>
       </div>
 
       {/* =================== ONGLET SOINS =================== */}
