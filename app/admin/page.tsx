@@ -152,6 +152,41 @@ const [promoMsg,       setPromoMsg]    = useState<string>("");
     }
   }
 
+  async function loadPromo() {
+  setPromoLoading(true);
+  setPromoMsg("");
+  try {
+    const res = await fetch("/api/admin/promo", { credentials: "include", cache: "no-store" });
+    if (handleUnauthorized(res)) return;
+    if (!res.ok) throw new Error(await res.text());
+    const j = await res.json();
+    setPromoActive(!!j.active);
+    setPromoText(String(j.text || ""));
+  } catch (e: any) {
+    setPromoMsg(e?.message || "Erreur de chargement promo");
+  } finally {
+    setPromoLoading(false);
+  }
+}
+
+async function savePromo() {
+  setPromoMsg("");
+  try {
+    const res = await fetch("/api/admin/promo", {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ active: promoActive, text: promoText }),
+    });
+    if (handleUnauthorized(res)) return;
+    if (!res.ok) throw new Error(await res.text());
+    await res.json();
+    setPromoMsg("✔️ Promotion enregistrée.");
+  } catch (e: any) {
+    setPromoMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
+  }
+}
+
   useEffect(() => {
     loadAuth();
     loadServices();
