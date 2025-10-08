@@ -326,4 +326,44 @@ body {
   color: #7D6C71;         /* couleur Institut Colibri */
   margin: 4px 0 8px;
 }
+/* ===== Bannière promotion ===== */
+.promo-banner {
+  background: rgba(255, 240, 245, 0.8);         /* rose très clair */
+  border: 1px solid rgba(125, 108, 113, 0.4);   /* ton Colibri */
+  border-radius: 12px;
+  padding: 12px 20px;
+  text-align: center;
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  color: #7D6C71;
+  font-size: 1.2rem;
+  box-shadow: 0 4px 18px rgba(125,108,113,0.15);
+  margin: 10px auto 18px;
+  max-width: 900px;
+  position: relative;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: fadeInPromo 0.8s ease-in-out;
+}
+
+.sparkle {
+  color: #d1a8b3; /* léger ton doré rosé */
+  font-size: 1.3rem;
+  margin: 0 6px;
+  animation: sparkleBlink 1.8s infinite alternate;
+}
+
+@keyframes sparkleBlink {
+  from { opacity: 0.6; transform: scale(1); }
+  to { opacity: 1; transform: scale(1.15); }
+}
+
+@keyframes fadeInPromo {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.promo-text {
+  letter-spacing: 0.3px;
+}
 
