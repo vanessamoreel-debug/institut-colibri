@@ -1,6 +1,5 @@
 // /app/a-propos/page.tsx
 import { headers } from "next/headers";
-import ClosedBanner from "../components/ClosedBanner";
 
 export const dynamic = "force-dynamic";
 
@@ -21,7 +20,6 @@ export default async function AProposPage() {
 
   return (
     <>
-      <ClosedBanner />
       <div className="pricelist info-panel">
         <h2 className="page-title">{title}</h2>
         <pre className="page-content" style={{ whiteSpace: "pre-wrap", margin: 0 }}>
