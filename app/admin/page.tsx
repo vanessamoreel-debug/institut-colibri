@@ -187,13 +187,13 @@ async function savePromo() {
   }
 }
 
-  useEffect(() => {
-    loadAuth();
-    loadServices();
-    loadCats();
-    loadPages();
-    loadSettings();
-  }, []);
+ useEffect(() => {
+  loadAuth();
+  loadServices();
+  loadCats();
+  loadPages();
+  loadPromo();     // 👈 ajoute ceci
+}, []);
 
   // --------- HELPERS PRIX (UI) ----------
   function inferPriceMode(s: Partial<Service>): PriceMode {
