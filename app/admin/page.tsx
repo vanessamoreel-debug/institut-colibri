@@ -18,12 +18,6 @@ export default function AdminPage() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("soins");
 
-  // --- Promo ---
-  const [promoActive, setPromoActive] = useState<boolean>(false);
-  const [promoText, setPromoText] = useState<string>("");
-  const [promoLoading, setPromoLoading] = useState<boolean>(true);
-  const [promoMsg, setPromoMsg] = useState<string>("");
-
   // --- Auth ---
   const [authed, setAuthed] = useState<boolean | null>(null);
 
@@ -52,10 +46,12 @@ export default function AdminPage() {
   const [aproposBody, setAproposBody] = useState<string>("");
   const [aproposMsg, setAproposMsg] = useState<string>("");
 
-  // --- Fermeture (bannière) ---
+  // --- Fermeture (bannière) + Promo (stockées dans /api/admin/settings)
   const [closed, setClosed] = useState<boolean>(false);
   const [closedMessage, setClosedMessage] = useState<string>("");
-  const [closedMsg, setClosedMsg] = useState<string>("");
+  const [promoActive, setPromoActive] = useState<boolean>(false);
+  const [promoText, setPromoText] = useState<string>("");
+  const [settingsMsg, setSettingsMsg] = useState<string>("");
 
   function handleUnauthorized(res: Response) {
     if (res.status === 401) {
@@ -136,7 +132,9 @@ export default function AdminPage() {
     }
   }
 
+  // ⚙️ SETTINGS (fermeture + promo) via /api/admin/settings
   async function loadSettings() {
+    setSettingsMsg("");
     try {
       const res = await fetch("/api/admin/settings", {
         cache: "no-store",
@@ -147,46 +145,38 @@ export default function AdminPage() {
       const json = await res.json();
       setClosed(!!json.closed);
       setClosedMessage(json.message || "");
+      setPromoActive(!!json.promoActive);
+      setPromoText(String(json.promoText || ""));
     } catch (e: any) {
-      setClosedMsg(e?.message || "Erreur de chargement des réglages");
+      setSettingsMsg(e?.message || "Erreur de chargement des réglages");
     }
   }
 
-  async function loadPromo() {
-    setPromoLoading(true);
-    setPromoMsg("");
+  async function saveSettings(part: "closed" | "promo" | "both" = "both") {
+    setSettingsMsg("");
     try {
-      const res = await fetch("/api/admin/promo", {
-        credentials: "include",
-        cache: "no-store",
-      });
-      if (handleUnauthorized(res)) return;
-      if (!res.ok) throw new Error(await res.text());
-      const j = await res.json();
-      setPromoActive(!!j.active);
-      setPromoText(String(j.text || ""));
-    } catch (e: any) {
-      setPromoMsg(e?.message || "Erreur de chargement promo");
-    } finally {
-      setPromoLoading(false);
-    }
-  }
+      const payload: any = {};
+      if (part === "closed" || part === "both") {
+        payload.closed = closed;
+        payload.message = closedMessage;
+      }
+      if (part === "promo" || part === "both") {
+        payload.promoActive = promoActive;
+        payload.promoText = promoText;
+      }
 
-  async function savePromo() {
-    setPromoMsg("");
-    try {
-      const res = await fetch("/api/admin/promo", {
+      const res = await fetch("/api/admin/settings", {
         method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ active: promoActive, text: promoText }),
+        body: JSON.stringify(payload),
       });
       if (handleUnauthorized(res)) return;
       if (!res.ok) throw new Error(await res.text());
       await res.json();
-      setPromoMsg("✔️ Promotion enregistrée.");
+      setSettingsMsg("✔️ Réglages enregistrés.");
     } catch (e: any) {
-      setPromoMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
+      setSettingsMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
     }
   }
 
@@ -195,8 +185,7 @@ export default function AdminPage() {
     loadServices();
     loadCats();
     loadPages();
-    loadSettings(); // 👈 charge l’état de la bannière “Fermeture”
-    loadPromo();    // 👈 charge l’état de la bannière “Promo”
+    loadSettings();
   }, []);
 
   // --------- HELPERS PRIX (UI) ----------
@@ -231,7 +220,7 @@ export default function AdminPage() {
       return;
     }
 
-    // Validation prix selon mode
+    // Validation prix
     if (priceMode === "single") {
       const uniqueVal = numOrNull(form.price ?? form.priceMin);
       if (uniqueVal == null) return setMsg("Prix requis.");
@@ -250,7 +239,6 @@ export default function AdminPage() {
           ? numOrNull(form.price ?? form.priceMin)
           : numOrNull(form.priceMin),
       priceMax: priceMode === "range" ? numOrNull(form.priceMax) : null,
-
       category: form.category ? String(form.category).toUpperCase() : null,
       duration: form.duration == null ? null : Number(form.duration),
       approxDuration: !!form.approxDuration,
@@ -389,24 +377,6 @@ export default function AdminPage() {
       setMsgLocal("✔️ Page enregistrée.");
     } catch (e: any) {
       setMsgLocal(`❌ Erreur: ${e?.message || "action refusée"}`);
-    }
-  }
-
-  // --------- SETTINGS (Fermeture) ----------
-  async function saveSettings() {
-    setClosedMsg("");
-    try {
-      const res = await fetch("/api/admin/settings", {
-        method: "PUT",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ closed, message: closedMessage }),
-      });
-      if (handleUnauthorized(res)) return;
-      if (!res.ok) throw new Error(await res.text());
-      setClosedMsg("✔️ Réglages enregistrés.");
-    } catch (e: any) {
-      setClosedMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
     }
   }
 
@@ -750,7 +720,7 @@ export default function AdminPage() {
 
       {/* =================== ONGLET A PROPOS =================== */}
       {tab === "a-propos" && (
-        <div className="card" style={{ background: "#fff", border: "1px solid "#eee" }}>
+        <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
           <h3>Page À propos</h3>
           <p style={{ marginTop: 0, color: "#666" }}>
             Cette page est publique sur <code>/a-propos</code>.
@@ -813,12 +783,12 @@ export default function AdminPage() {
           </div>
 
           <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
-            <button onClick={saveSettings}>Enregistrer</button>
+            <button onClick={() => saveSettings("closed")}>Enregistrer</button>
             <button onClick={loadSettings}>Recharger</button>
           </div>
 
-          {closedMsg ? (
-            <p style={{ color: closedMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{closedMsg}</p>
+          {settingsMsg ? (
+            <p style={{ color: settingsMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{settingsMsg}</p>
           ) : null}
         </div>
       )}
@@ -831,38 +801,32 @@ export default function AdminPage() {
             Active une bannière promotionnelle affichée sur le site. Le texte sera repris tel quel.
           </p>
 
-          {promoLoading ? (
-            <p>Chargement…</p>
-          ) : (
-            <>
-              <label style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                <input
-                  type="checkbox"
-                  checked={promoActive}
-                  onChange={(e) => setPromoActive(e.target.checked)}
-                />
-                Afficher la bannière promo
-              </label>
+          <label style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+            <input
+              type="checkbox"
+              checked={promoActive}
+              onChange={(e) => setPromoActive(e.target.checked)}
+            />
+            Afficher la bannière promo
+          </label>
 
-              <textarea
-                placeholder="Texte de la promotion (ex: ✨ -20% sur les soins visage jusqu’au 31 octobre ✨)"
-                value={promoText}
-                onChange={(e) => setPromoText(e.target.value)}
-                style={{ width: "100%", height: 120, marginTop: 8 }}
-              />
+          <textarea
+            placeholder="Texte de la promotion (ex: ✨ -20% sur les soins visage jusqu’au 31 octobre ✨)"
+            value={promoText}
+            onChange={(e) => setPromoText(e.target.value)}
+            style={{ width: "100%", height: 120, marginTop: 8 }}
+          />
 
-              <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
-                <button onClick={savePromo}>Enregistrer</button>
-                <button onClick={loadPromo}>Recharger</button>
-              </div>
+          <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+            <button onClick={() => saveSettings("promo")}>Enregistrer</button>
+            <button onClick={loadSettings}>Recharger</button>
+          </div>
 
-              {promoMsg ? (
-                <p style={{ color: promoMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>
-                  {promoMsg}
-                </p>
-              ) : null}
-            </>
-          )}
+          {settingsMsg ? (
+            <p style={{ color: settingsMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>
+              {settingsMsg}
+            </p>
+          ) : null}
         </div>
       )}
     </div>
