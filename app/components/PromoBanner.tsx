@@ -1,4 +1,3 @@
-// /app/components/PromoBanner.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -38,40 +37,47 @@ export default function PromoBanner() {
   return (
     <div
       style={{
-        margin: "12px 0 14px",
-        padding: "10px 14px",
-        borderRadius: 12,
+        width: "100%",
+        textAlign: "center",
+        margin: "12px auto 14px",
+        padding: "12px 20px",
+        borderRadius: 14,
         border: "1px solid rgba(125,108,113,.25)",
         background:
-          "linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.35))",
+          "linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.45))",
         backdropFilter: "blur(8px)",
         WebkitBackdropFilter: "blur(8px)",
         color: "#3d2f34",
-        display: "flex",
+        display: "inline-flex",
         alignItems: "center",
+        justifyContent: "center",
         gap: 10,
+        fontSize: "1.05rem",
+        fontWeight: 500,
+        maxWidth: 900,
       }}
-      className="info-panel"
+      className="promo-banner"
     >
       <span
         aria-hidden
         style={{
           display: "inline-flex",
-          width: 22,
-          height: 22,
+          width: 26,
+          height: 26,
           borderRadius: "50%",
           background: "#7D6C71",
           color: "#fff",
           fontWeight: 700,
           alignItems: "center",
           justifyContent: "center",
-          fontSize: 14,
+          fontSize: 15,
+          flexShrink: 0,
         }}
         title="Promotion"
       >
         %
       </span>
-      <span style={{ fontWeight: 600 }}>{text}</span>
+      <span style={{ fontWeight: 600, lineHeight: 1.4 }}>{text}</span>
     </div>
   );
 }
