@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Service, Category, PageDoc } from "../../types";
 
-type Tab = "soins" | "contact" | "a-propos" | "fermeture";
+type Tab = "soins" | "contact" | "a-propos" | "fermeture" | "promo";
 type PriceMode = "single" | "range";
 
 function numOrNull(v: any): number | null {
@@ -17,12 +17,12 @@ function numOrNull(v: any): number | null {
 export default function AdminPage() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("soins");
-  
-// --- Promo ---
-const [promoActive,    setPromoActive] = useState<boolean>(false);
-const [promoText,      setPromoText]   = useState<string>("");
-const [promoLoading,   setPromoLoading]= useState<boolean>(true);
-const [promoMsg,       setPromoMsg]    = useState<string>("");
+
+  // --- Promo ---
+  const [promoActive, setPromoActive] = useState<boolean>(false);
+  const [promoText, setPromoText] = useState<string>("");
+  const [promoLoading, setPromoLoading] = useState<boolean>(true);
+  const [promoMsg, setPromoMsg] = useState<string>("");
 
   // --- Auth ---
   const [authed, setAuthed] = useState<boolean | null>(null);
@@ -153,47 +153,51 @@ const [promoMsg,       setPromoMsg]    = useState<string>("");
   }
 
   async function loadPromo() {
-  setPromoLoading(true);
-  setPromoMsg("");
-  try {
-    const res = await fetch("/api/admin/promo", { credentials: "include", cache: "no-store" });
-    if (handleUnauthorized(res)) return;
-    if (!res.ok) throw new Error(await res.text());
-    const j = await res.json();
-    setPromoActive(!!j.active);
-    setPromoText(String(j.text || ""));
-  } catch (e: any) {
-    setPromoMsg(e?.message || "Erreur de chargement promo");
-  } finally {
-    setPromoLoading(false);
+    setPromoLoading(true);
+    setPromoMsg("");
+    try {
+      const res = await fetch("/api/admin/promo", {
+        credentials: "include",
+        cache: "no-store",
+      });
+      if (handleUnauthorized(res)) return;
+      if (!res.ok) throw new Error(await res.text());
+      const j = await res.json();
+      setPromoActive(!!j.active);
+      setPromoText(String(j.text || ""));
+    } catch (e: any) {
+      setPromoMsg(e?.message || "Erreur de chargement promo");
+    } finally {
+      setPromoLoading(false);
+    }
   }
-}
 
-async function savePromo() {
-  setPromoMsg("");
-  try {
-    const res = await fetch("/api/admin/promo", {
-      method: "PUT",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ active: promoActive, text: promoText }),
-    });
-    if (handleUnauthorized(res)) return;
-    if (!res.ok) throw new Error(await res.text());
-    await res.json();
-    setPromoMsg("✔️ Promotion enregistrée.");
-  } catch (e: any) {
-    setPromoMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
+  async function savePromo() {
+    setPromoMsg("");
+    try {
+      const res = await fetch("/api/admin/promo", {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: promoActive, text: promoText }),
+      });
+      if (handleUnauthorized(res)) return;
+      if (!res.ok) throw new Error(await res.text());
+      await res.json();
+      setPromoMsg("✔️ Promotion enregistrée.");
+    } catch (e: any) {
+      setPromoMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
+    }
   }
-}
 
- useEffect(() => {
-  loadAuth();
-  loadServices();
-  loadCats();
-  loadPages();
-  loadPromo();     // 👈 ajoute ceci
-}, []);
+  useEffect(() => {
+    loadAuth();
+    loadServices();
+    loadCats();
+    loadPages();
+    loadSettings(); // 👈 charge l’état de la bannière “Fermeture”
+    loadPromo();    // 👈 charge l’état de la bannière “Promo”
+  }, []);
 
   // --------- HELPERS PRIX (UI) ----------
   function inferPriceMode(s: Partial<Service>): PriceMode {
@@ -355,11 +359,11 @@ async function savePromo() {
     slug: "contact" | "a-propos",
     title: string,
     body: string,
-    setMsg: (v: string) => void
+    setMsgLocal: (v: string) => void
   ) {
-    setMsg("");
+    setMsgLocal("");
     if (!title || !title.trim()) {
-      setMsg("Titre requis.");
+      setMsgLocal("Titre requis.");
       return;
     }
     try {
@@ -382,9 +386,9 @@ async function savePromo() {
       }
       const json = JSON.parse(text);
       setPages(json.data || []);
-      setMsg("✔️ Page enregistrée.");
+      setMsgLocal("✔️ Page enregistrée.");
     } catch (e: any) {
-      setMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
+      setMsgLocal(`❌ Erreur: ${e?.message || "action refusée"}`);
     }
   }
 
@@ -479,7 +483,7 @@ async function savePromo() {
           {/* Catégories */}
           <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
             <h3>Catégories (ordre des sections)</h3>
-            <p style={{ marginTop: 0, color: "#666" }}>MAJUSCULES, avec un numéro d'ordre (1 en haut, puis 2, 3...).</p>
+            <p style={{ marginTop: 0, color: "#666" }}>MAJUSCULES, avec un numéro d&apos;ordre (1 en haut, puis 2, 3...).</p>
 
             <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 120px 180px" }}>
               <input
@@ -746,7 +750,7 @@ async function savePromo() {
 
       {/* =================== ONGLET A PROPOS =================== */}
       {tab === "a-propos" && (
-        <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
+        <div className="card" style={{ background: "#fff", border: "1px solid "#eee" }}>
           <h3>Page À propos</h3>
           <p style={{ marginTop: 0, color: "#666" }}>
             Cette page est publique sur <code>/a-propos</code>.
@@ -816,6 +820,49 @@ async function savePromo() {
           {closedMsg ? (
             <p style={{ color: closedMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{closedMsg}</p>
           ) : null}
+        </div>
+      )}
+
+      {/* =================== ONGLET PROMO =================== */}
+      {tab === "promo" && (
+        <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
+          <h3>Promotion (bannière)</h3>
+          <p style={{ marginTop: 0, color: "#666" }}>
+            Active une bannière promotionnelle affichée sur le site. Le texte sera repris tel quel.
+          </p>
+
+          {promoLoading ? (
+            <p>Chargement…</p>
+          ) : (
+            <>
+              <label style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <input
+                  type="checkbox"
+                  checked={promoActive}
+                  onChange={(e) => setPromoActive(e.target.checked)}
+                />
+                Afficher la bannière promo
+              </label>
+
+              <textarea
+                placeholder="Texte de la promotion (ex: ✨ -20% sur les soins visage jusqu’au 31 octobre ✨)"
+                value={promoText}
+                onChange={(e) => setPromoText(e.target.value)}
+                style={{ width: "100%", height: 120, marginTop: 8 }}
+              />
+
+              <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+                <button onClick={savePromo}>Enregistrer</button>
+                <button onClick={loadPromo}>Recharger</button>
+              </div>
+
+              {promoMsg ? (
+                <p style={{ color: promoMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>
+                  {promoMsg}
+                </p>
+              ) : null}
+            </>
+          )}
         </div>
       )}
     </div>
