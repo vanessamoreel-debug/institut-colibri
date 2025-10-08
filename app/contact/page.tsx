@@ -44,6 +44,15 @@ function linkifyContact(body: string): string {
   const htmlLines = lines.map((rawLine) => {
     let line = escapeHtml(rawLine);
 
+    // 👉 Mise en avant spéciale de la ligne “Ouvert uniquement sur rendez-vous”
+    const norm = rawLine
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+    if (norm.includes("ouvert uniquement sur rendez-vous")) {
+      line = `<span class="notice-strong">${line}</span>`;
+    }
+
     // ✉️ E-mails
     line = line.replace(emailRe, (m) => {
       const href = `mailto:${m}`;
