@@ -51,14 +51,13 @@ function linkifyContact(body: string): string {
     });
 
     // 📞 Téléphones
-line = line.replace(phoneRe, (m) => {
-  if (m.includes("&lt;") || m.includes("&gt;")) return m;
-  const cleaned = m.replace(/[\s().-]+/g, "");      // retire espaces, (), . et -
-  const href = cleaned.startsWith("+") ? `tel:${cleaned}` : `tel:${cleaned}`;
-  return `<a class="link-clean" href="${href}">📞 ${m}</a>`;
-});
+    line = line.replace(phoneRe, (m) => {
+      if (m.includes("&lt;") || m.includes("&gt;")) return m;
+      const href = `tel:${m.replace(/\s+/g, "")}`;
+      return `<a class="link-clean" href="${href}">📞 ${m}</a>`;
+    });
 
-    // 💬 WhatsApp — remplace “WhatsApp” par le lien avec icône
+    // 💬 WhatsApp — remplace “WhatsApp” par le lien avec icône (sans afficher le numéro)
     if (waHintRe.test(rawLine)) {
       line = `<a class="link-clean" href="${whatsappUrl}" target="_blank" rel="noopener">${whatsappIcon}WhatsApp</a>`;
     }
@@ -94,12 +93,10 @@ export default async function ContactPage() {
 
   return (
     <>
-      {/* ✅ Bannière “fermeture” */}
       <ClosedBanner />
-
       <div className="pricelist info-panel">
         <h2 className="page-title">{title}</h2>
-        <div dangerouslySetInnerHTML={{ __html: html }} />
+        <div className="page-content" dangerouslySetInnerHTML={{ __html: html }} />
       </div>
     </>
   );
