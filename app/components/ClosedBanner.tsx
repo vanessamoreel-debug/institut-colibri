@@ -1,43 +1,27 @@
-"use client";
+// /app/components/ClosedBanner.tsx
+import { headers } from "next/headers";
 
-import { useEffect, useState } from "react";
+export const dynamic = "force-dynamic";
 
-type Settings = {
-  closed?: boolean;
-  message?: string;
-};
+async function getSettings() {
+  const h = await headers();
+  const host = h.get("host");
+  const proto = h.get("x-forwarded-proto") || "https";
+  const base = `${proto}://${host}`;
+  const res = await fetch(`${base}/api/settings`, { cache: "no-store" });
+  if (!res.ok) return null;
+  return res.json();
+}
 
-export default function ClosedBanner() {
-  const [loading, setLoading] = useState(true);
-  const [closed, setClosed] = useState(false);
-  const [message, setMessage] = useState("");
-
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        // ❗️Client-side fetch de l’API publique
-        const res = await fetch("/api/settings", { cache: "no-store" });
-        const j: Settings = res.ok ? await res.json() : {};
-        if (!mounted) return;
-        setClosed(!!j.closed && !!j.message);
-        setMessage(String(j.message || ""));
-      } catch {
-        // ignore
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  if (loading || !closed) return null;
+export default async function ClosedBanner() {
+  const s = await getSettings();
+  const enabled = !!s?.closed || !!s?.closedBanner?.enabled;
+  const message = (s?.message ?? s?.closedBanner?.message ?? "").trim();
+  if (!enabled || !message) return null;
 
   return (
-    <div className="closed-banner">
-      <div className="closed-banner__inner">{message}</div>
+    <div className="mx-auto max-w-6xl card p-3 text-center text-red-700 font-body">
+      {message}
     </div>
   );
 }
