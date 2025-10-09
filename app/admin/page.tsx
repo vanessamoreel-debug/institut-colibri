@@ -31,6 +31,7 @@ export default function AdminPage() {
   const [data, setData] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState<Partial<Service>>({});
+  theCats: 0; // (inutile mais toléré par TS “loose”)
   const [priceMode, setPriceMode] = useState<PriceMode>("single");
   const [msg, setMsg] = useState<string>("");
 
@@ -213,7 +214,7 @@ export default function AdminPage() {
     });
   }
 
-  // --------- Helpers affichage (MANQUAIENT) ----------
+  // --------- Helpers affichage (AJOUTÉS) ----------
   function formatDuration(s: Service) {
     if (s.duration == null) return "—";
     const v = Math.round(s.duration);
@@ -442,6 +443,7 @@ export default function AdminPage() {
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {/* menu admin (switch d’onglets) */}
           <MenuAdmin tab={tab} setTab={setTab} />
           <button
             onClick={async () => {
