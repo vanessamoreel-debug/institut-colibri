@@ -1,6 +1,5 @@
 // /app/components/PromoBanner.tsx
 "use client";
-
 import { useEffect, useState } from "react";
 
 type Settings = {
@@ -20,78 +19,32 @@ export default function PromoBanner() {
       try {
         const res = await fetch("/api/settings", { cache: "no-store" });
         const j: Settings = res.ok ? await res.json() : {};
-
         if (!mounted) return;
 
-        // Tolérance : lit d’abord promoActive/promoText, sinon fallback sur promoBanner
-        const enabled = typeof j.promoActive === "boolean"
-          ? !!j.promoActive
-          : !!j.promoBanner?.enabled;
-
+        const enabled = typeof j.promoActive === "boolean" ? !!j.promoActive : !!j.promoBanner?.enabled;
         const message = (j.promoText ?? j.promoBanner?.message ?? "") as string;
 
         setActive(enabled && !!message.trim());
         setText(message);
-      } catch {
-        // ignore
       } finally {
         if (mounted) setLoading(false);
       }
     })();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
   if (loading || !active) return null;
 
   return (
-    <div
-      style={{
-        width: "100%",
-        maxWidth: 900,
-        margin: "12px auto 14px",
-        padding: "12px 20px",
-        borderRadius: 14,
-        border: "1px solid rgba(125,108,113,.25)",
-        background:
-          "linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.45))",
-        backdropFilter: "blur(8px)",
-        WebkitBackdropFilter: "blur(8px)",
-        color: "#3d2f34",
-        textAlign: "center",
-      }}
-    >
-      <span
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 10,
-          fontSize: "1.05rem",
-          fontWeight: 500,
-          lineHeight: 1.4,
-        }}
-      >
-        <span
-          aria-hidden
-          style={{
-            display: "inline-flex",
-            width: 26,
-            height: 26,
-            borderRadius: "50%",
-            background: "#7D6C71",
-            color: "#fff",
-            fontWeight: 700,
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 15,
-            flexShrink: 0,
-          }}
-          title="Promotion"
-        >
-          %
-        </span>
+    <div style={{
+      width: "100%", maxWidth: 900, margin: "12px auto 14px", padding: "12px 20px",
+      borderRadius: 14, border: "1px solid rgba(125,108,113,.25)",
+      background: "linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.45))",
+      backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)",
+      color: "#3d2f34", textAlign: "center"
+    }}>
+      <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10, fontSize: "1.05rem", fontWeight: 500, lineHeight: 1.4 }}>
+        <span aria-hidden style={{ display: "inline-flex", width: 26, height: 26, borderRadius: "50%", background: "#7D6C71", color: "#fff", fontWeight: 700, alignItems: "center", justifyContent: "center", fontSize: 15, flexShrink: 0 }} title="Promotion">%</span>
         <span style={{ fontWeight: 600 }}>{text}</span>
       </span>
     </div>
