@@ -4,13 +4,13 @@ import { getAdminDb } from "../../../../lib/firebaseAdmin";
 
 export const dynamic = "force-dynamic";
 
-// Auth cookie
+// Auth par cookie
 function isAuthed(req: NextRequest) {
   return req.cookies.get("colibri_admin")?.value === "1";
 }
 
-// Util: lit les settings depuis "global", sinon "general" (compat)
-async function readSettings(db: FirebaseFirestore.Firestore) {
+// Lit les settings depuis "global", sinon "general" (compat)
+async function readSettings(db: any) {
   const refGlobal = db.collection("settings").doc("global");
   const snapGlobal = await refGlobal.get();
 
@@ -25,11 +25,11 @@ async function readSettings(db: FirebaseFirestore.Firestore) {
     return { ref: refGeneral, data: (snapGeneral.data() as any) ?? {} };
   }
 
-  // Si rien n’existe, on travaillera sur "global"
+  // Si rien n’existe, on travaille sur "global"
   return { ref: refGlobal, data: {} as any };
 }
 
-// Normalise pour renvoyer un format stable aux UIs
+// Normalisation sortie pour l’UI (fermeture + promo)
 function toOutput(data: any) {
   // compat promoBanner -> promoActive/promoText
   const bannerEnabled = !!data?.promoBanner?.enabled;
@@ -41,16 +41,19 @@ function toOutput(data: any) {
   const promoText =
     typeof data?.promoText === "string" ? data.promoText : bannerMessage;
 
-  // fermeture (tu utilises déjà closed/message)
-  const closed = !!data?.closed;
-  const message = typeof data?.message === "string" ? data.message : "";
+  // fermeture (closed/message) + compat closedBanner
+  const closed = !!data?.closed || !!data?.closedBanner?.enabled;
+  const message =
+    typeof data?.message === "string"
+      ? data.message
+      : String(data?.closedBanner?.message ?? "");
 
   return {
     closed,
     message,
     promoActive,
     promoText,
-    // On renvoie aussi les objets complets pour compat/évolution
+    // objets complets (compat/évolution)
     promoBanner: {
       enabled: promoActive,
       message: promoText
@@ -62,7 +65,7 @@ function toOutput(data: any) {
   };
 }
 
-// GET — lire réglages
+// GET — lire réglages (admin)
 export async function GET(req: NextRequest) {
   if (!isAuthed(req)) return new NextResponse("Unauthorized", { status: 401 });
 
@@ -75,10 +78,9 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// PUT — enregistrer réglages
+// PUT — enregistrer réglages (admin)
 // Accepte: closed, message, promoActive, promoText
-// (facultatif) promoBanner: { enabled, message }
-// (facultatif) closedBanner: { enabled, message }
+// Optionnel: closedBanner { enabled, message }, promoBanner { enabled, message }
 export async function PUT(req: NextRequest) {
   if (!isAuthed(req)) return new NextResponse("Unauthorized", { status: 401 });
 
@@ -86,27 +88,26 @@ export async function PUT(req: NextRequest) {
     const body = await req.json().catch(() => ({}));
     const db = getAdminDb();
 
-    // On lit l’existant sur global/general
     const { ref, data: current } = await readSettings(db);
 
-    // Construire un patch minimal pour merge
+    // Patch minimal pour merge (on n’écrase pas le reste)
     const patch: Record<string, any> = {};
 
-    // --- Bannière fermeture (schéma simple) ---
+    // Schéma simple fermeture
     if (typeof body.closed === "boolean") patch.closed = body.closed;
     if (typeof body.message === "string") patch.message = body.message;
 
-    // --- Bannière promo (schéma simple) ---
+    // Schéma simple promo
     if (typeof body.promoActive === "boolean") patch.promoActive = body.promoActive;
     if (typeof body.promoText === "string") patch.promoText = body.promoText;
 
-    // --- Compat: closedBanner / promoBanner (si fournis) ---
+    // Compat objets si fournis
     if (body.closedBanner && typeof body.closedBanner === "object") {
       patch.closedBanner = {
         enabled: !!body.closedBanner.enabled,
         message: String(body.closedBanner.message ?? "")
       };
-      // synchroniser aussi le schéma simple
+      // synchronise schéma simple
       patch.closed = patch.closedBanner.enabled;
       patch.message = patch.closedBanner.message;
     }
@@ -116,13 +117,12 @@ export async function PUT(req: NextRequest) {
         enabled: !!body.promoBanner.enabled,
         message: String(body.promoBanner.message ?? "")
       };
-      // synchroniser aussi le schéma simple
+      // synchronise schéma simple
       patch.promoActive = patch.promoBanner.enabled;
       patch.promoText = patch.promoBanner.message;
     }
 
-    // Si l’appelant n’envoie que le schéma simple, on garde les objets compat en phase
-    // (sans écraser si non concernés)
+    // Si on n’a reçu que le schéma simple, synchroniser aussi les objets compat
     const willSyncClosed =
       "closed" in patch || "message" in patch || "closedBanner" in patch;
     const willSyncPromo =
@@ -131,9 +131,12 @@ export async function PUT(req: NextRequest) {
     if (willSyncClosed && !("closedBanner" in patch)) {
       const currentClosedBanner = current.closedBanner || {};
       patch.closedBanner = {
-        enabled: "closed" in patch ? !!patch.closed : !!currentClosedBanner.enabled,
+        enabled:
+          "closed" in patch ? !!patch.closed : !!currentClosedBanner.enabled,
         message:
-          "message" in patch ? String(patch.message ?? "") : String(currentClosedBanner.message ?? "")
+          "message" in patch
+            ? String(patch.message ?? "")
+            : String(currentClosedBanner.message ?? "")
       };
     }
 
@@ -141,15 +144,18 @@ export async function PUT(req: NextRequest) {
       const currentPromoBanner = current.promoBanner || {};
       patch.promoBanner = {
         enabled:
-          "promoActive" in patch ? !!patch.promoActive : !!currentPromoBanner.enabled,
+          "promoActive" in patch
+            ? !!patch.promoActive
+            : !!currentPromoBanner.enabled,
         message:
-          "promoText" in patch ? String(patch.promoText ?? "") : String(currentPromoBanner.message ?? "")
+          "promoText" in patch
+            ? String(patch.promoText ?? "")
+            : String(currentPromoBanner.message ?? "")
       };
     }
 
     await ref.set(patch, { merge: true });
 
-    // Retourne la version normalisée
     const updated = (await ref.get()).data() || {};
     return NextResponse.json(toOutput(updated));
   } catch (e: any) {
