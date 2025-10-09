@@ -524,171 +524,50 @@ export default function AdminPage() {
                       </td>
                     </tr>
                   ) : null}
-                </tbody>
-              </table>
-            )}
-          </div>
-
-          {/* Soins */}
-          <div className="admin-card">
-            <h3 className="admin-section-title">{form?.id ? "Modifier un soin" : "Ajouter un soin"}</h3>
-
-            {/* Toggle mode prix */}
-            <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 8 }}>
-              <span style={{ fontWeight: 600 }}>Type de prix :</span>
-              <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <input type="radio" name="priceMode" checked={priceMode === "single"} onChange={() => onChangePriceMode("single")} />
-                Prix unique
-              </label>
-              <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <input type="radio" name="priceMode" checked={priceMode === "range"} onChange={() => onChangePriceMode("range")} />
-                Intervalle (min–max)
-              </label>
-            </div>
-
-            <div
-              style={{
-                display: "grid",
-                gap: 8,
-                gridTemplateColumns:
-                  priceMode === "single" ? "1fr 1fr 90px 90px 1fr" : "1fr 1fr 1fr 90px 90px 1fr",
-              }}
-            >
-              <input placeholder="Nom" value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-
-              {priceMode === "single" ? (
-                <input
-                  placeholder="Prix (CHF)"
-                  type="number"
-                  value={(form.price ?? form.priceMin ?? "").toString()}
-                  onChange={(e) => setForm({ ...form, price: numOrNull(e.target.value) as any })}
-                />
-              ) : (
-                <>
-                  <input
-                    placeholder="Prix min (CHF)"
-                    type="number"
-                    value={(form.priceMin ?? "").toString()}
-                    onChange={(e) => setForm({ ...form, priceMin: numOrNull(e.target.value) as any })}
-                  />
-                  <input
-                    placeholder="Prix max (CHF)"
-                    type="number"
-                    value={(form.priceMax ?? "").toString()}
-                    onChange={(e) => setForm({ ...form, priceMax: numOrNull(e.target.value) as any })}
-                  />
-                </>
-              )}
-
-              <input
-                placeholder="Durée (min)"
-                type="number"
-                value={form.duration?.toString() || ""}
-                onChange={(e) => setForm({ ...form, duration: numOrNull(e.target.value) as any })}
-              />
-              <input
-                placeholder="Ordre"
-                type="number"
-                value={form.order?.toString() || ""}
-                onChange={(e) => setForm({ ...form, order: numOrNull(e.target.value) as any })}
-              />
-              <input
-                list="colibri-cats"
-                placeholder="Catégorie"
-                value={form.category || ""}
-                onChange={(e) => setForm({ ...form, category: e.target.value.toUpperCase() })}
-              />
-              <datalist id="colibri-cats">
-                {cats.map((c) => (
-                  <option key={c.id} value={c.name} />
-                ))}
-              </datalist>
-            </div>
-
-            <label style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-              <input
-                type="checkbox"
-                checked={!!form.approxDuration}
-                onChange={(e) => setForm({ ...form, approxDuration: e.target.checked })}
-              />
-              Durée approximative (±)
-            </label>
-
-            <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 110px" }}>
-              <textarea
-                placeholder="Description (optionnel) — vous pouvez mettre du **gras**."
-                value={form.description || ""}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-              />
-              <input
-                placeholder="Espacement (px)"
-                type="number"
-                value={form.spacing?.toString() || ""}
-                onChange={(e) => setForm({ ...form, spacing: numOrNull(e.target.value) as any })}
-              />
-            </div>
-
-            <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
-              <button onClick={addOrUpdate}>{form?.id ? "Enregistrer" : "Ajouter"}</button>
-              {form?.id ? (
-                <button
-                  onClick={() => {
-                    setForm({});
-                    setPriceMode("single");
-                  }}
-                >
-                  Annuler
-                </button>
-              ) : null}
-            </div>
-          </div>
-
-          {msg ? <p style={{ color: msg.startsWith("✔") ? "green" : "crimson" }}>{msg}</p> : null}
-
-          <div className="admin-card">
-            {loading ? (
-              <p>Chargement…</p>
-            ) : (
-              <table style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10 }}>
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: "left" }}>Nom</th>
-                    <th>Catégorie</th>
-                    <th>Durée</th>
-                    <th>Ordre</th>
-                    <th>Prix</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
                 <tbody>
-                  {dataSorted.map((s) => (
-                    <tr key={s.id}>
-                      <td>{s.name}</td>
-                      <td style={{ textAlign: "center" }}>{s.category || "—"}</td>
-                      <td style={{ textAlign: "center" }}>
-  {s.duration == null
-    ? "—"
-    : (s.approxDuration ? `± ${Math.round(s.duration)} min` : `${Math.round(s.duration)} min`)
-  }
-</td>
-                      <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
-                      <td style={{ textAlign: "center", fontWeight: 600 }}>{formatPriceAdmin(s)}</td>
-                      <td style={{ textAlign: "center" }}>
-                        <button onClick={() => editService(s)}>Modifier</button>
-                        <button onClick={() => remove(s.id)} style={{ marginLeft: 8 }}>
-                          Supprimer
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                  {dataSorted.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} style={{ color: "#666", padding: 8 }}>
-                        Aucun soin.
-                      </td>
-                    </tr>
-                  ) : null}
-                </tbody>
+  {dataSorted.map((s) => (
+    <tr key={s.id}>
+      <td>{s.name}</td>
+      <td style={{ textAlign: "center" }}>{s.category || "—"}</td>
+
+      {/* durée inline (plus d'appel à formatDuration) */}
+      <td style={{ textAlign: "center" }}>
+        {s.duration == null
+          ? "—"
+          : (s.approxDuration
+              ? `± ${Math.round(s.duration)} min`
+              : `${Math.round(s.duration)} min`)
+        }
+      </td>
+
+      {/* corrige le " ? ?" en " ?? " */}
+      <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
+
+      {/* prix inline (plus d'appel à formatPriceAdmin si tu veux rester self-contained ici) */}
+      <td style={{ textAlign: "center", fontWeight: 600 }}>
+        {s.priceMin != null && s.priceMax != null
+          ? `${s.priceMin}–${s.priceMax} CHF`
+          : (s.priceMin != null
+              ? `${s.priceMin} CHF`
+              : (s.price != null ? `${s.price} CHF` : "—"))}
+      </td>
+
+      <td style={{ textAlign: "center" }}>
+        <button onClick={() => editService(s)}>Modifier</button>
+        <button onClick={() => remove(s.id)} style={{ marginLeft: 8 }}>
+          Supprimer
+        </button>
+      </td>
+    </tr>
+  ))}
+  {dataSorted.length === 0 ? (
+    <tr>
+      <td colSpan={6} style={{ color: "#666", padding: 8 }}>
+        Aucun soin.
+      </td>
+    </tr>
+  ) : null}
+</tbody>
               </table>
             )}
           </div>
