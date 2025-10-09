@@ -3,26 +3,29 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { code } = await req.json().catch(() => ({}));
-    const expected = process.env.ADMIN_CODE || "";
-    if (!expected) {
-      return new NextResponse("ADMIN_CODE non configuré.", { status: 500 });
-    }
-    if (String(code) !== String(expected)) {
-      return new NextResponse("Code invalide.", { status: 401 });
+    const { password } = await req.json().catch(() => ({}));
+    const expected = process.env.ADMIN_PASSWORD || "MoLu0814";
+
+    if (!password || password !== expected) {
+      return new NextResponse("Identifiants invalides", { status: 401 });
     }
 
-    // ✅ Cookie admin
-    const res = NextResponse.json({ ok: true });
-    res.cookies.set("colibri_admin", "1", {
-      httpOnly: true,
-      sameSite: "lax",
-      path: "/",
-      secure: true,
-      maxAge: 60 * 60 * 6, // 6h
-    });
+    // Crée le cookie de session admin
+    const res = new NextResponse(JSON.stringify({ ok: true }), { status: 200 });
+    res.headers.set(
+      "Set-Cookie",
+      [
+        `colibri_admin=1`,
+        `Path=/`,
+        `HttpOnly`,
+        `SameSite=Lax`,
+        `Secure`, // laisse si tu es en https (Vercel l’est)
+        `Max-Age=${60 * 60 * 8}`, // 8h
+      ].join("; ")
+    );
+    res.headers.set("Content-Type", "application/json");
     return res;
-  } catch (e: any) {
-    return new NextResponse(e?.message || "Erreur serveur", { status: 500 });
+  } catch (e) {
+    return new NextResponse("Erreur serveur", { status: 500 });
   }
 }
