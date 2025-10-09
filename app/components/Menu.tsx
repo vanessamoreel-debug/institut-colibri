@@ -1,4 +1,3 @@
-// /app/components/Menu.tsx
 "use client";
 
 import Link from "next/link";
@@ -46,7 +45,6 @@ export default function Menu() {
         <Link href="/soins"    className="menu-link" onClick={() => setOpen(false)}>Soins</Link>
         <Link href="/contact"  className="menu-link" onClick={() => setOpen(false)}>Contact</Link>
         <Link href="/a-propos" className="menu-link" onClick={() => setOpen(false)}>À propos</Link>
-        <Link href="/admin"    className="menu-link" onClick={() => setOpen(false)}>Admin</Link>
       </nav>
     </div>
   );
