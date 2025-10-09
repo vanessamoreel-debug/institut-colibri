@@ -6,6 +6,14 @@ import { useRouter } from "next/navigation";
 import type { Service, Category, PageDoc } from "../../types";
 import MenuAdmin from "../components/MenuAdmin";
 
+// Helper affichage durée (local au fichier)
+function formatDurationInline(s: { duration?: number | null; approxDuration?: boolean | null }) {
+  if (s.duration == null) return "—";
+  const v = Math.round(Number(s.duration));
+  return s.approxDuration ? `± ${v} min` : `${v} min`;
+}
+
+
 type Tab = "soins" | "contact" | "a-propos" | "fermeture" | "promo";
 type PriceMode = "single" | "range";
 
