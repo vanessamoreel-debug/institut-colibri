@@ -1,9 +1,10 @@
 // /app/admin/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Service, Category, PageDoc } from "../../types";
+import MenuAdmin from "../components/MenuAdmin";
 
 type Tab = "soins" | "contact" | "a-propos" | "fermeture" | "promo";
 type PriceMode = "single" | "range";
@@ -14,78 +15,15 @@ function numOrNull(v: any): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
-/** Petit menu déroulant local à la page admin, pour changer de section */
-function AdminMenu({
-  tab,
-  setTab,
-}: {
-  tab: Tab;
-  setTab: (t: Tab) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  // click en dehors -> ferme
-  useEffect(() => {
-    function onClickOutside(e: MouseEvent) {
-      if (!ref.current) return;
-      if (!ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    if (open) document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
-  }, [open]);
-
-  // echap -> ferme
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
-    }
-    if (open) document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [open]);
-
-  const Item = ({ value, label }: { value: Tab; label: string }) => (
-    <button
-      onClick={() => {
-        setTab(value);
-        setOpen(false);
-      }}
-      className="menu-link"
-      style={{
-        textAlign: "left",
-        fontWeight: tab === value ? 700 : 400,
-      }}
-      aria-current={tab === value ? "page" : undefined}
-    >
-      {label}
-    </button>
-  );
-
-  return (
-    <div className="menu-wrap" ref={ref}>
-      <button
-        className="menu-button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-      >
-        <span className="menu-icon">☰</span>
-        Menu admin <span className={`chevron ${open ? "chevron-up" : ""}`}>⌄</span>
-      </button>
-
-      <nav className={`menu-panel ${open ? "open" : ""}`} role="menu">
-        <Item value="soins" label="Soins" />
-        <Item value="contact" label="Contact" />
-        <Item value="a-propos" label="À propos" />
-        <Item value="fermeture" label="Fermeture" />
-        <Item value="promo" label="Promo" />
-      </nav>
-    </div>
-  );
-}
-
 export default function AdminPage() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("soins");
+
+  // --- Promo ---
+  const [promoActive, setPromoActive] = useState<boolean>(false);
+  const [promoText, setPromoText] = useState<string>("");
+  const [promoLoading, setPromoLoading] = useState<boolean>(true);
+  const [promoMsg, setPromoMsg] = useState<string>("");
 
   // --- Auth ---
   const [authed, setAuthed] = useState<boolean | null>(null);
@@ -99,6 +37,7 @@ export default function AdminPage() {
 
   // --- Catégories ---
   const [cats, setCats] = useState<Category[]>([]);
+  theCats: 0;
   const [catsLoading, setCatsLoading] = useState(true);
   const [catForm, setCatForm] = useState<Partial<Category>>({});
   const [catMsg, setCatMsg] = useState<string>("");
@@ -119,12 +58,6 @@ export default function AdminPage() {
   const [closed, setClosed] = useState<boolean>(false);
   const [closedMessage, setClosedMessage] = useState<string>("");
   const [closedMsg, setClosedMsg] = useState<string>("");
-
-  // --- Promo ---
-  const [promoActive, setPromoActive] = useState<boolean>(false);
-  const [promoText, setPromoText] = useState<string>("");
-  const [promoLoading, setPromoLoading] = useState<boolean>(true);
-  const [promoMsg, setPromoMsg] = useState<string>("");
 
   function handleUnauthorized(res: Response) {
     if (res.status === 401) {
@@ -213,15 +146,14 @@ export default function AdminPage() {
       });
       if (handleUnauthorized(res)) return;
       if (!res.ok) throw new Error(await res.text());
-      const j = await res.json();
-      setClosed(!!j.closed);
-      setClosedMessage(j.message || "");
-      setPromoActive(!!j.promoActive);
-      setPromoText(String(j.promoText || ""));
+      const json = await res.json();
+      setClosed(!!json.closed);
+      setClosedMessage(json.message || "");
+      // récupère la promo au cas où ton settings privé inclut ces champs
+      if ("promoActive" in json) setPromoActive(!!json.promoActive);
+      if ("promoText" in json) setPromoText(String(json.promoText || ""));
     } catch (e: any) {
       setClosedMsg(e?.message || "Erreur de chargement des réglages");
-    } finally {
-      setPromoLoading(false);
     }
   }
 
@@ -229,7 +161,10 @@ export default function AdminPage() {
     setPromoLoading(true);
     setPromoMsg("");
     try {
-      const res = await fetch("/api/admin/promo", { credentials: "include", cache: "no-store" });
+      const res = await fetch("/api/admin/promo", {
+        credentials: "include",
+        cache: "no-store",
+      });
       if (handleUnauthorized(res)) return;
       if (!res.ok) throw new Error(await res.text());
       const j = await res.json();
@@ -242,13 +177,31 @@ export default function AdminPage() {
     }
   }
 
+  async function savePromo() {
+    setPromoMsg("");
+    try {
+      const res = await fetch("/api/admin/promo", {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: promoActive, text: promoText }),
+      });
+      if (handleUnauthorized(res)) return;
+      if (!res.ok) throw new Error(await res.text());
+      await res.json();
+      setPromoMsg("✔️ Promotion enregistrée.");
+    } catch (e: any) {
+      setPromoMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
+    }
+  }
+
   useEffect(() => {
     loadAuth();
     loadServices();
     loadCats();
     loadPages();
-    loadSettings(); // inclut closed + promo si exposés
-    loadPromo();    // route dédiée promo (si présente)
+    loadSettings();
+    loadPromo();
   }, []);
 
   // --------- HELPERS PRIX (UI) ----------
@@ -283,7 +236,6 @@ export default function AdminPage() {
       return;
     }
 
-    // Validation prix
     if (priceMode === "single") {
       const uniqueVal = numOrNull(form.price ?? form.priceMin);
       if (uniqueVal == null) return setMsg("Prix requis.");
@@ -302,6 +254,7 @@ export default function AdminPage() {
           ? numOrNull(form.price ?? form.priceMin)
           : numOrNull(form.priceMin),
       priceMax: priceMode === "range" ? numOrNull(form.priceMax) : null,
+
       category: form.category ? String(form.category).toUpperCase() : null,
       duration: form.duration == null ? null : Number(form.duration),
       approxDuration: !!form.approxDuration,
@@ -410,11 +363,11 @@ export default function AdminPage() {
     slug: "contact" | "a-propos",
     title: string,
     body: string,
-    setLocalMsg: (v: string) => void
+    setMsg: (v: string) => void
   ) {
-    setLocalMsg("");
+    setMsg("");
     if (!title || !title.trim()) {
-      setLocalMsg("Titre requis.");
+      setMsg("Titre requis.");
       return;
     }
     try {
@@ -437,13 +390,13 @@ export default function AdminPage() {
       }
       const json = JSON.parse(text);
       setPages(json.data || []);
-      setLocalMsg("✔️ Page enregistrée.");
+      setMsg("✔️ Page enregistrée.");
     } catch (e: any) {
-      setLocalMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
+      setMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
     }
   }
 
-  // --------- SETTINGS (Fermeture / Promo) ----------
+  // --------- SETTINGS (Fermeture) ----------
   async function saveSettings() {
     setClosedMsg("");
     try {
@@ -451,32 +404,13 @@ export default function AdminPage() {
         method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ closed, message: closedMessage, promoActive, promoText }),
+        body: JSON.stringify({ closed, message: closedMessage }),
       });
       if (handleUnauthorized(res)) return;
       if (!res.ok) throw new Error(await res.text());
       setClosedMsg("✔️ Réglages enregistrés.");
     } catch (e: any) {
       setClosedMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
-    }
-  }
-
-  // --------- PROMO (route dédiée optionnelle) ----------
-  async function savePromo() {
-    setPromoMsg("");
-    try {
-      const res = await fetch("/api/admin/promo", {
-        method: "PUT",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ active: promoActive, text: promoText }),
-      });
-      if (handleUnauthorized(res)) return;
-      if (!res.ok) throw new Error(await res.text());
-      await res.json();
-      setPromoMsg("✔️ Promotion enregistrée.");
-    } catch (e: any) {
-      setPromoMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
     }
   }
 
@@ -519,33 +453,30 @@ export default function AdminPage() {
   // --------- UI ----------
   return (
     <div>
+      {/* Barre de statut + menu admin */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
         <div>
           <h2 style={{ margin: 0 }}>Administration</h2>
-          <div style={{ fontSize: 13, color: authed ? "green" : "crimson", marginTop: 6 }}>
+          <div style={{ fontSize: 13, color: authed ? "green" : "crimson" }}>
             Statut admin : {authed == null ? "…" : authed ? "OK" : "NON CONNECTÉ"}
           </div>
         </div>
-
-        {/* 🔽 Menu déroulant des sections admin */}
-        <div style={{ alignSelf: "flex-start" }}>
-          <AdminMenu tab={tab} setTab={setTab} />
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {/* menu admin (switch d’onglets) */}
+          <MenuAdmin tab={tab} setTab={setTab} />
+          <button onClick={logout}>Se déconnecter</button>
         </div>
       </div>
 
-      <div style={{ marginTop: 12, display: "flex", justifyContent: "flex-end" }}>
-        <button onClick={logout}>Se déconnecter</button>
-      </div>
-
-      {/* ========= PANNEAUX SELON LE MENU ========= */}
-
-      {/* SOINS */}
+      {/* =================== ONGLET SOINS =================== */}
       {tab === "soins" && (
         <>
           {/* Catégories */}
-          <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
-            <h3>Catégories (ordre des sections)</h3>
-            <p style={{ marginTop: 0, color: "#666" }}>MAJUSCULES, avec un numéro d'ordre (1 en haut, puis 2, 3...).</p>
+          <div className="admin-card">
+            <h3 className="admin-section-title">Catégories (ordre des sections)</h3>
+            <p className="admin-muted" style={{ marginTop: 0 }}>
+              MAJUSCULES, avec un numéro d'ordre (1 en haut, puis 2, 3...).
+            </p>
 
             <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 120px 180px" }}>
               <input
@@ -611,8 +542,8 @@ export default function AdminPage() {
           </div>
 
           {/* Soins */}
-          <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
-            <h3>{form?.id ? "Modifier un soin" : "Ajouter un soin"}</h3>
+          <div className="admin-card">
+            <h3 className="admin-section-title">{form?.id ? "Modifier un soin" : "Ajouter un soin"}</h3>
 
             {/* Toggle mode prix */}
             <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 8 }}>
@@ -631,14 +562,11 @@ export default function AdminPage() {
               style={{
                 display: "grid",
                 gap: 8,
-                gridTemplateColumns: priceMode === "single" ? "1fr 1fr 90px 90px 1fr" : "1fr 1fr 1fr 90px 90px 1fr",
+                gridTemplateColumns:
+                  priceMode === "single" ? "1fr 1fr 90px 90px 1fr" : "1fr 1fr 1fr 90px 90px 1fr",
               }}
             >
-              <input
-                placeholder="Nom"
-                value={form.name || ""}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-              />
+              <input placeholder="Nom" value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} />
 
               {priceMode === "single" ? (
                 <input
@@ -729,58 +657,60 @@ export default function AdminPage() {
 
           {msg ? <p style={{ color: msg.startsWith("✔") ? "green" : "crimson" }}>{msg}</p> : null}
 
-          {loading ? (
-            <p>Chargement…</p>
-          ) : (
-            <table style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10 }}>
-              <thead>
-                <tr>
-                  <th style={{ textAlign: "left" }}>Nom</th>
-                  <th>Catégorie</th>
-                  <th>Durée</th>
-                  <th>Ordre</th>
-                  <th>Prix</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {dataSorted.map((s) => (
-                  <tr key={s.id}>
-                    <td>{s.name}</td>
-                    <td style={{ textAlign: "center" }}>{s.category || "—"}</td>
-                    <td style={{ textAlign: "center" }}>{formatDuration(s)}</td>
-                    <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
-                    <td style={{ textAlign: "center", fontWeight: 600 }}>{formatPriceAdmin(s)}</td>
-                    <td style={{ textAlign: "center" }}>
-                      <button onClick={() => editService(s)}>Modifier</button>
-                      <button onClick={() => remove(s.id)} style={{ marginLeft: 8 }}>
-                        Supprimer
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-                {dataSorted.length === 0 ? (
+          <div className="admin-card">
+            {loading ? (
+              <p>Chargement…</p>
+            ) : (
+              <table style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10 }}>
+                <thead>
                   <tr>
-                    <td colSpan={6} style={{ color: "#666", padding: 8 }}>
-                      Aucun soin.
-                    </td>
+                    <th style={{ textAlign: "left" }}>Nom</th>
+                    <th>Catégorie</th>
+                    <th>Durée</th>
+                    <th>Ordre</th>
+                    <th>Prix</th>
+                    <th>Actions</th>
                   </tr>
-                ) : null}
-              </tbody>
-            </table>
-          )}
+                </thead>
+                <tbody>
+                  {dataSorted.map((s) => (
+                    <tr key={s.id}>
+                      <td>{s.name}</td>
+                      <td style={{ textAlign: "center" }}>{s.category || "—"}</td>
+                      <td style={{ textAlign: "center" }}>{formatDuration(s)}</td>
+                      <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
+                      <td style={{ textAlign: "center", fontWeight: 600 }}>{formatPriceAdmin(s)}</td>
+                      <td style={{ textAlign: "center" }}>
+                        <button onClick={() => editService(s)}>Modifier</button>
+                        <button onClick={() => remove(s.id)} style={{ marginLeft: 8 }}>
+                          Supprimer
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {dataSorted.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} style={{ color: "#666", padding: 8 }}>
+                        Aucun soin.
+                      </td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            )}
+          </div>
         </>
       )}
 
-      {/* CONTACT */}
+      {/* =================== ONGLET CONTACT =================== */}
       {tab === "contact" && (
-        <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
-          <h3>Page Contact</h3>
-          <p style={{ marginTop: 0, color: "#666" }}>
+        <div className="admin-card">
+          <h3 className="admin-section-title">Page Contact</h3>
+          <p className="admin-muted" style={{ marginTop: 0 }}>
             Cette page est publique sur <code>/contact</code>.
           </p>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <div className="admin-grid-2">
             <div>
               <label style={{ display: "block", fontWeight: 600, marginBottom: 4 }}>Titre</label>
               <input value={contactTitle} onChange={(e) => setContactTitle(e.target.value)} placeholder="Contact" />
@@ -805,7 +735,7 @@ export default function AdminPage() {
 
             <div>
               <div style={{ fontWeight: 700, marginBottom: 8 }}>Aperçu</div>
-              <div className="card" style={{ minHeight: 220 }}>
+              <div className="admin-card" style={{ minHeight: 220 }}>
                 <h2 style={{ marginTop: 0 }}>{contactTitle || "Contact"}</h2>
                 <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 }}>{contactBody || "—"}</pre>
               </div>
@@ -814,15 +744,15 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* A PROPOS */}
+      {/* =================== ONGLET A PROPOS =================== */}
       {tab === "a-propos" && (
-        <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
-          <h3>Page À propos</h3>
-          <p style={{ marginTop: 0, color: "#666" }}>
+        <div className="admin-card">
+          <h3 className="admin-section-title">Page À propos</h3>
+          <p className="admin-muted" style={{ marginTop: 0 }}>
             Cette page est publique sur <code>/a-propos</code>.
           </p>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+          <div className="admin-grid-2">
             <div>
               <label style={{ display: "block", fontWeight: 600, marginBottom: 4 }}>Titre</label>
               <input value={aproposTitle} onChange={(e) => setAproposTitle(e.target.value)} placeholder="À propos" />
@@ -847,7 +777,7 @@ export default function AdminPage() {
 
             <div>
               <div style={{ fontWeight: 700, marginBottom: 8 }}>Aperçu</div>
-              <div className="card" style={{ minHeight: 220 }}>
+              <div className="admin-card" style={{ minHeight: 220 }}>
                 <h2 style={{ marginTop: 0 }}>{aproposTitle || "À propos"}</h2>
                 <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 }}>{aproposBody || "—"}</pre>
               </div>
@@ -856,11 +786,11 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* FERMETURE */}
+      {/* =================== ONGLET FERMETURE =================== */}
       {tab === "fermeture" && (
-        <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
-          <h3>Bannière de fermeture (congés / indisponibilité)</h3>
-          <p style={{ marginTop: 0, color: "#666" }}>
+        <div className="admin-card">
+          <h3 className="admin-section-title">Bannière de fermeture (congés / indisponibilité)</h3>
+          <p className="admin-muted" style={{ marginTop: 0 }}>
             Active une bannière visible en haut des pages publiques (Accueil, Soins, Contact, À&nbsp;propos).
           </p>
 
@@ -889,40 +819,46 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* PROMO */}
+      {/* =================== ONGLET PROMO =================== */}
       {tab === "promo" && (
-        <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
-          <h3>Bannière promotion</h3>
-          <p style={{ marginTop: 0, color: "#666" }}>
-            Affiche une bannière promo (au-dessus du contenu) sur tout le site public.
+        <div className="admin-card">
+          <h3 className="admin-section-title">Bannière promotion</h3>
+          <p className="admin-muted" style={{ marginTop: 0 }}>
+            Message promo affiché tout en haut des pages publiques si activé.
           </p>
 
-          <label style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-            <input
-              type="checkbox"
-              checked={promoActive}
-              onChange={(e) => setPromoActive(e.target.checked)}
-            />
-            Afficher la bannière promo
-          </label>
+          {promoLoading ? (
+            <p>Chargement…</p>
+          ) : (
+            <>
+              <label style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={promoActive}
+                  onChange={(e) => setPromoActive(e.target.checked)}
+                />
+                Afficher la bannière promo
+              </label>
 
-          <div style={{ marginTop: 12 }}>
-            <textarea
-              placeholder="Texte de la promotion (ex : -15% sur les soins visage jusqu’au 15 mai)."
-              value={promoText}
-              onChange={(e) => setPromoText(e.target.value)}
-              style={{ width: "100%", height: 120 }}
-            />
-          </div>
+              <div style={{ marginTop: 10 }}>
+                <textarea
+                  placeholder="Ex : -20% sur les soins visage jusqu’au 31/08"
+                  value={promoText}
+                  onChange={(e) => setPromoText(e.target.value)}
+                  style={{ width: "100%", height: 100 }}
+                />
+              </div>
 
-          <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
-            <button onClick={savePromo}>Enregistrer</button>
-            <button onClick={loadPromo}>Recharger</button>
-          </div>
+              <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+                <button onClick={savePromo}>Enregistrer</button>
+                <button onClick={loadPromo}>Recharger</button>
+              </div>
 
-          {promoMsg ? (
-            <p style={{ color: promoMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{promoMsg}</p>
-          ) : null}
+              {promoMsg ? (
+                <p style={{ color: promoMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{promoMsg}</p>
+              ) : null}
+            </>
+          )}
         </div>
       )}
     </div>
