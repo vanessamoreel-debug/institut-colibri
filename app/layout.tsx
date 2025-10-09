@@ -2,25 +2,22 @@
 import "./globals.css";
 import ClosedBanner from "./components/ClosedBanner";
 import PromoBanner from "./components/PromoBanner";
+import type { ReactNode } from "react";
 
 export const metadata = {
   title: "Institut Colibri",
-  description: "Soins & bien-être"
+  description: "Soins & bien-être",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fr">
       <body className="min-h-screen body-public">
-        {/* Bannières globales */}
-        {/* @ts-expect-error Server Component */}
+        {/* Bannières globales (ClosedBanner est un Server Component, PromoBanner un Client Component) */}
         <ClosedBanner />
-        {/* Promo est client-side */}
         <PromoBanner />
 
-        <main className="mx-auto max-w-6xl p-4">
-          {children}
-        </main>
+        <main className="mx-auto max-w-6xl p-4">{children}</main>
       </body>
     </html>
   );
