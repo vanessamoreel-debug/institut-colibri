@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   try {
     const { password } = await req.json().catch(() => ({}));
-    const expected = process.env.ADMIN_PASSWORD || "MoLu0814";
+    const expected = process.env.ADMIN_PASSWORD || "NoLu0814";
 
     if (!password || password !== expected) {
       return new NextResponse("Identifiants invalides", { status: 401 });
