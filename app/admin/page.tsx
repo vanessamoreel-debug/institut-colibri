@@ -22,7 +22,6 @@ export default function AdminPage() {
   // --- Promo ---
   const [promoActive, setPromoActive] = useState<boolean>(false);
   const [promoText, setPromoText] = useState<string>("");
-  const [promoLoading, setPromoLoading] = useState<boolean>(true);
   const [promoMsg, setPromoMsg] = useState<string>("");
 
   // --- Auth ---
@@ -37,7 +36,6 @@ export default function AdminPage() {
 
   // --- Catégories ---
   const [cats, setCats] = useState<Category[]>([]);
-  theCats: 0;
   const [catsLoading, setCatsLoading] = useState(true);
   const [catForm, setCatForm] = useState<Partial<Category>>({});
   const [catMsg, setCatMsg] = useState<string>("");
@@ -138,6 +136,7 @@ export default function AdminPage() {
     }
   }
 
+  // ⚙️ Unique source de vérité: /api/admin/settings
   async function loadSettings() {
     try {
       const res = await fetch("/api/admin/settings", {
@@ -147,9 +146,10 @@ export default function AdminPage() {
       if (handleUnauthorized(res)) return;
       if (!res.ok) throw new Error(await res.text());
       const json = await res.json();
+      // Fermeture
       setClosed(!!json.closed);
       setClosedMessage(json.message || "");
-      // récupère la promo au cas où ton settings privé inclut ces champs
+      // Promo
       if ("promoActive" in json) setPromoActive(!!json.promoActive);
       if ("promoText" in json) setPromoText(String(json.promoText || ""));
     } catch (e: any) {
@@ -157,34 +157,20 @@ export default function AdminPage() {
     }
   }
 
-  async function loadPromo() {
-    setPromoLoading(true);
-    setPromoMsg("");
-    try {
-      const res = await fetch("/api/admin/promo", {
-        credentials: "include",
-        cache: "no-store",
-      });
-      if (handleUnauthorized(res)) return;
-      if (!res.ok) throw new Error(await res.text());
-      const j = await res.json();
-      setPromoActive(!!j.active);
-      setPromoText(String(j.text || ""));
-    } catch (e: any) {
-      setPromoMsg(e?.message || "Erreur de chargement promo");
-    } finally {
-      setPromoLoading(false);
-    }
-  }
-
+  // 🟢 Enregistrer la promo via /api/admin/settings
   async function savePromo() {
     setPromoMsg("");
     try {
-      const res = await fetch("/api/admin/promo", {
+      const res = await fetch("/api/admin/settings", {
         method: "PUT",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ active: promoActive, text: promoText }),
+        body: JSON.stringify({
+          promoActive,
+          promoText,
+          // compat pour d’anciens schémas
+          promoBanner: { enabled: promoActive, message: promoText },
+        }),
       });
       if (handleUnauthorized(res)) return;
       if (!res.ok) throw new Error(await res.text());
@@ -201,7 +187,6 @@ export default function AdminPage() {
     loadCats();
     loadPages();
     loadSettings();
-    loadPromo();
   }, []);
 
   // --------- HELPERS PRIX (UI) ----------
@@ -414,25 +399,6 @@ export default function AdminPage() {
     }
   }
 
-  // --------- Helpers affichage ----------
-  function formatDuration(s: Service) {
-    if (s.duration == null) return "—";
-    const v = Math.round(s.duration);
-    return s.approxDuration ? `± ${v} min` : `${v} min`;
-  }
-
-  function formatPriceAdmin(s: Service) {
-    if (s.priceMin != null && s.priceMax != null) return `${s.priceMin}–${s.priceMax} CHF`;
-    if (s.priceMin != null) return `${s.priceMin} CHF`;
-    if (s.price != null) return `${s.price} CHF`;
-    return "—";
-  }
-
-  async function logout() {
-    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-    router.replace("/login");
-  }
-
   // Tri local soins
   const dataSorted = useMemo(() => {
     const copy = [...data];
@@ -464,7 +430,10 @@ export default function AdminPage() {
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {/* menu admin (switch d’onglets) */}
           <MenuAdmin tab={tab} setTab={setTab} />
-          <button onClick={logout}>Se déconnecter</button>
+          <button onClick={async () => {
+            await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+            router.replace("/login");
+          }}>Se déconnecter</button>
         </div>
       </div>
 
@@ -827,38 +796,32 @@ export default function AdminPage() {
             Message promo affiché tout en haut des pages publiques si activé.
           </p>
 
-          {promoLoading ? (
-            <p>Chargement…</p>
-          ) : (
-            <>
-              <label style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                <input
-                  type="checkbox"
-                  checked={promoActive}
-                  onChange={(e) => setPromoActive(e.target.checked)}
-                />
-                Afficher la bannière promo
-              </label>
+          <label style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <input
+              type="checkbox"
+              checked={promoActive}
+              onChange={(e) => setPromoActive(e.target.checked)}
+            />
+            Afficher la bannière promo
+          </label>
 
-              <div style={{ marginTop: 10 }}>
-                <textarea
-                  placeholder="Ex : -20% sur les soins visage jusqu’au 31/08"
-                  value={promoText}
-                  onChange={(e) => setPromoText(e.target.value)}
-                  style={{ width: "100%", height: 100 }}
-                />
-              </div>
+          <div style={{ marginTop: 10 }}>
+            <textarea
+              placeholder="Ex : -20% sur les soins visage jusqu’au 31/08"
+              value={promoText}
+              onChange={(e) => setPromoText(e.target.value)}
+              style={{ width: "100%", height: 100 }}
+            />
+          </div>
 
-              <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
-                <button onClick={savePromo}>Enregistrer</button>
-                <button onClick={loadPromo}>Recharger</button>
-              </div>
+          <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+            <button onClick={savePromo}>Enregistrer</button>
+            <button onClick={loadSettings}>Recharger</button>
+          </div>
 
-              {promoMsg ? (
-                <p style={{ color: promoMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{promoMsg}</p>
-              ) : null}
-            </>
-          )}
+          {promoMsg ? (
+            <p style={{ color: promoMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{promoMsg}</p>
+          ) : null}
         </div>
       )}
     </div>
