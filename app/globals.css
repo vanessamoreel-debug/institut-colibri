@@ -441,13 +441,11 @@ body {
 
 /* Remplace ENTIEREMENT le bloc .admin-shell actuel par ça */
 .admin-shell {
-  /* Fond admin : image + léger dégradé pour la lisibilité du texte */
   background:
     linear-gradient(180deg, rgba(255,255,255,0.80), rgba(255,255,255,0.70)),
-    url("/fond%20admin.jpg") center / cover no-repeat fixed;
+    url("/fond-admin.jpg") center / cover no-repeat fixed;
   min-height: 100vh;
 
-  /* on supprime tout arrondi/spacing hérités */
   border: 0;
   padding: 0;
   border-radius: 0;
