@@ -1,59 +1,66 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function LoginPage() {
+function LoginInner() {
   const router = useRouter();
-  const sp = useSearchParams();
-  const next = sp.get("next") || "/admin";
+  const search = useSearchParams();
+  const next = search.get("next") || "/admin";
 
-  const [code, setCode] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [msg, setMsg] = useState("");
+  const [password, setPassword] = useState("");
+  const [msg, setMsg] = useState<string>("");
 
-  async function submit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setMsg("");
-    setLoading(true);
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        cache: "no-store",
-        body: JSON.stringify({ code }),
+        credentials: "include",
+        body: JSON.stringify({ password }),
       });
-      if (!res.ok) throw new Error(await res.text());
+      if (!res.ok) {
+        const t = await res.text().catch(() => "");
+        throw new Error(t || "Identifiants invalides");
+      }
+      // redirige vers la page demandée ou /admin
       router.replace(next);
-    } catch (e: any) {
-      setMsg(e?.message || "Connexion refusée.");
-    } finally {
-      setLoading(false);
+    } catch (err: any) {
+      setMsg(err?.message || "Erreur de connexion");
     }
   }
 
   return (
-    <div className="info-panel" style={{ maxWidth: 420, margin: "30px auto" }}>
-      <h2 className="page-title" style={{ textAlign: "center" }}>Connexion</h2>
-      <p style={{ color: "#555", marginTop: 0, textAlign: "center" }}>
-        Accès réservé à l’administration.
-      </p>
-      <form onSubmit={submit} style={{ display: "grid", gap: 10 }}>
-        <input
-          type="password"
-          placeholder="Code d’accès"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          autoFocus
-        />
-        <button type="submit" disabled={loading}>
-          {loading ? "Connexion…" : "Se connecter"}
-        </button>
-        {msg ? <p style={{ color: "crimson", margin: 0 }}>{msg}</p> : null}
+    <div style={{ maxWidth: 420, margin: "40px auto", padding: 20 }} className="pricelist info-panel">
+      <h2 className="page-title" style={{ marginTop: 0 }}>Connexion administrateur</h2>
+      <form onSubmit={onSubmit} style={{ display: "grid", gap: 12 }}>
+        <label style={{ fontWeight: 600 }}>
+          Mot de passe
+          <input
+            type="password"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            style={{ width: "100%", marginTop: 6 }}
+          />
+        </label>
+        <button type="submit" style={{ alignSelf: "start" }}>Se connecter</button>
+        {msg ? <p style={{ color: msg.startsWith("Identifiants") ? "crimson" : "crimson", margin: 0 }}>{msg}</p> : null}
+        <p style={{ color: "#666", fontSize: 13, margin: 0 }}>
+          Vous serez redirigé vers&nbsp;<code>{next}</code>.
+        </p>
       </form>
-      <p style={{ marginTop: 10, fontSize: 12, color: "#666", textAlign: "center" }}>
-        Cette page n’est pas indexée par les moteurs de recherche.
-      </p>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: 16 }}>Chargement…</div>}>
+      <LoginInner />
+    </Suspense>
   );
 }
