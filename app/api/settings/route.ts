@@ -4,29 +4,14 @@ import { getAdminDb } from "../../../lib/firebaseAdmin";
 
 export const dynamic = "force-dynamic";
 
-// Lit d'abord settings/global, sinon settings/general (compat)
-async function readSettings() {
+export async function GET() {
   const db = getAdminDb();
 
-  const refGlobal = db.collection("settings").doc("global");
-  const snapGlobal = await refGlobal.get();
-  if (snapGlobal.exists) {
-    return { data: (snapGlobal.data() as any) ?? {} };
-  }
+  // 👉 On lit le document "general" (même cible que /api/admin/settings)
+  const snap = await db.collection("settings").doc("general").get();
+  const data: any = snap.exists ? snap.data() : {};
 
-  const refGeneral = db.collection("settings").doc("general");
-  const snapGeneral = await refGeneral.get();
-  if (snapGeneral.exists) {
-    return { data: (snapGeneral.data() as any) ?? {} };
-  }
-
-  return { data: {} as any };
-}
-
-export async function GET() {
-  const { data } = await readSettings();
-
-  // Compat descendante promo : déduire promoActive/promoText depuis promoBanner si manquants
+  // Compat : si anciens champs promoBanner.* existent, on les utilise par défaut
   const bannerEnabled = !!data?.promoBanner?.enabled;
   const bannerMessage = data?.promoBanner?.message ?? "";
 
@@ -36,30 +21,10 @@ export async function GET() {
   const promoText =
     typeof data?.promoText === "string" ? data.promoText : bannerMessage;
 
-  // Compat fermeture : closed/message depuis closedBanner si présents
-  const closed =
-    typeof data?.closed === "boolean"
-      ? data.closed
-      : !!data?.closedBanner?.enabled;
-
-  const message =
-    typeof data?.message === "string"
-      ? data.message
-      : String(data?.closedBanner?.message ?? "");
-
-  // Réponse publique normalisée + objets compat
+  // On renvoie aussi les champs pour la bannière de fermeture si tu les utilises côté client
   return NextResponse.json({
-    // champs simples attendus par les composants client (PromoBanner, ClosedBanner éventuel)
+    ...data,
     promoActive,
     promoText,
-    closed,
-    message,
-
-    // objets complets pour compat/évolutions
-    promoBanner: { enabled: promoActive, message: promoText },
-    closedBanner: { enabled: closed, message },
-
-    // et on expose le reste si d'autres parties du site l'utilisent
-    ...data
   });
 }
