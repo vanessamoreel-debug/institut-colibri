@@ -1,11 +1,11 @@
-// /app/admin/layout.tsx
 "use client";
 
+import "../globals.css";
 import Link from "next/link";
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  // Petit menu déroulant (en haut à droite) pour naviguer entre les sections admin
+  // Menu déroulant admin (en haut à droite)
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -38,16 +38,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <span className="menu-icon">☰</span>
               Sections admin <span className={`chevron ${open ? "chevron-up" : ""}`}>⌄</span>
             </button>
-
             <nav className={`menu-panel ${open ? "open" : ""}`}>
-              {/* Liens internes admin : ces routes existent déjà dans la page admin via onglets.
-                  Ici on renvoie vers /admin mais avec hash de section pour scroller. */}
+              {/* Liens internes vers sections (ancre) */}
               <a href="/admin#soins"     className="menu-link" onClick={() => setOpen(false)}>Soins</a>
               <a href="/admin#contact"   className="menu-link" onClick={() => setOpen(false)}>Contact</a>
               <a href="/admin#a-propos"  className="menu-link" onClick={() => setOpen(false)}>À propos</a>
               <a href="/admin#fermeture" className="menu-link" onClick={() => setOpen(false)}>Fermeture</a>
               <a href="/admin#promo"     className="menu-link" onClick={() => setOpen(false)}>Promo</a>
-              {/* Bouton retour au site public */}
+
+              {/* Retour site public */}
               <Link href="/" className="menu-link" onClick={() => setOpen(false)}>↩️ Retour au site</Link>
             </nav>
           </div>
@@ -55,21 +54,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
 
       {/* Contenu admin */}
-      <main className="admin-main">
-        {children}
-      </main>
-    </div>
-  );
-}
-// /app/admin/layout.tsx
-import "../globals.css";
-
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="admin-shell">
-      <header className="admin-topbar">
-        <div className="admin-topbar-title">Tableau de bord</div>
-      </header>
       <main className="admin-main">{children}</main>
     </div>
   );
