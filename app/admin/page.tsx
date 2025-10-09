@@ -1,7 +1,7 @@
 // /app/admin/page.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { Service, Category, PageDoc } from "../../types";
 
@@ -14,27 +14,96 @@ function numOrNull(v: any): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+/** Petit menu déroulant local à la page admin, pour changer de section */
+function AdminMenu({
+  tab,
+  setTab,
+}: {
+  tab: Tab;
+  setTab: (t: Tab) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // click en dehors -> ferme
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (!ref.current) return;
+      if (!ref.current.contains(e.target as Node)) setOpen(false);
+    }
+    if (open) document.addEventListener("mousedown", onClickOutside);
+    return () => document.removeEventListener("mousedown", onClickOutside);
+  }, [open]);
+
+  // echap -> ferme
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") setOpen(false);
+    }
+    if (open) document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  const Item = ({ value, label }: { value: Tab; label: string }) => (
+    <button
+      onClick={() => {
+        setTab(value);
+        setOpen(false);
+      }}
+      className="menu-link"
+      style={{
+        textAlign: "left",
+        fontWeight: tab === value ? 700 : 400,
+      }}
+      aria-current={tab === value ? "page" : undefined}
+    >
+      {label}
+    </button>
+  );
+
+  return (
+    <div className="menu-wrap" ref={ref}>
+      <button
+        className="menu-button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        <span className="menu-icon">☰</span>
+        Menu admin <span className={`chevron ${open ? "chevron-up" : ""}`}>⌄</span>
+      </button>
+
+      <nav className={`menu-panel ${open ? "open" : ""}`} role="menu">
+        <Item value="soins" label="Soins" />
+        <Item value="contact" label="Contact" />
+        <Item value="a-propos" label="À propos" />
+        <Item value="fermeture" label="Fermeture" />
+        <Item value="promo" label="Promo" />
+      </nav>
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("soins");
 
-  // Auth
+  // --- Auth ---
   const [authed, setAuthed] = useState<boolean | null>(null);
 
-  // Soins
+  // --- Soins ---
   const [data, setData] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState<Partial<Service>>({});
   const [priceMode, setPriceMode] = useState<PriceMode>("single");
   const [msg, setMsg] = useState<string>("");
 
-  // Catégories
+  // --- Catégories ---
   const [cats, setCats] = useState<Category[]>([]);
   const [catsLoading, setCatsLoading] = useState(true);
   const [catForm, setCatForm] = useState<Partial<Category>>({});
   const [catMsg, setCatMsg] = useState<string>("");
 
-  // Pages
+  // --- Pages ---
   const [pages, setPages] = useState<PageDoc[]>([]);
   const [pagesLoading, setPagesLoading] = useState(true);
 
@@ -46,12 +115,12 @@ export default function AdminPage() {
   const [aproposBody, setAproposBody] = useState<string>("");
   const [aproposMsg, setAproposMsg] = useState<string>("");
 
-  // Fermeture (bannière)
+  // --- Fermeture (bannière) ---
   const [closed, setClosed] = useState<boolean>(false);
   const [closedMessage, setClosedMessage] = useState<string>("");
   const [closedMsg, setClosedMsg] = useState<string>("");
 
-  // Promo
+  // --- Promo ---
   const [promoActive, setPromoActive] = useState<boolean>(false);
   const [promoText, setPromoText] = useState<string>("");
   const [promoLoading, setPromoLoading] = useState<boolean>(true);
@@ -65,10 +134,13 @@ export default function AdminPage() {
     return false;
   }
 
-  // LOADERS
+  // --------- LOADERS ----------
   async function loadAuth() {
     try {
-      const r = await fetch("/api/auth/status", { credentials: "include", cache: "no-store" });
+      const r = await fetch("/api/auth/status", {
+        credentials: "include",
+        cache: "no-store",
+      });
       const j = await r.json().catch(() => ({}));
       setAuthed(!!j?.authed);
       if (!j?.authed) router.replace("/login?next=/admin");
@@ -108,7 +180,10 @@ export default function AdminPage() {
   async function loadPages() {
     setPagesLoading(true);
     try {
-      const res = await fetch("/api/admin/pages", { cache: "no-store", credentials: "include" });
+      const res = await fetch("/api/admin/pages", {
+        cache: "no-store",
+        credentials: "include",
+      });
       if (handleUnauthorized(res)) return;
       if (!res.ok) throw new Error(await res.text());
       const json = await res.json();
@@ -132,7 +207,10 @@ export default function AdminPage() {
 
   async function loadSettings() {
     try {
-      const res = await fetch("/api/admin/settings", { cache: "no-store", credentials: "include" });
+      const res = await fetch("/api/admin/settings", {
+        cache: "no-store",
+        credentials: "include",
+      });
       if (handleUnauthorized(res)) return;
       if (!res.ok) throw new Error(await res.text());
       const j = await res.json();
@@ -169,11 +247,11 @@ export default function AdminPage() {
     loadServices();
     loadCats();
     loadPages();
-    loadSettings(); // inclut closed + promo si /api/admin/settings expose aussi ces champs
-    loadPromo();    // et route dédiée promo
+    loadSettings(); // inclut closed + promo si exposés
+    loadPromo();    // route dédiée promo (si présente)
   }, []);
 
-  // HELPERS PRIX
+  // --------- HELPERS PRIX (UI) ----------
   function inferPriceMode(s: Partial<Service>): PriceMode {
     if (s.priceMin != null && s.priceMax != null) return "range";
     return "single";
@@ -197,7 +275,7 @@ export default function AdminPage() {
     });
   }
 
-  // CRUD SOINS
+  // --------- CRUD SOINS ----------
   async function addOrUpdate() {
     setMsg("");
     if (!form?.name || !String(form.name).trim()) {
@@ -219,7 +297,10 @@ export default function AdminPage() {
     const payload = {
       ...form,
       price: null,
-      priceMin: priceMode === "single" ? numOrNull(form.price ?? form.priceMin) : numOrNull(form.priceMin),
+      priceMin:
+        priceMode === "single"
+          ? numOrNull(form.price ?? form.priceMin)
+          : numOrNull(form.priceMin),
       priceMax: priceMode === "range" ? numOrNull(form.priceMax) : null,
       category: form.category ? String(form.category).toUpperCase() : null,
       duration: form.duration == null ? null : Number(form.duration),
@@ -274,7 +355,7 @@ export default function AdminPage() {
     setPriceMode(inferPriceMode(s));
   }
 
-  // CRUD CATEGORIES
+  // --------- CRUD CATEGORIES ----------
   async function catAddOrUpdate() {
     setCatMsg("");
     if (!catForm?.name || !String(catForm.name).trim()) {
@@ -324,7 +405,7 @@ export default function AdminPage() {
     }
   }
 
-  // PAGES (Contact / A-propos)
+  // --------- PAGES (Contact / A-propos) ----------
   async function savePage(
     slug: "contact" | "a-propos",
     title: string,
@@ -362,7 +443,7 @@ export default function AdminPage() {
     }
   }
 
-  // SETTINGS (Fermeture)
+  // --------- SETTINGS (Fermeture / Promo) ----------
   async function saveSettings() {
     setClosedMsg("");
     try {
@@ -380,7 +461,7 @@ export default function AdminPage() {
     }
   }
 
-  // PROMO
+  // --------- PROMO (route dédiée optionnelle) ----------
   async function savePromo() {
     setPromoMsg("");
     try {
@@ -399,6 +480,7 @@ export default function AdminPage() {
     }
   }
 
+  // --------- Helpers affichage ----------
   function formatDuration(s: Service) {
     if (s.duration == null) return "—";
     const v = Math.round(s.duration);
@@ -417,6 +499,7 @@ export default function AdminPage() {
     router.replace("/login");
   }
 
+  // Tri local soins
   const dataSorted = useMemo(() => {
     const copy = [...data];
     copy.sort((a, b) => {
@@ -433,433 +516,415 @@ export default function AdminPage() {
     return copy;
   }, [data, cats]);
 
-  // == UI avec menu à droite ==
+  // --------- UI ----------
   return (
     <div>
-      <h2>Administration</h2>
-
-      <div style={{ display: "flex", justifyContent: "space-between", margin: "12px 0" }}>
-        <div style={{ fontSize: 13, color: authed ? "green" : "crimson" }}>
-          Statut admin : {authed == null ? "…" : authed ? "OK" : "NON CONNECTÉ"}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+        <div>
+          <h2 style={{ margin: 0 }}>Administration</h2>
+          <div style={{ fontSize: 13, color: authed ? "green" : "crimson", marginTop: 6 }}>
+            Statut admin : {authed == null ? "…" : authed ? "OK" : "NON CONNECTÉ"}
+          </div>
         </div>
+
+        {/* 🔽 Menu déroulant des sections admin */}
+        <div style={{ alignSelf: "flex-start" }}>
+          <AdminMenu tab={tab} setTab={setTab} />
+        </div>
+      </div>
+
+      <div style={{ marginTop: 12, display: "flex", justifyContent: "flex-end" }}>
         <button onClick={logout}>Se déconnecter</button>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 240px", gap: 16, alignItems: "start" }}>
-        {/* ----- Colonne principale ----- */}
-        <div>
-          {/* SOINS */}
-          {tab === "soins" && (
-            <>
-              {/* Catégories */}
-              <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
-                <h3>Catégories (ordre des sections)</h3>
-                <p style={{ marginTop: 0, color: "#666" }}>MAJUSCULES, avec un numéro d'ordre (1 en haut, puis 2, 3...).</p>
+      {/* ========= PANNEAUX SELON LE MENU ========= */}
 
-                <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 120px 180px" }}>
-                  <input
-                    placeholder="Nom de la catégorie (ex: SOINS DU VISAGE)"
-                    value={catForm.name || ""}
-                    onChange={(e) => setCatForm({ ...(catForm as any), name: e.target.value.toUpperCase() })}
-                  />
-                  <input
-                    placeholder="Ordre (ex: 1)"
-                    type="number"
-                    value={catForm.order?.toString() || ""}
-                    onChange={(e) => setCatForm({ ...(catForm as any), order: numOrNull(e.target.value) as any })}
-                  />
-                  <div style={{ display: "flex", gap: 8 }}>
-                    <button onClick={catAddOrUpdate}>{(catForm as any).id ? "Enregistrer" : "Ajouter"}</button>
-                    {(catForm as any).id ? <button onClick={() => setCatForm({})}>Annuler</button> : null}
-                  </div>
-                </div>
+      {/* SOINS */}
+      {tab === "soins" && (
+        <>
+          {/* Catégories */}
+          <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
+            <h3>Catégories (ordre des sections)</h3>
+            <p style={{ marginTop: 0, color: "#666" }}>MAJUSCULES, avec un numéro d'ordre (1 en haut, puis 2, 3...).</p>
 
-                {catMsg ? <p style={{ color: catMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{catMsg}</p> : null}
-
-                {catsLoading ? (
-                  <p>Chargement des catégories…</p>
-                ) : (
-                  <table style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10, marginTop: 12 }}>
-                    <thead>
-                      <tr>
-                        <th style={{ textAlign: "left" }}>Nom</th>
-                        <th style={{ width: 120 }}>Ordre</th>
-                        <th style={{ width: 180 }}>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[...cats]
-                        .sort((a, b) => {
-                          const oa = a.order ?? 9999,
-                            ob = b.order ?? 9999;
-                          if (oa !== ob) return oa - ob;
-                          return (a.name || "").localeCompare(b.name || "");
-                        })
-                        .map((c) => (
-                          <tr key={c.id}>
-                            <td>{c.name}</td>
-                            <td style={{ textAlign: "center" }}>{c.order ?? "—"}</td>
-                            <td style={{ textAlign: "center" }}>
-                              <button onClick={() => setCatForm(c)}>Modifier</button>
-                              <button onClick={() => catRemove(c.id)} style={{ marginLeft: 8 }}>
-                                Supprimer
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      {cats.length === 0 ? (
-                        <tr>
-                          <td colSpan={3} style={{ color: "#666", padding: 8 }}>
-                            Aucune catégorie.
-                          </td>
-                        </tr>
-                      ) : null}
-                    </tbody>
-                  </table>
-                )}
+            <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 120px 180px" }}>
+              <input
+                placeholder="Nom de la catégorie (ex: SOINS DU VISAGE)"
+                value={catForm.name || ""}
+                onChange={(e) => setCatForm({ ...(catForm as any), name: e.target.value.toUpperCase() })}
+              />
+              <input
+                placeholder="Ordre (ex: 1)"
+                type="number"
+                value={catForm.order?.toString() || ""}
+                onChange={(e) => setCatForm({ ...(catForm as any), order: numOrNull(e.target.value) as any })}
+              />
+              <div style={{ display: "flex", gap: 8 }}>
+                <button onClick={catAddOrUpdate}>{(catForm as any).id ? "Enregistrer" : "Ajouter"}</button>
+                {(catForm as any).id ? <button onClick={() => setCatForm({})}>Annuler</button> : null}
               </div>
+            </div>
 
-              {/* Soins */}
-              <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
-                <h3>{form?.id ? "Modifier un soin" : "Ajouter un soin"}</h3>
+            {catMsg ? <p style={{ color: catMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{catMsg}</p> : null}
 
-                {/* Toggle mode prix */}
-                <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 8 }}>
-                  <span style={{ fontWeight: 600 }}>Type de prix :</span>
-                  <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                    <input type="radio" name="priceMode" checked={priceMode === "single"} onChange={() => onChangePriceMode("single")} />
-                    Prix unique
-                  </label>
-                  <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                    <input type="radio" name="priceMode" checked={priceMode === "range"} onChange={() => onChangePriceMode("range")} />
-                    Intervalle (min–max)
-                  </label>
-                </div>
-
-                <div
-                  style={{
-                    display: "grid",
-                    gap: 8,
-                    gridTemplateColumns: priceMode === "single" ? "1fr 1fr 90px 90px 1fr" : "1fr 1fr 1fr 90px 90px 1fr",
-                  }}
-                >
-                  <input placeholder="Nom" value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-
-                  {priceMode === "single" ? (
-                    <input
-                      placeholder="Prix (CHF)"
-                      type="number"
-                      value={(form.price ?? form.priceMin ?? "").toString()}
-                      onChange={(e) => setForm({ ...form, price: numOrNull(e.target.value) as any })}
-                    />
-                  ) : (
-                    <>
-                      <input
-                        placeholder="Prix min (CHF)"
-                        type="number"
-                        value={(form.priceMin ?? "").toString()}
-                        onChange={(e) => setForm({ ...form, priceMin: numOrNull(e.target.value) as any })}
-                      />
-                      <input
-                        placeholder="Prix max (CHF)"
-                        type="number"
-                        value={(form.priceMax ?? "").toString()}
-                        onChange={(e) => setForm({ ...form, priceMax: numOrNull(e.target.value) as any })}
-                      />
-                    </>
-                  )}
-
-                  <input
-                    placeholder="Durée (min)"
-                    type="number"
-                    value={form.duration?.toString() || ""}
-                    onChange={(e) => setForm({ ...form, duration: numOrNull(e.target.value) as any })}
-                  />
-                  <input
-                    placeholder="Ordre"
-                    type="number"
-                    value={form.order?.toString() || ""}
-                    onChange={(e) => setForm({ ...form, order: numOrNull(e.target.value) as any })}
-                  />
-                  <input
-                    list="colibri-cats"
-                    placeholder="Catégorie"
-                    value={form.category || ""}
-                    onChange={(e) => setForm({ ...form, category: e.target.value.toUpperCase() })}
-                  />
-                  <datalist id="colibri-cats">
-                    {cats.map((c) => (
-                      <option key={c.id} value={c.name} />
-                    ))}
-                  </datalist>
-                </div>
-
-                <label style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-                  <input
-                    type="checkbox"
-                    checked={!!form.approxDuration}
-                    onChange={(e) => setForm({ ...form, approxDuration: e.target.checked })}
-                  />
-                  Durée approximative (±)
-                </label>
-
-                <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 110px" }}>
-                  <textarea
-                    placeholder="Description (optionnel) — vous pouvez mettre du **gras**."
-                    value={form.description || ""}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                  />
-                  <input
-                    placeholder="Espacement (px)"
-                    type="number"
-                    value={form.spacing?.toString() || ""}
-                    onChange={(e) => setForm({ ...form, spacing: numOrNull(e.target.value) as any })}
-                  />
-                </div>
-
-                <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
-                  <button onClick={addOrUpdate}>{form?.id ? "Enregistrer" : "Ajouter"}</button>
-                  {form?.id ? (
-                    <button
-                      onClick={() => {
-                        setForm({});
-                        setPriceMode("single");
-                      }}
-                    >
-                      Annuler
-                    </button>
-                  ) : null}
-                </div>
-              </div>
-
-              {msg ? <p style={{ color: msg.startsWith("✔") ? "green" : "crimson" }}>{msg}</p> : null}
-
-              {loading ? (
-                <p>Chargement…</p>
-              ) : (
-                <table style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10 }}>
-                  <thead>
-                    <tr>
-                      <th style={{ textAlign: "left" }}>Nom</th>
-                      <th>Catégorie</th>
-                      <th>Durée</th>
-                      <th>Ordre</th>
-                      <th>Prix</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {dataSorted.map((s) => (
-                      <tr key={s.id}>
-                        <td>{s.name}</td>
-                        <td style={{ textAlign: "center" }}>{s.category || "—"}</td>
-                        <td style={{ textAlign: "center" }}>{formatDuration(s)}</td>
-                        <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
-                        <td style={{ textAlign: "center", fontWeight: 600 }}>{formatPriceAdmin(s)}</td>
+            {catsLoading ? (
+              <p>Chargement des catégories…</p>
+            ) : (
+              <table style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10, marginTop: 12 }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: "left" }}>Nom</th>
+                    <th style={{ width: 120 }}>Ordre</th>
+                    <th style={{ width: 180 }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...cats]
+                    .sort((a, b) => {
+                      const oa = a.order ?? 9999,
+                        ob = b.order ?? 9999;
+                      if (oa !== ob) return oa - ob;
+                      return (a.name || "").localeCompare(b.name || "");
+                    })
+                    .map((c) => (
+                      <tr key={c.id}>
+                        <td>{c.name}</td>
+                        <td style={{ textAlign: "center" }}>{c.order ?? "—"}</td>
                         <td style={{ textAlign: "center" }}>
-                          <button onClick={() => editService(s)}>Modifier</button>
-                          <button onClick={() => remove(s.id)} style={{ marginLeft: 8 }}>
+                          <button onClick={() => setCatForm(c)}>Modifier</button>
+                          <button onClick={() => catRemove(c.id)} style={{ marginLeft: 8 }}>
                             Supprimer
                           </button>
                         </td>
                       </tr>
                     ))}
-                    {dataSorted.length === 0 ? (
-                      <tr>
-                        <td colSpan={6} style={{ color: "#666", padding: 8 }}>
-                          Aucun soin.
-                        </td>
-                      </tr>
-                    ) : null}
-                  </tbody>
-                </table>
-              )}
-            </>
-          )}
-
-          {/* CONTACT */}
-          {tab === "contact" && (
-            <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
-              <h3>Page Contact</h3>
-              <p style={{ marginTop: 0, color: "#666" }}>Cette page est publique sur <code>/contact</code>.</p>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <div>
-                  <label style={{ display: "block", fontWeight: 600, marginBottom: 4 }}>Titre</label>
-                  <input value={contactTitle} onChange={(e) => setContactTitle(e.target.value)} placeholder="Contact" />
-
-                  <label style={{ display: "block", fontWeight: 600, margin: "12px 0 4px" }}>Contenu</label>
-                  <textarea
-                    value={contactBody}
-                    onChange={(e) => setContactBody(e.target.value)}
-                    placeholder="Adresse, téléphone, e-mail, horaires…"
-                    style={{ width: "100%", height: 220 }}
-                  />
-
-                  <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
-                    <button onClick={() => savePage("contact", contactTitle, contactBody, setContactMsg)}>Enregistrer</button>
-                    <button onClick={loadPages}>Recharger</button>
-                  </div>
-
-                  {contactMsg ? (
-                    <p style={{ color: contactMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{contactMsg}</p>
+                  {cats.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} style={{ color: "#666", padding: 8 }}>
+                        Aucune catégorie.
+                      </td>
+                    </tr>
                   ) : null}
-                </div>
-
-                <div>
-                  <div style={{ fontWeight: 700, marginBottom: 8 }}>Aperçu</div>
-                  <div className="card" style={{ minHeight: 220 }}>
-                    <h2 style={{ marginTop: 0 }}>{contactTitle || "Contact"}</h2>
-                    <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 }}>{contactBody || "—"}</pre>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* A PROPOS */}
-          {tab === "a-propos" && (
-            <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
-              <h3>Page À propos</h3>
-              <p style={{ marginTop: 0, color: "#666" }}>Cette page est publique sur <code>/a-propos</code>.</p>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <div>
-                  <label style={{ display: "block", fontWeight: 600, marginBottom: 4 }}>Titre</label>
-                  <input value={aproposTitle} onChange={(e) => setAproposTitle(e.target.value)} placeholder="À propos" />
-
-                  <label style={{ display: "block", fontWeight: 600, margin: "12px 0 4px" }}>Contenu</label>
-                  <textarea
-                    value={aproposBody}
-                    onChange={(e) => setAproposBody(e.target.value)}
-                    placeholder="Votre histoire, votre philosophie, l’équipe…"
-                    style={{ width: "100%", height: 220 }}
-                  />
-
-                  <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
-                    <button onClick={() => savePage("a-propos", aproposTitle, aproposBody, setAproposMsg)}>Enregistrer</button>
-                    <button onClick={loadPages}>Recharger</button>
-                  </div>
-
-                  {aproposMsg ? (
-                    <p style={{ color: aproposMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{aproposMsg}</p>
-                  ) : null}
-                </div>
-
-                <div>
-                  <div style={{ fontWeight: 700, marginBottom: 8 }}>Aperçu</div>
-                  <div className="card" style={{ minHeight: 220 }}>
-                    <h2 style={{ marginTop: 0 }}>{aproposTitle || "À propos"}</h2>
-                    <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 }}>{aproposBody || "—"}</pre>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* FERMETURE */}
-          {tab === "fermeture" && (
-            <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
-              <h3>Bannière de fermeture (congés / indisponibilité)</h3>
-              <p style={{ marginTop: 0, color: "#666" }}>
-                Active une bannière visible en haut des pages publiques (Accueil, Soins, Contact, À&nbsp;propos).
-              </p>
-
-              <label style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                <input type="checkbox" checked={closed} onChange={(e) => setClosed(e.target.checked)} />
-                Afficher la bannière de fermeture
-              </label>
-
-              <div style={{ marginTop: 12 }}>
-                <textarea
-                  placeholder="Message (ex : L’institut est fermé du 5 au 20 août inclus — merci pour votre compréhension.)"
-                  value={closedMessage}
-                  onChange={(e) => setClosedMessage(e.target.value)}
-                  style={{ width: "100%", height: 120 }}
-                />
-              </div>
-
-              <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
-                <button onClick={saveSettings}>Enregistrer</button>
-                <button onClick={loadSettings}>Recharger</button>
-              </div>
-
-              {closedMsg ? (
-                <p style={{ color: closedMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{closedMsg}</p>
-              ) : null}
-            </div>
-          )}
-
-          {/* PROMO */}
-          {tab === "promo" && (
-            <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
-              <h3>Bannière promotion</h3>
-              <p style={{ marginTop: 0, color: "#666" }}>
-                Affiche une bannière promo (au dessus du contenu) sur tout le site public.
-              </p>
-
-              <label style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                <input
-                  type="checkbox"
-                  checked={promoActive}
-                  onChange={(e) => setPromoActive(e.target.checked)}
-                />
-                Afficher la bannière promo
-              </label>
-
-              <div style={{ marginTop: 12 }}>
-                <textarea
-                  placeholder="Texte de la promotion (ex : -15% sur les soins visage jusqu’au 15 mai)."
-                  value={promoText}
-                  onChange={(e) => setPromoText(e.target.value)}
-                  style={{ width: "100%", height: 120 }}
-                />
-              </div>
-
-              <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
-                <button onClick={savePromo}>Enregistrer</button>
-                <button onClick={loadPromo}>Recharger</button>
-              </div>
-
-              {promoMsg ? (
-                <p style={{ color: promoMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{promoMsg}</p>
-              ) : null}
-            </div>
-          )}
-        </div>
-
-        {/* ----- Colonne menu (à droite) ----- */}
-        <aside
-          style={{
-            position: "sticky",
-            top: 10,
-            alignSelf: "start",
-            background: "#fff",
-            border: "1px solid #eee",
-            borderRadius: 10,
-            padding: 10,
-          }}
-        >
-          <div style={{ fontWeight: 700, marginBottom: 8 }}>Sections</div>
-          <div style={{ display: "grid", gap: 6 }}>
-            <button onClick={() => setTab("soins")} style={{ fontWeight: tab === "soins" ? 700 : 400 }}>
-              Soins
-            </button>
-            <button onClick={() => setTab("contact")} style={{ fontWeight: tab === "contact" ? 700 : 400 }}>
-              Contact
-            </button>
-            <button onClick={() => setTab("a-propos")} style={{ fontWeight: tab === "a-propos" ? 700 : 400 }}>
-              À propos
-            </button>
-            <button onClick={() => setTab("fermeture")} style={{ fontWeight: tab === "fermeture" ? 700 : 400 }}>
-              Fermeture
-            </button>
-            <button onClick={() => setTab("promo")} style={{ fontWeight: tab === "promo" ? 700 : 400 }}>
-              Promo
-            </button>
+                </tbody>
+              </table>
+            )}
           </div>
-        </aside>
-      </div>
+
+          {/* Soins */}
+          <div style={{ background: "#fff", padding: 14, borderRadius: 10, border: "1px solid #eee", marginBottom: 20 }}>
+            <h3>{form?.id ? "Modifier un soin" : "Ajouter un soin"}</h3>
+
+            {/* Toggle mode prix */}
+            <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 8 }}>
+              <span style={{ fontWeight: 600 }}>Type de prix :</span>
+              <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <input type="radio" name="priceMode" checked={priceMode === "single"} onChange={() => onChangePriceMode("single")} />
+                Prix unique
+              </label>
+              <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                <input type="radio" name="priceMode" checked={priceMode === "range"} onChange={() => onChangePriceMode("range")} />
+                Intervalle (min–max)
+              </label>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gap: 8,
+                gridTemplateColumns: priceMode === "single" ? "1fr 1fr 90px 90px 1fr" : "1fr 1fr 1fr 90px 90px 1fr",
+              }}
+            >
+              <input
+                placeholder="Nom"
+                value={form.name || ""}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+              />
+
+              {priceMode === "single" ? (
+                <input
+                  placeholder="Prix (CHF)"
+                  type="number"
+                  value={(form.price ?? form.priceMin ?? "").toString()}
+                  onChange={(e) => setForm({ ...form, price: numOrNull(e.target.value) as any })}
+                />
+              ) : (
+                <>
+                  <input
+                    placeholder="Prix min (CHF)"
+                    type="number"
+                    value={(form.priceMin ?? "").toString()}
+                    onChange={(e) => setForm({ ...form, priceMin: numOrNull(e.target.value) as any })}
+                  />
+                  <input
+                    placeholder="Prix max (CHF)"
+                    type="number"
+                    value={(form.priceMax ?? "").toString()}
+                    onChange={(e) => setForm({ ...form, priceMax: numOrNull(e.target.value) as any })}
+                  />
+                </>
+              )}
+
+              <input
+                placeholder="Durée (min)"
+                type="number"
+                value={form.duration?.toString() || ""}
+                onChange={(e) => setForm({ ...form, duration: numOrNull(e.target.value) as any })}
+              />
+              <input
+                placeholder="Ordre"
+                type="number"
+                value={form.order?.toString() || ""}
+                onChange={(e) => setForm({ ...form, order: numOrNull(e.target.value) as any })}
+              />
+              <input
+                list="colibri-cats"
+                placeholder="Catégorie"
+                value={form.category || ""}
+                onChange={(e) => setForm({ ...form, category: e.target.value.toUpperCase() })}
+              />
+              <datalist id="colibri-cats">
+                {cats.map((c) => (
+                  <option key={c.id} value={c.name} />
+                ))}
+              </datalist>
+            </div>
+
+            <label style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+              <input
+                type="checkbox"
+                checked={!!form.approxDuration}
+                onChange={(e) => setForm({ ...form, approxDuration: e.target.checked })}
+              />
+              Durée approximative (±)
+            </label>
+
+            <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 110px" }}>
+              <textarea
+                placeholder="Description (optionnel) — vous pouvez mettre du **gras**."
+                value={form.description || ""}
+                onChange={(e) => setForm({ ...form, description: e.target.value })}
+              />
+              <input
+                placeholder="Espacement (px)"
+                type="number"
+                value={form.spacing?.toString() || ""}
+                onChange={(e) => setForm({ ...form, spacing: numOrNull(e.target.value) as any })}
+              />
+            </div>
+
+            <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
+              <button onClick={addOrUpdate}>{form?.id ? "Enregistrer" : "Ajouter"}</button>
+              {form?.id ? (
+                <button
+                  onClick={() => {
+                    setForm({});
+                    setPriceMode("single");
+                  }}
+                >
+                  Annuler
+                </button>
+              ) : null}
+            </div>
+          </div>
+
+          {msg ? <p style={{ color: msg.startsWith("✔") ? "green" : "crimson" }}>{msg}</p> : null}
+
+          {loading ? (
+            <p>Chargement…</p>
+          ) : (
+            <table style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10 }}>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: "left" }}>Nom</th>
+                  <th>Catégorie</th>
+                  <th>Durée</th>
+                  <th>Ordre</th>
+                  <th>Prix</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dataSorted.map((s) => (
+                  <tr key={s.id}>
+                    <td>{s.name}</td>
+                    <td style={{ textAlign: "center" }}>{s.category || "—"}</td>
+                    <td style={{ textAlign: "center" }}>{formatDuration(s)}</td>
+                    <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
+                    <td style={{ textAlign: "center", fontWeight: 600 }}>{formatPriceAdmin(s)}</td>
+                    <td style={{ textAlign: "center" }}>
+                      <button onClick={() => editService(s)}>Modifier</button>
+                      <button onClick={() => remove(s.id)} style={{ marginLeft: 8 }}>
+                        Supprimer
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {dataSorted.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} style={{ color: "#666", padding: 8 }}>
+                      Aucun soin.
+                    </td>
+                  </tr>
+                ) : null}
+              </tbody>
+            </table>
+          )}
+        </>
+      )}
+
+      {/* CONTACT */}
+      {tab === "contact" && (
+        <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
+          <h3>Page Contact</h3>
+          <p style={{ marginTop: 0, color: "#666" }}>
+            Cette page est publique sur <code>/contact</code>.
+          </p>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div>
+              <label style={{ display: "block", fontWeight: 600, marginBottom: 4 }}>Titre</label>
+              <input value={contactTitle} onChange={(e) => setContactTitle(e.target.value)} placeholder="Contact" />
+
+              <label style={{ display: "block", fontWeight: 600, margin: "12px 0 4px" }}>Contenu</label>
+              <textarea
+                value={contactBody}
+                onChange={(e) => setContactBody(e.target.value)}
+                placeholder="Adresse, téléphone, e-mail, horaires…"
+                style={{ width: "100%", height: 220 }}
+              />
+
+              <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+                <button onClick={() => savePage("contact", contactTitle, contactBody, setContactMsg)}>Enregistrer</button>
+                <button onClick={loadPages}>Recharger</button>
+              </div>
+
+              {contactMsg ? (
+                <p style={{ color: contactMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{contactMsg}</p>
+              ) : null}
+            </div>
+
+            <div>
+              <div style={{ fontWeight: 700, marginBottom: 8 }}>Aperçu</div>
+              <div className="card" style={{ minHeight: 220 }}>
+                <h2 style={{ marginTop: 0 }}>{contactTitle || "Contact"}</h2>
+                <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 }}>{contactBody || "—"}</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* A PROPOS */}
+      {tab === "a-propos" && (
+        <div className="card" style={{ background: "#fff", border: "1px solid "#eee" }}>
+          <h3>Page À propos</h3>
+          <p style={{ marginTop: 0, color: "#666" }}>
+            Cette page est publique sur <code>/a-propos</code>.
+          </p>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div>
+              <label style={{ display: "block", fontWeight: 600, marginBottom: 4 }}>Titre</label>
+              <input value={aproposTitle} onChange={(e) => setAproposTitle(e.target.value)} placeholder="À propos" />
+
+              <label style={{ display: "block", fontWeight: 600, margin: "12px 0 4px" }}>Contenu</label>
+              <textarea
+                value={aproposBody}
+                onChange={(e) => setAproposBody(e.target.value)}
+                placeholder="Votre histoire, votre philosophie, l’équipe…"
+                style={{ width: "100%", height: 220 }}
+              />
+
+              <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+                <button onClick={() => savePage("a-propos", aproposTitle, aproposBody, setAproposMsg)}>Enregistrer</button>
+                <button onClick={loadPages}>Recharger</button>
+              </div>
+
+              {aproposMsg ? (
+                <p style={{ color: aproposMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{aproposMsg}</p>
+              ) : null}
+            </div>
+
+            <div>
+              <div style={{ fontWeight: 700, marginBottom: 8 }}>Aperçu</div>
+              <div className="card" style={{ minHeight: 220 }}>
+                <h2 style={{ marginTop: 0 }}>{aproposTitle || "À propos"}</h2>
+                <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 }}>{aproposBody || "—"}</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* FERMETURE */}
+      {tab === "fermeture" && (
+        <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
+          <h3>Bannière de fermeture (congés / indisponibilité)</h3>
+          <p style={{ marginTop: 0, color: "#666" }}>
+            Active une bannière visible en haut des pages publiques (Accueil, Soins, Contact, À&nbsp;propos).
+          </p>
+
+          <label style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <input type="checkbox" checked={closed} onChange={(e) => setClosed(e.target.checked)} />
+            Afficher la bannière de fermeture
+          </label>
+
+          <div style={{ marginTop: 12 }}>
+            <textarea
+              placeholder="Message (ex : L’institut est fermé du 5 au 20 août inclus — merci pour votre compréhension.)"
+              value={closedMessage}
+              onChange={(e) => setClosedMessage(e.target.value)}
+              style={{ width: "100%", height: 120 }}
+            />
+          </div>
+
+          <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+            <button onClick={saveSettings}>Enregistrer</button>
+            <button onClick={loadSettings}>Recharger</button>
+          </div>
+
+          {closedMsg ? (
+            <p style={{ color: closedMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{closedMsg}</p>
+          ) : null}
+        </div>
+      )}
+
+      {/* PROMO */}
+      {tab === "promo" && (
+        <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
+          <h3>Bannière promotion</h3>
+          <p style={{ marginTop: 0, color: "#666" }}>
+            Affiche une bannière promo (au-dessus du contenu) sur tout le site public.
+          </p>
+
+          <label style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <input
+              type="checkbox"
+              checked={promoActive}
+              onChange={(e) => setPromoActive(e.target.checked)}
+            />
+            Afficher la bannière promo
+          </label>
+
+          <div style={{ marginTop: 12 }}>
+            <textarea
+              placeholder="Texte de la promotion (ex : -15% sur les soins visage jusqu’au 15 mai)."
+              value={promoText}
+              onChange={(e) => setPromoText(e.target.value)}
+              style={{ width: "100%", height: 120 }}
+            />
+          </div>
+
+          <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+            <button onClick={savePromo}>Enregistrer</button>
+            <button onClick={loadPromo}>Recharger</button>
+          </div>
+
+          {promoMsg ? (
+            <p style={{ color: promoMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{promoMsg}</p>
+          ) : null}
+        </div>
+      )}
     </div>
   );
 }
