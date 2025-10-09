@@ -1,18 +1,20 @@
 // /app/api/settings/route.ts
 import { NextResponse } from "next/server";
-import { adminDb } from "../../../lib/firebaseAdmin";
+import { getAdminDb } from "../../../lib/firebaseAdmin";
 
 export const dynamic = "force-dynamic";
 
 // Lit d'abord settings/global, sinon settings/general (compat)
 async function readSettings() {
-  const refGlobal = adminDb.collection("settings").doc("global");
+  const db = getAdminDb();
+
+  const refGlobal = db.collection("settings").doc("global");
   const snapGlobal = await refGlobal.get();
   if (snapGlobal.exists) {
     return { data: (snapGlobal.data() as any) ?? {} };
   }
 
-  const refGeneral = adminDb.collection("settings").doc("general");
+  const refGeneral = db.collection("settings").doc("general");
   const snapGeneral = await refGeneral.get();
   if (snapGeneral.exists) {
     return { data: (snapGeneral.data() as any) ?? {} };
@@ -47,23 +49,17 @@ export async function GET() {
 
   // Réponse publique normalisée + objets compat
   return NextResponse.json({
-    // champs simples attendus par tes composants client
+    // champs simples attendus par les composants client (PromoBanner, ClosedBanner éventuel)
     promoActive,
     promoText,
     closed,
     message,
 
-    // on expose aussi les objets complets pour compat/évolutions
-    promoBanner: {
-      enabled: promoActive,
-      message: promoText
-    },
-    closedBanner: {
-      enabled: closed,
-      message
-    },
+    // objets complets pour compat/évolutions
+    promoBanner: { enabled: promoActive, message: promoText },
+    closedBanner: { enabled: closed, message },
 
-    // on laisse le reste des données inchangé si besoin par d'autres parties du site
+    // et on expose le reste si d'autres parties du site l'utilisent
     ...data
   });
 }
