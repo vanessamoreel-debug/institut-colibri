@@ -816,7 +816,7 @@ export default function AdminPage() {
 
       {/* A PROPOS */}
       {tab === "a-propos" && (
-        <div className="card" style={{ background: "#fff", border: "1px solid "#eee" }}>
+        <div className="card" style={{ background: "#fff", border: "1px solid #eee" }}>
           <h3>Page À propos</h3>
           <p style={{ marginTop: 0, color: "#666" }}>
             Cette page est publique sur <code>/a-propos</code>.
