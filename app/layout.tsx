@@ -1,20 +1,26 @@
 // /app/layout.tsx
 import "./globals.css";
-import type { Metadata } from "next";
-import SiteChrome from "./components/SiteChrome";
+import ClosedBanner from "./components/ClosedBanner";
+import PromoBanner from "./components/PromoBanner";
 
-export const metadata: Metadata = {
-  title: "INSTITUT COLIBRI",
-  description: "Soins & bien-être",
+export const metadata = {
+  title: "Institut Colibri",
+  description: "Soins & bien-être"
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
-      <body>
-        <SiteChrome>
+      <body className="min-h-screen body-public">
+        {/* Bannières globales */}
+        {/* @ts-expect-error Server Component */}
+        <ClosedBanner />
+        {/* Promo est client-side */}
+        <PromoBanner />
+
+        <main className="mx-auto max-w-6xl p-4">
           {children}
-        </SiteChrome>
+        </main>
       </body>
     </html>
   );
