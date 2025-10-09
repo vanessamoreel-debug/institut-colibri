@@ -1,35 +1,20 @@
-import admin from "firebase-admin";
+// /lib/firebaseAdmin.ts
+import { cert, getApps, initializeApp, ServiceAccount } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
 
-const projectId = process.env.FB_PROJECT_ID;
-const clientEmail = process.env.FB_CLIENT_EMAIL;
-let privateKey = process.env.FB_PRIVATE_KEY || "";
-
-if (privateKey && privateKey.includes("\\n")) {
-  privateKey = privateKey.replace(/\\n/g, "\n");
-}
-
-function assertEnv() {
-  const missing: string[] = [];
-  if (!projectId) missing.push("FB_PROJECT_ID");
-  if (!clientEmail) missing.push("FB_CLIENT_EMAIL");
-  if (!privateKey) missing.push("FB_PRIVATE_KEY");
-  if (missing.length) throw new Error(`Firebase Admin env manquantes: ${missing.join(" / ")}`);
-}
-
-let _db: admin.firestore.Firestore | null = null;
+let _db: FirebaseFirestore.Firestore | null = null;
 
 export function getAdminDb() {
   if (_db) return _db;
-  assertEnv();
-  if (!admin.apps.length) {
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId,
-        clientEmail,
-        privateKey
-      } as admin.ServiceAccount)
-    });
+
+  if (!getApps().length) {
+    const sa: ServiceAccount = {
+      projectId: process.env.FB_PROJECT_ID,
+      clientEmail: process.env.FB_CLIENT_EMAIL,
+      privateKey: process.env.FB_PRIVATE_KEY?.replace(/\\n/g, "\n")
+    };
+    initializeApp({ credential: cert(sa) });
   }
-  _db = admin.firestore();
+  _db = getFirestore();
   return _db;
 }
