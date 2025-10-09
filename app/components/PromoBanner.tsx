@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 type Settings = {
   promoActive?: boolean;
   promoText?: string;
+  promoBanner?: { enabled?: boolean; message?: string };
 };
 
 export default function PromoBanner() {
@@ -19,9 +20,18 @@ export default function PromoBanner() {
       try {
         const res = await fetch("/api/settings", { cache: "no-store" });
         const j: Settings = res.ok ? await res.json() : {};
+
         if (!mounted) return;
-        setActive(!!j.promoActive && !!j.promoText);
-        setText(String(j.promoText || ""));
+
+        // Tolérance : lit d’abord promoActive/promoText, sinon fallback sur promoBanner
+        const enabled = typeof j.promoActive === "boolean"
+          ? !!j.promoActive
+          : !!j.promoBanner?.enabled;
+
+        const message = (j.promoText ?? j.promoBanner?.message ?? "") as string;
+
+        setActive(enabled && !!message.trim());
+        setText(message);
       } catch {
         // ignore
       } finally {
@@ -49,12 +59,12 @@ export default function PromoBanner() {
         backdropFilter: "blur(8px)",
         WebkitBackdropFilter: "blur(8px)",
         color: "#3d2f34",
-        textAlign: "center", // 👈 centre le contenu
+        textAlign: "center",
       }}
     >
       <span
         style={{
-          display: "inline-flex",           // 👈 ligne centrée dans le bloc
+          display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
           gap: 10,
