@@ -9,11 +9,27 @@ import MenuAdmin from "../components/MenuAdmin";
 type Tab = "soins" | "contact" | "a-propos" | "fermeture" | "promo";
 type PriceMode = "single" | "range";
 
+/* ==== HELPERS HORS COMPOSANT (visibles partout) ==== */
 function numOrNull(v: any): number | null {
   if (v === "" || v === undefined || v === null) return null;
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 }
+
+function formatDuration(s: Service) {
+  if (s.duration == null) return "—";
+  const v = Math.round(s.duration);
+  return s.approxDuration ? `± ${v} min` : `${v} min`;
+}
+
+function formatPriceAdmin(s: Service) {
+  if (s.priceMin != null && s.priceMax != null) return `${s.priceMin}–${s.priceMax} CHF`;
+  if (s.priceMin != null) return `${s.priceMin} CHF`;
+  if (s.price != null) return `${s.price} CHF`;
+  return "—";
+}
+
+/* =================================================== */
 
 export default function AdminPage() {
   const router = useRouter();
@@ -31,7 +47,6 @@ export default function AdminPage() {
   const [data, setData] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState<Partial<Service>>({});
-  theCats: 0; // (inutile mais toléré par TS “loose”)
   const [priceMode, setPriceMode] = useState<PriceMode>("single");
   const [msg, setMsg] = useState<string>("");
 
@@ -169,7 +184,7 @@ export default function AdminPage() {
         body: JSON.stringify({
           promoActive,
           promoText,
-          // compat éventuelle avec ancien schéma
+          // compat éventuelle ancien schéma
           promoBanner: { enabled: promoActive, message: promoText },
         }),
       });
@@ -212,20 +227,6 @@ export default function AdminPage() {
       }
       return copy;
     });
-  }
-
-  // --------- Helpers affichage (AJOUTÉS) ----------
-  function formatDuration(s: Service) {
-    if (s.duration == null) return "—";
-    const v = Math.round(s.duration);
-    return s.approxDuration ? `± ${v} min` : `${v} min`;
-  }
-
-  function formatPriceAdmin(s: Service) {
-    if (s.priceMin != null && s.priceMax != null) return `${s.priceMin}–${s.priceMax} CHF`;
-    if (s.priceMin != null) return `${s.priceMin} CHF`;
-    if (s.price != null) return `${s.price} CHF`;
-    return "—";
   }
 
   // --------- CRUD SOINS ----------
@@ -443,7 +444,6 @@ export default function AdminPage() {
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {/* menu admin (switch d’onglets) */}
           <MenuAdmin tab={tab} setTab={setTab} />
           <button
             onClick={async () => {
