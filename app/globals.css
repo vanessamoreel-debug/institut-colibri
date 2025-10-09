@@ -439,21 +439,28 @@ body {
 
 /* ========== ADMIN DASHBOARD LOOK ========== */
 
+/* Remplace ENTIEREMENT le bloc .admin-shell actuel par ça */
 .admin-shell {
-  /* crée un fond différent pour l'admin */
-  background: linear-gradient(180deg, #f7f7f9, #f2f2f5);
+  /* Fond admin : image + léger dégradé pour la lisibilité du texte */
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.80), rgba(255,255,255,0.70)),
+    url("/fond%20admin.jpg") center / cover no-repeat fixed;
+  min-height: 100vh;
+
+  /* on supprime tout arrondi/spacing hérités */
   border: 0;
   padding: 0;
   border-radius: 0;
 }
 
+/* On garde le reste du style admin */
 .admin-topbar {
   position: sticky;
   top: 0;
   z-index: 5;
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  background: rgba(255,255,255,0.75);
+  background: rgba(255,255,255,0.85);
   border-bottom: 1px solid rgba(0,0,0,0.06);
   padding: 12px 16px;
 }
@@ -487,6 +494,10 @@ body {
   gap: 14px;
 }
 
+@media (max-width: 760px) {
+  .admin-grid-2 { grid-template-columns: 1fr; }
+}
+
 .admin-section-title {
   margin: 0 0 6px;
   font-size: 16px;
@@ -499,7 +510,7 @@ body {
   font-size: 13px;
 }
 
-/* Bouton/menu admin (le petit menu que tu as déjà) */
+/* Menu déroulant admin */
 .menu-wrap .menu-button {
   background: #f5f5f7;
   border: 1px solid #e5e5ea;
