@@ -2,8 +2,19 @@
 import { NextResponse } from "next/server";
 
 export async function POST() {
-  const res = NextResponse.json({ ok: true });
-  // Efface le cookie
-  res.cookies.set("colibri_admin", "", { path: "/", maxAge: 0 });
+  const res = new NextResponse(JSON.stringify({ ok: true }), { status: 200 });
+  // On « supprime » le cookie en le faisant expirer
+  res.headers.set(
+    "Set-Cookie",
+    [
+      `colibri_admin=`,
+      `Path=/`,
+      `HttpOnly`,
+      `SameSite=Lax`,
+      `Secure`,
+      `Max-Age=0`,
+    ].join("; ")
+  );
+  res.headers.set("Content-Type", "application/json");
   return res;
 }
