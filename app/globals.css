@@ -1,16 +1,67 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Cormorant+Garamond:wght@400;500;600&display=swap');
 
-/* --- Reset + layout sticky footer --- */
+/* =========================================================
+   Variables + helpers global
+   ========================================================= */
+:root {
+  --brand: #7D6C71;
+}
+
+/* Liens de nav utilisés par l’admin et le public */
+.nav-link { color: var(--brand); text-decoration: none; transition: opacity .2s; }
+.nav-link:hover { opacity: .85; }
+
+/* Carte générique (utilisée un peu partout) */
+.card {
+  background: rgba(255,255,255,.85);
+  border: 1px solid rgba(255,255,255,.5);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.06);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+/* Fonds dédiés (appelés par le layout) */
+.body-public {
+  background: url("/fond-ecran-institut.jpg") center/cover repeat fixed;
+}
+.body-admin {
+  background: url("/fond-admin.jpg") center/cover no-repeat fixed;
+}
+
+/* =========================================================
+   Reset + layout sticky footer
+   ========================================================= */
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
 }
 
+/* Polices par défaut du site :
+   - Titres en Playfair
+   - Texte en Cormorant */
+body {
+  font-family: 'Cormorant Garamond', serif;
+  color: #111;
+  line-height: 1.6;
+}
+
+/* Titre (h1..h3…) en Playfair par défaut */
+h1, h2, h3, .site-title, .services-title, .services-cat, .page-title {
+  font-family: 'Playfair Display', serif;
+}
+
+/* =========================================================
+   Shell global (site)
+   ========================================================= */
 .site {
   min-height: 100%;
   display: flex;
   flex-direction: column;
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 16px;
 }
 
 .site-main {
@@ -36,25 +87,9 @@ html, body {
   -webkit-backdrop-filter: blur(6px);
 }
 
-/* --- Fond papier peint --- */
-body {
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans";
-  background-image: url("/fond-ecran-institut.jpg");
-  background-repeat: repeat;
-  background-size: 600px auto;
-  background-position: top center;
-  color: #111;
-  line-height: 1.6;
-}
-
-/* --- Conteneur principal --- */
-.site {
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 16px;
-}
-
-/* --- Header : titre + menu --- */
+/* =========================================================
+   Header : titre + menu
+   ========================================================= */
 .site-header {
   display: flex;
   flex-direction: column;
@@ -65,20 +100,27 @@ body {
 
 .site-title {
   text-align: center;
-  font-family: 'Playfair Display', serif;
   font-size: 6em;
   font-weight: 600;
   margin: 10px 0 4px;
-  color: #7D6C71;
+  color: var(--brand);
 }
 
 .brand { display: none; } /* corrigé */
 
-/* --- Menu --- */
+/* =========================================================
+   Menu déroulant (bouton + panneau)
+   ========================================================= */
 .menu-wrap {
-  align-self: flex-end;
   position: relative; /* ancrage du panneau */
 }
+
+/* Retire le triangle par défaut de summary si utilisé */
+.menu-wrap > summary {
+  list-style: none;
+  cursor: pointer;
+}
+.menu-wrap > summary::-webkit-details-marker { display: none; }
 
 .menu-button {
   appearance: none;
@@ -122,7 +164,8 @@ body {
   visibility: hidden;
   transition: opacity .18s ease, transform .18s ease, visibility .18s step-end;
 }
-.menu-panel.open {
+.menu-panel.open,
+.menu-wrap[open] .menu-panel {
   opacity: 1;
   transform: translateY(0);
   pointer-events: auto;
@@ -130,17 +173,9 @@ body {
   transition: opacity .18s ease, transform .18s ease, visibility 0s;
 }
 
-.menu-link {
-  text-decoration: none;
-  padding: 8px 10px;
-  border-radius: 8px;
-  color: #111;
-  display: block;
-}
-.menu-link:hover { background: rgba(125, 108, 113, 0.12); }
-.menu-link.active { background: #111; color: #fff; }
-
-/* --- Vignette d’accueil (floutée) --- */
+/* =========================================================
+   Vignette d’accueil (floutée)
+   ========================================================= */
 .hero-card {
   background: rgba(125, 108, 113, 0.10);
   border: 1px solid rgba(125, 108, 113, 0.25);
@@ -149,7 +184,6 @@ body {
   max-width: 760px;
   margin: 0 auto 16px;
   color: #3d2f34;
-  font-family: 'Cormorant Garamond', serif;
   line-height: 1.7;
 
   backdrop-filter: blur(10px);
@@ -157,12 +191,13 @@ body {
 }
 .hero-card h2 {
   margin: 0 0 8px;
-  font-family: 'Playfair Display', serif;
-  color: #7D6C71;
+  color: var(--brand);
 }
 .hero-card p { margin: 0; font-size: 20px; }
 
-/* --- Carte générique (si utilisée ailleurs) --- */
+/* =========================================================
+   Carte générique (si utilisée ailleurs)
+   ========================================================= */
 .card {
   background: rgba(125, 108, 113, 0.10);
   border: 1px solid rgba(125, 108, 113, 0.20);
@@ -172,7 +207,9 @@ body {
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-/* ====== Services — conteneur englobant flouté ====== */
+/* =========================================================
+   Services
+   ========================================================= */
 .services-container {
   background: rgba(255,255,255,0.35);
   border: 1px solid rgba(125,108,113,0.25);
@@ -186,7 +223,6 @@ body {
   box-shadow: 0 8px 28px rgba(0,0,0,0.08);
 }
 
-/* ====== Services — style “magazine” ====== */
 .services-wrap {
   max-width: 900px;
   margin: 0 auto;
@@ -195,8 +231,7 @@ body {
 
 .services-title {
   text-align: center;
-  font-family: 'Playfair Display', serif;
-  color: #7D6C71;
+  color: var(--brand);
   margin: 6px 0 0;
 }
 .services-sub {
@@ -205,16 +240,13 @@ body {
   color: #444;
 }
 
-.services-section {
-  margin: 26px 0 20px;
-}
+.services-section { margin: 26px 0 20px; }
 
 .services-cat {
-  font-family: 'Playfair Display', serif;
   letter-spacing: 0.5px;
   font-size: 1.3rem;
   margin: 0 0 10px;
-  color: #7D6C71; /* cat en couleur titre */
+  color: var(--brand);
 }
 
 .services-list {
@@ -224,16 +256,14 @@ body {
 }
 
 /* Ligne “nom ……… prix” */
-.service-row { }
 .service-line {
   display: flex;
   align-items: baseline;
   gap: 10px;
 }
 .service-name {
-  font-family: 'Playfair Display', serif;
   font-size: 1.05rem;
-  color: #111;           /* soins en noir */
+  color: #111;
   font-weight: 600;
 }
 .service-fill {
@@ -244,7 +274,7 @@ body {
 .service-price {
   font-weight: 700;
   white-space: nowrap;
-  color: #111;           /* prix en noir pour cohérence */
+  color: #111;
 }
 
 /* meta (durée / description) */
@@ -252,90 +282,75 @@ body {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  color: #111;           /* durée + description en noir */
+  color: #111;
   font-size: 0.95rem;
   margin-top: 4px;
 }
 .service-duration { font-style: italic; }
-.service-desc { opacity: 1; }  /* plus de grisé */
+.service-desc { opacity: 1; }
 
-/* ====== Petits écrans ====== */
+/* Petits écrans */
 @media (max-width: 520px) {
   .site-title { font-size: 3rem; }
   .services-container { padding: 14px 12px; }
   .service-name { font-size: 1rem; }
 }
 
-/* ====== Vignettes floutées réutilisables (Contact / À-propos) ====== */
-.pricelist {
+/* =========================================================
+   Vignettes réutilisables (Contact / À-propos)
+   ========================================================= */
+.pricelist,
+.info-panel {
   background: rgba(255, 255, 255, 0.42);
   border: 1px solid rgba(125, 108, 113, 0.25);
   border-radius: 16px;
   padding: 20px;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
-  backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 
-/* Variante possible si tu préfères un nom dédié */
-.info-panel {
-  background: rgba(255,255,255,0.42);
-  border: 1px solid rgba(125,108,113,0.20);
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 12px 28px rgba(0,0,0,0.12);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
-
-/* Titres des pages Contact et À propos */
 .page-title {
   text-align: center;
-  font-family: 'Playfair Display', serif;
-  color: #7D6C71;
+  color: var(--brand);
   margin: 6px 0 16px;
-  font-size: 2rem;       /* ajuste selon ton rendu */
+  font-size: 2rem;
   font-weight: 600;
 }
 
-/* Liens stylés pour les pages info (contact, à-propos, etc.) */
 .pricelist a {
-  color: #7D6C71;              /* même couleur que le titre */
-  text-decoration: none;       /* enlève le souligné */
-  font-weight: 600;            /* un peu plus marqué */
+  color: var(--brand);
+  text-decoration: none;
+  font-weight: 600;
 }
+.pricelist a:hover { text-decoration: underline; }
 
-.pricelist a:hover {
-  text-decoration: underline;  /* juste un souligné au survol, élégant */
-}
-
-/* Contenu des pages (Contact / À propos) : même police que le site, en noir */
 .page-content {
-  font-family: 'Cormorant Garamond', serif; /* déjà importée dans ton globals.css */
   color: #000;
   font-size: 18px;
   line-height: 1.7;
 }
 
-/* Ligne mise en avant sur la page Contact */
 .notice-strong {
   display: inline-block;
   font-weight: 700;
-  font-size: 1.5em;       /* un peu plus grand, mais pas excessif */
+  font-size: 1.5em;
   line-height: 1.3;
-  color: #7D6C71;         /* couleur Institut Colibri */
+  color: var(--brand);
   margin: 4px 0 8px;
 }
-/* ===== Bannière promotion ===== */
+
+/* =========================================================
+   Bannière promotion
+   ========================================================= */
 .promo-banner {
-  background: rgba(255, 240, 245, 0.8);         /* rose très clair */
-  border: 1px solid rgba(125, 108, 113, 0.4);   /* ton Colibri */
+  background: rgba(255, 240, 245, 0.8);
+  border: 1px solid rgba(125, 108, 113, 0.4);
   border-radius: 12px;
   padding: 12px 20px;
   text-align: center;
-  font-family: 'Playfair Display', serif;
   font-weight: 600;
-  color: #7D6C71;
+  color: var(--brand);
   font-size: 1.2rem;
   box-shadow: 0 4px 18px rgba(125,108,113,0.15);
   margin: 10px auto 18px;
@@ -347,7 +362,7 @@ body {
 }
 
 .sparkle {
-  color: #d1a8b3; /* léger ton doré rosé */
+  color: #d1a8b3;
   font-size: 1.3rem;
   margin: 0 6px;
   animation: sparkleBlink 1.8s infinite alternate;
@@ -363,101 +378,56 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-.promo-text {
-  letter-spacing: 0.3px;
-}
+.promo-text { letter-spacing: 0.3px; }
 
-/* ===== Menu déroulant (details/summary) ===== */
-.menu-wrap {
-  position: relative; /* ancrage du panneau */
-}
-
-/* Retire le triangle par défaut de summary */
-.menu-wrap > summary {
-  list-style: none;
-  cursor: pointer;
-}
-.menu-wrap > summary::-webkit-details-marker {
-  display: none;
-}
-
-/* Ouvre/ferme le panneau avec <details> */
-.menu-panel {
-  opacity: 0;
-  transform: translateY(-6px);
-  pointer-events: none;
-  visibility: hidden;
-  transition: opacity .18s ease, transform .18s ease, visibility .18s step-end;
-}
-
-.menu-wrap[open] .menu-panel {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
-  visibility: visible;
-  transition: opacity .18s ease, transform .18s ease, visibility 0s;
-}
-
-/* Rotation du chevron quand c'est ouvert */
-.menu-wrap[open] .chevron {
-  transform: rotate(180deg);
-}
-
-/* ======= Bannière fermeture ======= */
+/* =========================================================
+   Bannière fermeture
+   ========================================================= */
 .closed-banner {
   margin: 10px 0 14px;
-  padding: 0; /* le padding est sur l'inner */
+  padding: 0;
   display: flex;
-  justify-content: center; /* centre le bloc de texte */
+  justify-content: center;
   width: 100%;
-
   background: rgba(125, 108, 113, 0.10);
   border: 1px solid rgba(125, 108, 113, 0.25);
   border-radius: 12px;
-
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   box-shadow: 0 6px 18px rgba(0,0,0,0.06);
 }
 
 .closed-banner__inner {
-  /* s’adapte au contenu */
   padding: 10px 14px;
   text-align: center;
-
-  /* cohérent avec le site */
   color: #3d2f34;
   font-weight: 600;
-  font-family: 'Playfair Display', serif;
   line-height: 1.5;
 }
 
-/* Responsive : un peu plus de “souffle” sur mobile */
 @media (max-width: 520px) {
   .closed-banner__inner { padding: 12px 16px; }
 }
 
-/* ========== ADMIN DASHBOARD LOOK ========== */
-
-/* Remplace ENTIEREMENT le bloc .admin-shell actuel par ça */
+/* =========================================================
+   Admin dashboard look
+   ========================================================= */
 .admin-shell {
   background:
     linear-gradient(180deg, rgba(255,255,255,0.80), rgba(255,255,255,0.70)),
     url("/fond-admin.jpg") center / cover no-repeat fixed;
   min-height: 100vh;
-
   border: 0;
   padding: 0;
   border-radius: 0;
 }
 
-/* On garde le reste du style admin */
 .admin-topbar {
   position: sticky;
   top: 0;
   z-index: 5;
-  backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
   background: rgba(255,255,255,0.85);
   border-bottom: 1px solid rgba(0,0,0,0.06);
   padding: 12px 16px;
@@ -476,7 +446,6 @@ body {
   padding: 0 16px 32px;
 }
 
-/* Cartes admin neutres */
 .admin-card {
   background: #fff;
   border: 1px solid #eaeaea;
@@ -508,7 +477,7 @@ body {
   font-size: 13px;
 }
 
-/* Menu déroulant admin */
+/* Variante “clair” pour le menu admin */
 .menu-wrap .menu-button {
   background: #f5f5f7;
   border: 1px solid #e5e5ea;
@@ -519,6 +488,4 @@ body {
   border: 1px solid #e5e5ea;
   box-shadow: 0 10px 24px rgba(0,0,0,0.08);
 }
-.menu-wrap .menu-link:hover {
-  background: #f6f6f6;
-}
+.menu-wrap .menu-link:hover { background: #f6f6f6; }
