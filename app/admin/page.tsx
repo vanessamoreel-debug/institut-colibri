@@ -665,7 +665,12 @@ export default function AdminPage() {
                     <tr key={s.id}>
                       <td>{s.name}</td>
                       <td style={{ textAlign: "center" }}>{s.category || "—"}</td>
-                      <td style={{ textAlign: "center" }}>{formatDuration(s)}</td>
+                      <td style={{ textAlign: "center" }}>
+  {s.duration == null
+    ? "—"
+    : (s.approxDuration ? `± ${Math.round(s.duration)} min` : `${Math.round(s.duration)} min`)
+  }
+</td>
                       <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
                       <td style={{ textAlign: "center", fontWeight: 600 }}>{formatPriceAdmin(s)}</td>
                       <td style={{ textAlign: "center" }}>
