@@ -1,28 +1,43 @@
-// /app/components/ClosedBanner.tsx
-import { headers } from "next/headers";
+"use client";
 
-export const dynamic = "force-dynamic";
+import { useEffect, useState } from "react";
 
-async function getSettings() {
-  const h = await headers();
-  const host = h.get("host");
-  const proto = h.get("x-forwarded-proto") || "https";
-  const base = `${proto}://${host}`;
-  const res = await fetch(`${base}/api/settings`, { cache: "no-store" });
-  if (!res.ok) return { closed: false, message: "" };
-  return res.json();
-}
+type Settings = {
+  closed?: boolean;
+  message?: string;
+};
 
-export default async function ClosedBanner() {
-  const { closed, message } = await getSettings();
+export default function ClosedBanner() {
+  const [loading, setLoading] = useState(true);
+  const [closed, setClosed] = useState(false);
+  const [message, setMessage] = useState("");
 
-  if (!closed) return null;
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        // ❗️Client-side fetch de l’API publique
+        const res = await fetch("/api/settings", { cache: "no-store" });
+        const j: Settings = res.ok ? await res.json() : {};
+        if (!mounted) return;
+        setClosed(!!j.closed && !!j.message);
+        setMessage(String(j.message || ""));
+      } catch {
+        // ignore
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (loading || !closed) return null;
 
   return (
-    <div className="closed-banner" role="status" aria-live="polite">
-      <div className="closed-banner__inner">
-        {message?.trim() ? message : "L’institut est momentanément fermé."}
-      </div>
+    <div className="closed-banner">
+      <div className="closed-banner__inner">{message}</div>
     </div>
   );
 }
