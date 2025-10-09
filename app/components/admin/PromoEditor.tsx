@@ -21,16 +21,16 @@ export default function PromoEditor({ initial }: { initial: Initial }) {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          // Schéma simple (pour PromoBanner côté client)
+          // Schéma simple (utilisé par PromoBanner côté client)
           promoActive,
           promoText,
-          // Schéma de compatibilité (promoBanner.enabled/message)
+          // Compat: met aussi l'objet promoBanner
           promoBanner: { enabled: promoActive, message: promoText }
         })
       });
       if (!res.ok) throw new Error("save_failed");
       setStatus("ok");
-      // Recharge “safe” pour refléter immédiatement la valeur (SSR + fetch côté admin)
+      // Forcer l’affichage immédiat des nouvelles valeurs dans l’admin
       window.location.reload();
     } catch (e) {
       setStatus("err");
@@ -69,9 +69,7 @@ export default function PromoEditor({ initial }: { initial: Initial }) {
           onChange={(e) => setPromoText(e.target.value)}
         />
         <div className="flex gap-3 mt-2">
-          <button onClick={clearText} className="px-3 py-1 border rounded">
-            Effacer le message
-          </button>
+          <button onClick={clearText} className="px-3 py-1 border rounded">Effacer le message</button>
         </div>
         <p className="text-xs text-neutral-500 mt-1">
           Si la bannière est activée mais que le message est vide, ton composant client n’affichera rien.
