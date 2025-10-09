@@ -74,11 +74,9 @@ export default async function SoinsPage() {
 
   return (
     <>
-
       <div className="services-container">
         <div className="services-wrap">
           <h2 className="services-title">Nos soins & tarifs</h2>
-          <p className="services-sub">Tarifs indicatifs – modifiables à tout moment via l’admin.</p>
 
           {orderedCats.length === 0 ? (
             <p style={{ color: "#666", textAlign: "center" }}>Aucun soin pour le moment.</p>
