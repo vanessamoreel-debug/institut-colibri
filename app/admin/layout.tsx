@@ -1,60 +1,23 @@
-"use client";
-
-import "../globals.css";
-import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
-
+// /app/admin/layout.tsx
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  // Menu déroulant admin (en haut à droite)
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function onClickOutside(e: MouseEvent) {
-      if (!ref.current) return;
-      if (!ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
-    }
-    document.addEventListener("mousedown", onClickOutside);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onClickOutside);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, []);
-
   return (
-    <div className="admin-shell">
-      {/* Barre supérieure admin */}
-      <div className="admin-topbar">
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-          <div className="admin-topbar-title">Tableau de bord — Administration</div>
-
-          {/* Menu admin (droite) */}
-          <div className="menu-wrap" ref={ref}>
-            <button className="menu-button" onClick={() => setOpen(v => !v)} aria-expanded={open}>
-              <span className="menu-icon">☰</span>
-              Sections admin <span className={`chevron ${open ? "chevron-up" : ""}`}>⌄</span>
-            </button>
-            <nav className={`menu-panel ${open ? "open" : ""}`}>
-              {/* Liens internes vers sections (ancre) */}
-              <a href="/admin#soins"     className="menu-link" onClick={() => setOpen(false)}>Soins</a>
-              <a href="/admin#contact"   className="menu-link" onClick={() => setOpen(false)}>Contact</a>
-              <a href="/admin#a-propos"  className="menu-link" onClick={() => setOpen(false)}>À propos</a>
-              <a href="/admin#fermeture" className="menu-link" onClick={() => setOpen(false)}>Fermeture</a>
-              <a href="/admin#promo"     className="menu-link" onClick={() => setOpen(false)}>Promo</a>
-
-              {/* Retour site public */}
-              <Link href="/" className="menu-link" onClick={() => setOpen(false)}>↩️ Retour au site</Link>
+    <html lang="fr">
+      <body className="min-h-screen body-admin">
+        <header className="bg-white/85 backdrop-blur-sm shadow">
+          <div className="mx-auto max-w-6xl p-4 flex items-center justify-between">
+            <div className="text-xl font-semibold text-[var(--brand)]">Admin — Institut Colibri</div>
+            <nav className="flex gap-5">
+              <a className="nav-link" href="/admin/soins">Soins</a>
+              <a className="nav-link" href="/admin/pages/contact">Contact</a>
+              <a className="nav-link" href="/admin/pages/a-propos">À&nbsp;propos</a>
+              <a className="nav-link" href="/admin/fermeture">Fermeture</a>
+              <a className="nav-link" href="/admin/promo">Promo</a>
+              <a className="nav-link" href="/">↩ Retour au site</a>
             </nav>
           </div>
-        </div>
-      </div>
-
-      {/* Contenu admin */}
-      <main className="admin-main">{children}</main>
-    </div>
+        </header>
+        <main className="mx-auto max-w-6xl p-4">{children}</main>
+      </body>
+    </html>
   );
 }
