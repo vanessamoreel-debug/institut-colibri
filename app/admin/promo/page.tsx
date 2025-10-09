@@ -13,6 +13,5 @@ export default async function AdminPromo() {
     promoText: s.promoText ?? ""
   };
 
-  // @ts-expect-error Server/Client boundary
   return <PromoEditor initial={initial} />;
 }
