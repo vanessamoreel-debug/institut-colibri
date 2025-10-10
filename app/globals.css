@@ -280,12 +280,16 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
 .site-footer {
   position: fixed; bottom: 12px; left: 12px; margin: 0; z-index: 10;
 }
+/* Pastille du footer, assortie au bouton Menu */
 .site-footer span {
-  display: inline-block; padding: 6px 12px; border-radius: 9999px;
-  background: rgba(255,255,255,0.88);
-  border: 1px solid rgba(125,108,113,0.25);
-  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  display: inline-block;
+  padding: 10px 14px;                 /* même padding que .menu-button */
+  border-radius: 9999px;              /* pastille bien ronde */
+  background: rgba(125,108,113,0.12); /* même fond que le bouton Menu */
+  border: 1px solid rgba(125,108,113,0.28);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.08);
   color: var(--brand);
-  font-family: 'Cormorant Garamond', serif;
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
   font-size: 0.95rem;
 }
