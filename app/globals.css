@@ -642,28 +642,49 @@ html {
 .site-main {
   flex: 1;
 }
-/* ==== TITRE DU SITE ==== */
+/* ===== Titre du site (taille élégante, pas gigantesque) ===== */
 .site-title {
-  font-family: "Playfair Display", serif;
+  font-family: 'Playfair Display', serif;
   font-weight: 600;
-  font-size: 1.8rem; /* Taille élégante et équilibrée */
+  font-size: 2.4rem;   /* desktop */
   color: #7D6C71;
+  line-height: 1.1;
 }
 
-/* ==== FOOTER EN BAS À GAUCHE ==== */
+@media (max-width: 520px) {
+  .site-title { font-size: 1.9rem; }  /* mobile */
+}
+
+/* ===== En-tête : titre à gauche, menu à droite ===== */
+.site-header {
+  display: flex;
+  justify-content: space-between; /* met le menu à droite */
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+/* ===== Footer : pastille en bas-gauche, largeur du texte ===== */
 .site-footer {
   position: fixed;
-  bottom: 1rem;
-  left: 1rem;
-  z-index: 50;
+  bottom: 12px;
+  left: 12px;
+  margin: 0;
+  z-index: 10;
 }
 
 .site-footer span {
-  background: rgba(255, 255, 255, 0.85);
-  color: #7D6C71;
-  font-family: "Cormorant Garamond", serif;
-  font-size: 0.9rem;
-  padding: 0.35rem 0.9rem;
+  display: inline-block;
+  padding: 6px 12px;
   border-radius: 9999px;
-  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(125,108,113,0.25);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+  color: #7D6C71;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.95rem;
 }
+
+/* (sécurité) désactive toute ancienne mise en page "site/site-main" si encore en CSS */
+.site { display: block; min-height: auto; }
+.site-main { display: block; flex: 0 0 auto; }
