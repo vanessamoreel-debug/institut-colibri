@@ -18,20 +18,21 @@
   backdrop-filter: blur(6px);
 }
 
-/* ==== FOND D'ÉCRAN PRINCIPAL ==== */
+/* ==== FOND D'ÉCRAN PRINCIPAL (version ajustée, non zoomée) ==== */
 .body-public {
   background-image: url("/fond-ecran-institut.jpg");
-  background-size: cover; /* adapte à la taille de la fenêtre sans répétition */
-  background-repeat: no-repeat;
-  background-position: center center;
-  background-attachment: fixed; /* effet élégant au scroll */
-  background-color: #f9f8f8; /* couleur douce si l’image ne charge pas */
+  background-size: contain; /* affiche l’image entière sans la couper */
+  background-repeat: no-repeat; /* ne pas dupliquer */
+  background-position: center top; /* bien centré */
+  background-attachment: fixed; /* effet scroll fluide sur desktop */
+  background-color: #f9f8f8; /* couleur de fond douce */
 }
 
-/* améliore le rendu sur mobile */
+/* Sur mobile : évite le bug d’attache fixe */
 @media (max-width: 768px) {
   .body-public {
-    background-attachment: scroll; /* évite les saccades sur smartphone */
+    background-attachment: scroll;
+    background-size: cover; /* évite les bandes si l’écran est petit */
   }
 }
 
