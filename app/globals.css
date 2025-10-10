@@ -423,3 +423,44 @@ h1, h2, h3, .site-title, .services-title, .services-cat, .page-title {
   .site-logo-large { height: 120px; }
   .site-title-text { font-size: 2.4rem; }
 }
+/* ===== ALIGNEMENT CENTRAL LOGO + TITRE ===== */
+.logo-title-center {
+  flex: 1;
+  display: flex;
+  justify-content: center; /* centre horizontalement dans l’en-tête */
+  align-items: center;
+}
+
+.logo-title-link {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Logo très grand et bien proportionné */
+.site-logo-xxl {
+  height: 260px;  /* ~30 % plus grand qu’avant */
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .site-logo-xxl { height: 160px; }
+}
+
+/* Titre “Institut Colibri” inchangé en style mais centré */
+.site-title-text {
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  font-size: 4.8rem;  /* élégant et bien lisible */
+  color: #7D6C71;
+  line-height: 1.1;
+  text-align: center;
+}
+
+@media (max-width: 520px) {
+  .site-title-text { font-size: 2.6rem; }
+}
