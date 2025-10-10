@@ -9,7 +9,11 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
       <header className="site-header">
         {/* Logo à gauche */}
         <Link href="/" className="logo-link" aria-label="Accueil Institut Colibri">
-          <img src="/Logo.png" alt="Logo Institut Colibri" className="site-logo" />
+          <img
+            src="/logo-colibri.png"
+            alt="Logo Institut Colibri"
+            className="site-logo"
+          />
         </Link>
 
         {/* Titre au centre */}
