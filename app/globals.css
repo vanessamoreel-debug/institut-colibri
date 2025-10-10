@@ -293,3 +293,61 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
   font-weight: 600;
   font-size: 0.95rem;
 }
+/* ====== FOND PLEIN ÉCRAN, FIABLE SUR MOBILE ====== */
+
+/* couvre vraiment la hauteur d’écran dynamique (Android/iOS) */
+html.body-public, body.body-public {
+  min-height: 100dvh; /* évite le "trou" en bas quand l’UI du navigateur bouge */
+  background-color: #f9f8f8;
+}
+
+/* on dessine le fond dans un calque fixé derrière le contenu */
+body.body-public::before {
+  content: "";
+  position: fixed;      /* colle aux bords de la fenêtre */
+  inset: 0;
+  z-index: -1;          /* derrière tout */
+  background-image: url("/fond-ecran-marbre.png");
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;   /* jamais “doublé” */
+  will-change: transform;   /* plus fluide */
+}
+
+/* Mobile : on évite les soucis de "fixed" (iOS/Android), tout en gardant cover */
+@media (max-width: 768px) {
+  body.body-public::before {
+    position: absolute; /* suit la page (pas de saccades) */
+    height: 100%;
+  }
+}
+
+/* ====== CENTRAGE PROPRE DE LA VIGNETTE D’ACCUEIL ====== */
+/* Quand il y a une hero-card, on centre son conteneur */
+.site-main:has(.hero-card) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;     /* centre horizontalement */
+}
+
+/* Espace vertical “au milieu de la page” selon la taille d’écran */
+.hero-card {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  /* sur mobile on descend un peu plus pour être visuellement centré */
+  margin-top: 8svh;
+  margin-bottom: 6svh;
+}
+
+@media (min-width: 769px) {
+  /* sur desktop on peut viser un quasi-centrage vertical */
+  .site-main:has(.hero-card) {
+    min-height: 72svh;     /* pousse le bloc vers le centre */
+    justify-content: center;
+  }
+  .hero-card {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+}
