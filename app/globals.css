@@ -1,14 +1,31 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Cormorant+Garamond:wght@400;500;600&display=swap');
 
-/* =========================================================
-   Variables + helpers
-   ========================================================= */
+/* =========================
+   Variables
+   ========================= */
 :root { --brand: #7D6C71; }
 
+/* =========================
+   Reset + typo
+   ========================= */
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  font-family: 'Cormorant Garamond', serif;
+  color: #111;
+  line-height: 1.6;
+}
+
+/* Titres */
+h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
+  font-family: 'Playfair Display', serif;
+}
+
+/* Liens génériques */
 .nav-link { color: var(--brand); text-decoration: none; transition: opacity .2s; }
 .nav-link:hover { opacity: .85; }
 
-/* Carte “verre” générique */
+/* Carte “verre” */
 .card {
   background: rgba(255,255,255,.85);
   border: 1px solid rgba(255,255,255,.5);
@@ -18,93 +35,48 @@
   backdrop-filter: blur(6px);
 }
 
-/* =========================================================
-   FOND PUBLIC : MARBRE — version fiable mobile/desktop
-   (remplace l’ancienne règle .body-public pour éviter les doublons)
-   ========================================================= */
-html, body { margin: 0; padding: 0; height: 100%; }
-
-body.body-public {
+/* =========================
+   FOND PUBLIC (marbre)
+   ========================= */
+.body-public {
+  background: url("/fond-ecran-marbre.png") center / cover no-repeat fixed;
+  background-color: #f9f8f8;         /* secours */
   min-height: 100dvh;
-  background-color: #f9f8f8; /* ton clair de secours */
 }
-
-/* Fond en calque derrière tout le contenu */
-body.body-public::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background-image: url("/fond-ecran-marbre.png");
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: cover; /* jamais “doublé” */
-  will-change: transform;
-}
-
-/* Mobile : on évite les saccades du fixed */
+/* mobile : éviter les saccades du fixed */
 @media (max-width: 768px) {
-  body.body-public::before {
-    position: absolute; /* suit la page */
-    height: 100%;
-  }
+  .body-public { background-attachment: scroll; }
 }
 
-/* =========================================================
-   Typo
-   ========================================================= */
-body {
-  font-family: 'Cormorant Garamond', serif;
-  color: #111;
-  line-height: 1.6;
-}
-h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
-  font-family: 'Playfair Display', serif;
-}
-
-/* =========================================================
-   Shell
-   ========================================================= */
+/* =========================
+   Shell site (sticky footer via flex)
+   ========================= */
 .site {
   max-width: 980px;
   margin: 0 auto;
   padding: 16px;
-  min-height: 100vh;
+  min-height: 100dvh;          /* prend toute la hauteur */
   display: flex;
   flex-direction: column;
 }
-.site-main {
-  flex: 1;
-  /* espace pour que le footer fixe ne masque jamais le contenu */
-  padding-bottom: 72px;
-}
+.site-main { flex: 1; }        /* pousse le footer en bas */
 
-/* =========================================================
-   HEADER : logo / titre / menu (grille stable)
-   ========================================================= */
+/* =========================
+   Header (logo / titre / menu)
+   ========================= */
 .site-header {
   display: grid;
-  grid-template-columns: 1fr auto 1fr; /* gauche / centre / droite */
+  grid-template-columns: 1fr auto 1fr;  /* gauche / centre / droite */
   align-items: center;
-  width: 100%;
   gap: 12px;
   padding: 10px 16px;
   margin-bottom: 16px;
 }
-.header-left  { display: flex; align-items: center; justify-content: flex-start; }
-.header-center{ display: flex; align-items: center; justify-content: center; text-align: center; }
-.header-right { display: flex; align-items: center; justify-content: flex-end; }
-
-/* Logo XXL (gros mais propre) */
-.site-logo-xxl {
-  height: 250px;
-  width: auto;
-  object-fit: contain;
-  display: block;
-}
+.header-left   { display: flex; align-items: center; justify-content: flex-start; }
+.header-center { display: flex; align-items: center; justify-content: center; text-align: center; }
+.header-right  { display: flex; align-items: center; justify-content: flex-end; }
+.site-logo-xxl { height: 250px; width: auto; object-fit: contain; display: block; }
 @media (max-width: 768px) { .site-logo-xxl { height: 140px; } }
-
-/* Titre parfaitement centré */
 .site-title-text {
   font-weight: 600;
   font-size: 4.4rem;
@@ -116,9 +88,9 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
 }
 @media (max-width: 520px) { .site-title-text { font-size: 2.6rem; } }
 
-/* =========================================================
-   MENU (public)
-   ========================================================= */
+/* =========================
+   Menu (public)
+   ========================= */
 .menu-wrap { position: relative; }
 .menu-button {
   appearance: none;
@@ -136,7 +108,7 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
 }
 .menu-button:hover  { background: rgba(125,108,113,0.18); color: #5f4f54; }
 .menu-button:active { transform: translateY(1px); }
-.chevron { display: none !important; } /* pas de chevron */
+.chevron { display: none !important; }
 
 .menu-panel {
   position: absolute; top: calc(100% + 6px); right: 0; min-width: 220px;
@@ -154,7 +126,6 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
 .menu-panel.open {
   opacity: 1; transform: translateY(0);
   pointer-events: auto; visibility: visible;
-  transition: opacity .18s ease, transform .18s ease, visibility 0s;
 }
 .menu-link {
   display: block; padding: 8px 10px; border-radius: 8px;
@@ -165,22 +136,21 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
 .menu-link:hover  { background: rgba(125,108,113,0.10); color: #5f4f54; }
 .menu-link.active { background: rgba(125,108,113,0.15); color: #3d2f34; }
 
-/* =========================================================
-   HERO (accueil) : centré visuellement
-   ========================================================= */
+/* =========================
+   Hero (Accueil) — centrage visuel
+   ========================= */
 .site-main:has(.hero-card) {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
-
 .hero-card {
   background: rgba(125,108,113,0.10);
   border: 1px solid rgba(125,108,113,0.25);
   border-radius: 14px;
   padding: 28px 24px;
   max-width: 760px;
-  margin: 8svh auto 6svh; /* centrage visuel */
+  margin: 8svh auto 6svh;       /* centre visuellement */
   color: #3d2f34;
   line-height: 1.7;
   -webkit-backdrop-filter: blur(10px);
@@ -193,18 +163,17 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
 @media (min-width: 769px) {
   .site-main:has(.hero-card) {
     min-height: 72svh;
-    justify-content: center;
+    justify-content: center;        /* vrai centrage vertical sur grand écran */
   }
   .hero-card { margin: 0 auto; }
 }
-
 @media (max-width: 520px) {
   .hero-card { margin: 6svh auto 4svh; padding: 20px 16px; }
 }
 
-/* =========================================================
-   Services
-   ========================================================= */
+/* =========================
+   Services / Pages info (inchangé)
+   ========================= */
 .services-container {
   background: rgba(255,255,255,0.35);
   border: 1px solid rgba(125,108,113,0.25);
@@ -231,9 +200,6 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
 .service-desc { opacity: 1; }
 @media (max-width: 520px) { .services-container { padding: 14px 12px; } .service-name { font-size: 1rem; } }
 
-/* =========================================================
-   Pages info
-   ========================================================= */
 .pricelist, .info-panel {
   background: rgba(255, 255, 255, 0.42);
   border: 1px solid rgba(125, 108, 113, 0.25);
@@ -249,44 +215,9 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
 .page-content { color: #000; font-size: 18px; line-height: 1.7; }
 .notice-strong { display: inline-block; font-weight: 700; font-size: 1.5em; line-height: 1.3; color: var(--brand); margin: 4px 0 8px; }
 
-/* =========================================================
-   Bannières
-   ========================================================= */
-.promo-banner {
-  background: rgba(255,240,245,0.8);
-  border: 1px solid rgba(125,108,113,0.4);
-  border-radius: 12px;
-  padding: 12px 20px;
-  text-align: center;
-  font-weight: 600;
-  color: var(--brand);
-  font-size: 1.2rem;
-  box-shadow: 0 4px 18px rgba(125,108,113,0.15);
-  margin: 10px auto 18px;
-  max-width: 900px;
-  position: relative;
-  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-  animation: fadeInPromo .8s ease-in-out;
-}
-@keyframes fadeInPromo { from { opacity: 0; transform: translateY(-8px);} to { opacity: 1; transform: translateY(0);} }
-.sparkle { color: #d1a8b3; font-size: 1.3rem; margin: 0 6px; animation: sparkleBlink 1.8s infinite alternate; }
-@keyframes sparkleBlink { from { opacity: .6; transform: scale(1);} to { opacity: 1; transform: scale(1.15);} }
-.promo-text { letter-spacing: .3px; }
-
-.closed-banner {
-  margin: 10px 0 14px; padding: 0; display: flex; justify-content: center; width: 100%;
-  background: rgba(125,108,113,0.10); border: 1px solid rgba(125,108,113,0.25);
-  border-radius: 12px; -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-}
-.closed-banner__inner {
-  padding: 10px 14px; text-align: center; color: #3d2f34; font-weight: 600; line-height: 1.5;
-}
-@media (max-width: 520px) { .closed-banner__inner { padding: 12px 16px; } }
-
-/* =========================================================
-   Admin (scopé)
-   ========================================================= */
+/* =========================
+   Admin (look)
+   ========================= */
 .admin-shell {
   background:
     linear-gradient(180deg, rgba(255,255,255,0.80), rgba(255,255,255,0.70)),
@@ -311,19 +242,17 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
 .admin-shell .menu-panel  { background: #fff; border: 1px solid #e5e5ea; box-shadow: 0 10px 24px rgba(0,0,0,0.08); }
 .admin-shell .menu-link:hover { background: #f6f6f6; }
 
-/* =========================================================
-   Footer : pastille en bas gauche (assorti au bouton Menu)
-   ========================================================= */
+/* =========================
+   Footer : pastille en bas
+   (non FIXE → ne chevauche rien)
+   ========================= */
 .site-footer {
-  position: fixed;
-  bottom: 12px;
-  left: 12px;
-  margin: 0;
-  z-index: 10;
+  align-self: flex-start;              /* en bas à gauche */
+  margin: 10px 0 0 12px;
 }
 .site-footer span {
   display: inline-block;
-  padding: 10px 14px;            /* même padding que .menu-button */
+  padding: 10px 14px;                  /* assorti au bouton Menu */
   border-radius: 9999px;
   background: rgba(125,108,113,0.12);
   border: 1px solid rgba(125,108,113,0.28);
@@ -333,65 +262,6 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
   font-weight: 600;
   font-size: 0.95rem;
 }
-/* ----- FOND PLEIN ÉCRAN FIABLE (mobile & desktop) ----- */
-html.body-public, body.body-public { min-height: 100dvh; background: transparent; }
 
-/* Calque de fond derrière tout le contenu */
-body.body-public::before {
-  content: "";
-  position: fixed;            /* colle à la fenêtre */
-  top: 0; left: 0;
-  width: 100vw;               /* couvre toute la largeur, même sur mobile */
-  height: 100vh;
-  z-index: -1;                /* derrière le site */
-  background: url("/fond-ecran-marbre.png") center/cover no-repeat, #f9f8f8;
-}
-
-/* iOS/Android : utiliser les unités “svh/dvh” quand dispo */
-@supports (height: 100svh) {
-  body.body-public::before { height: 100svh; }
-}
-/* Centre le container quand la hero-card est présente */
-.site-main:has(.hero-card) {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-/* Ajustements de centrage */
-.hero-card {
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-  margin-top: 8svh;   /* pousse vers le centre vertical */
-  margin-bottom: 6svh;
-}
-
-@media (min-width: 769px) {
-  .site-main:has(.hero-card) {
-    min-height: 72svh;
-    justify-content: center;
-  }
-  .hero-card { margin-top: 0; margin-bottom: 0; }
-}
-/* Réserve de place si footer fixe en desktop */
-.site { padding-bottom: 72px; }
-
-/* Footer pastille — DESKTOP (fixe) */
-.site-footer {
-  position: fixed;
-  bottom: clamp(8px, env(safe-area-inset-bottom, 12px), 16px);
-  /* ancrage sur la marge gauche du site (bord + petit souffle) */
-  left: max(12px, calc((100vw - 980px) / 2 + 8px));
-  margin: 0;
-  z-index: 10;
-}
-
-/* MOBILE : pas fixe → plus aucun chevauchement */
-@media (max-width: 768px) {
-  .site { padding-bottom: 0; }     /* on retire la réserve */
-  .site-footer {
-    position: static;               /* redevient un bloc normal */
-    margin: 24px 0 12px 12px;       /* aligné en bas-gauche */
-  }
-}
+/* S’il restait une ancienne règle “position: fixed” dans le cache, on écrase tout. */
+.site-footer { position: relative !important; bottom: auto !important; left: auto !important; z-index: auto !important; }
