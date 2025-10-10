@@ -25,8 +25,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {/* Contenu des pages */}
           {children}
 
-          {/* Petit pied de page discret */}
-          <footer className="site-footer">© Institut Colibri</footer>
+          {/* Footer UNIQUE */}
+          <footer className="site-footer">
+            <span>© Institut Colibri 2025</span>
+          </footer>
         </main>
       </body>
     </html>
