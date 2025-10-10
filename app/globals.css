@@ -642,3 +642,28 @@ html {
 .site-main {
   flex: 1;
 }
+/* ==== TITRE DU SITE ==== */
+.site-title {
+  font-family: "Playfair Display", serif;
+  font-weight: 600;
+  font-size: 1.8rem; /* Taille élégante et équilibrée */
+  color: #7D6C71;
+}
+
+/* ==== FOOTER EN BAS À GAUCHE ==== */
+.site-footer {
+  position: fixed;
+  bottom: 1rem;
+  left: 1rem;
+  z-index: 50;
+}
+
+.site-footer span {
+  background: rgba(255, 255, 255, 0.85);
+  color: #7D6C71;
+  font-family: "Cormorant Garamond", serif;
+  font-size: 0.9rem;
+  padding: 0.35rem 0.9rem;
+  border-radius: 9999px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.08);
+}
