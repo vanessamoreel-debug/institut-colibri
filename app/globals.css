@@ -28,6 +28,13 @@
   background-color: #f9f8f8;     /* couleur d’arrière-plan au cas où */
 }
 
+/* Correction pour mobile : évite les saccades sur smartphone */
+@media (max-width: 768px) {
+  .body-public {
+    background-attachment: scroll;
+  }
+}
+
 /* =========================================================
    Reset + typographies
    ========================================================= */
