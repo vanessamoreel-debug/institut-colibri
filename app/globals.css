@@ -599,7 +599,7 @@ h1, h2, h3, .site-title, .services-title, .services-cat, .page-title {
 /* Appliqué sur la partie publique du site */
 .body-public {
   background-image: url("/fond-ecran-institut.jpg");
-  background-size: 40%; /* réduit le zoom du motif */
+  background-size: 50%; /* réduit le zoom du motif */
   background-repeat: repeat; /* motif répété */
   background-position: center top;
   background-attachment: fixed; /* effet élégant au scroll */
