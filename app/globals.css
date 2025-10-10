@@ -18,17 +18,14 @@
   backdrop-filter: blur(6px);
 }
 
-/* Fonds */
+/* Fond pleine page de la partie publique */
 .body-public {
-  background-image: url("/fond-ecran-institut.jpg");
-  background-size: 35%;                 /* motif plus fin */
-  background-repeat: repeat;
-  background-position: center top;
-  background-attachment: fixed;
-  background-color: #f9f8f8;
-}
-.body-admin {
-  background: url("/fond-admin.jpg") center/cover no-repeat fixed;
+  background-image: url("/fond-ecran-2.png"); /* ton image */
+  background-size: cover;        /* occupe toute la fenêtre, sans doublon */
+  background-repeat: no-repeat;  /* ne se répète jamais */
+  background-position: center center; /* centrée horizontalement et verticalement */
+  background-attachment: fixed;  /* effet élégant au scroll */
+  background-color: #f9f8f8;     /* couleur d’arrière-plan au cas où */
 }
 
 /* =========================================================
