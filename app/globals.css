@@ -18,21 +18,22 @@
   backdrop-filter: blur(6px);
 }
 
-/* ==== FOND D'ÉCRAN PRINCIPAL : MARBRE ÉLÉGANT ==== */
+/* =========================================================
+   FOND D'ÉCRAN PRINCIPAL : MARBRE ÉLÉGANT
+   ========================================================= */
 .body-public {
   background-image: url("/fond-ecran-marbre.png");
-  background-size: cover; /* remplit la fenêtre sans distorsion */
-  background-repeat: no-repeat;
+  background-size: cover;            /* remplit la fenêtre sans distorsion */
+  background-repeat: no-repeat;      /* pas de duplication */
   background-position: center center;
-  background-attachment: fixed;
-  background-color: #f9f8f8; /* ton clair de secours */
+  background-attachment: fixed;      /* effet subtil au scroll (desktop) */
+  background-color: #f9f8f8;         /* ton clair de secours */
 }
-
-/* Version mobile : défilement fluide */
+/* Version mobile : défilement fluide (évite les saccades iOS) */
 @media (max-width: 768px) {
   .body-public {
     background-attachment: scroll;
-    background-size: cover; /* évite les bandes noires */
+    background-size: cover;
   }
 }
 
@@ -53,54 +54,67 @@ h1, h2, h3, .site-title, .services-title, .services-cat, .page-title {
 }
 
 /* =========================================================
-   Shell (max-width du site)
+   Shell (largeur et structure du site)
    ========================================================= */
 .site {
   max-width: 980px;
   margin: 0 auto;
   padding: 16px;
 }
-.site-main { }
+.site-main {
+  /* on centre le contenu principal horizontalement */
+  display: block;
+}
 
 /* =========================================================
-   HEADER public : titre à gauche, menu à droite
+   HEADER public
+   - Titre centré et très lisible
+   - Menu aligné à droite, sous le titre
    ========================================================= */
 .site-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;  /* place le menu à droite */
-  gap: 12px;
+  flex-direction: column;     /* titre puis menu en colonne */
+  align-items: center;        /* titre centré */
+  gap: 10px;
   width: 100%;
-  margin-bottom: 16px;
-  padding: 8px;                    /* évite d’être collé au bord */
+  margin-bottom: 12px;
+  padding: 8px;
 }
 
+/* Titre principal : 2× plus grand et centré */
 .site-title {
   color: var(--brand);
   font-weight: 600;
-  font-size: 2.3rem;               /* taille élégante */
-  line-height: 1.1;
+  font-size: 4.6rem;          /* ~2x la taille élégante précédente */
+  line-height: 1.05;
   text-decoration: none;
+  text-align: center;
+  margin: 8px 0 2px;
 }
 @media (max-width: 520px) {
-  .site-title { font-size: 1.9rem; }
+  .site-title { font-size: 2.8rem; }
+}
+
+/* Le menu s’aligne à droite, sous le titre */
+.menu-wrap {
+  align-self: flex-end;       /* pousse le menu à droite */
+  position: relative;
+  margin-right: 8px;          /* petit souffle du bord */
 }
 
 /* ===== Menu (PUBLIC) ===== */
-.menu-wrap { position: relative; margin-right: 6px; } /* léger souffle à droite */
-
 .menu-button {
   appearance: none;
   display: inline-flex;
   align-items: center;
   gap: 8px;
 
-  background: rgba(125,108,113,0.12);  /* couleur du site */
+  background: rgba(125,108,113,0.12);
   border: 1px solid rgba(125,108,113,0.28);
   border-radius: 12px;
 
   padding: 10px 14px;
-  font-size: 1.05rem;
+  font-size: 1.08rem;
   font-family: 'Playfair Display', serif;
   font-weight: 600;
   color: var(--brand);
@@ -156,22 +170,27 @@ h1, h2, h3, .site-title, .services-title, .services-cat, .page-title {
 .menu-link.active { background: rgba(125,108,113,0.15); color: #3d2f34; }
 
 /* =========================================================
-   Vignette d’accueil (hero)
+   Vignette d’accueil (hero) — centrage visuel
    ========================================================= */
 .hero-card {
   background: rgba(125, 108, 113, 0.10);
   border: 1px solid rgba(125, 108, 113, 0.25);
   border-radius: 14px;
-  padding: 24px 22px;
+  padding: 28px 24px;
   max-width: 760px;
-  margin: 0 auto 16px;
+  margin: 10vh auto 6vh;   /* pousse visuellement vers le centre de la page */
   color: #3d2f34;
   line-height: 1.7;
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
+  text-align: center;       /* texte centré */
 }
 .hero-card h2 { margin: 0 0 8px; color: var(--brand); }
 .hero-card p  { margin: 0; font-size: 20px; }
+
+@media (max-width: 520px) {
+  .hero-card { margin: 6vh auto 4vh; padding: 20px 16px; }
+}
 
 /* =========================================================
    Services
