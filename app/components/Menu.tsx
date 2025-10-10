@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-/** Menu déroulant du site public (aligné à droite, liste verticale, sans chevron) */
+/** Menu déroulant élégant, aligné à droite du titre */
 export default function Menu() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -50,12 +50,6 @@ export default function Menu() {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="menu"
-        style={{
-          // style demandé : couleur marque + typo
-          color: "#7D6C71",
-          fontFamily: "'Playfair Display', serif",
-          fontWeight: 600,
-        }}
       >
         Menu
       </button>
