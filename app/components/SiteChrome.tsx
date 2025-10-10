@@ -7,20 +7,30 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
     <div className="site">
       {/* HEADER */}
       <header className="site-header">
-        {/* Groupe logo + titre centré */}
-        <div className="logo-title-center">
-          <Link href="/" className="logo-title-link" aria-label="Accueil Institut Colibri">
-            <img
-              src="/logo-colibri-3.png"
-              alt="Logo Institut Colibri"
-              className="site-logo-xxl"
-            />
-            <span className="site-title-text">Institut&nbsp;Colibri</span>
+        {/* Logo à gauche */}
+        <div className="header-left">
+          <img
+            src="/logo-colibri-3.png"
+            alt="Logo Institut Colibri"
+            className="site-logo-xxl"
+          />
+        </div>
+
+        {/* Titre parfaitement centré */}
+        <div className="header-center">
+          <Link
+            href="/"
+            className="site-title-text"
+            style={{ textDecoration: "none" }}
+          >
+            Institut&nbsp;Colibri
           </Link>
         </div>
 
         {/* Menu à droite */}
-        <Menu />
+        <div className="header-right">
+          <Menu />
+        </div>
       </header>
 
       {/* CONTENU */}
