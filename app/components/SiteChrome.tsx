@@ -10,7 +10,7 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
         {/* Logo à gauche */}
         <div className="header-left">
           <img
-            src="/logo-colibri-3.png"
+            src="/Logo-colibri-4.png"
             alt="Logo Institut Colibri"
             className="site-logo-xxl"
           />
