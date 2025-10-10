@@ -386,3 +386,40 @@ h1, h2, h3, .site-title, .services-title, .services-cat, .page-title {
     font-size: 2.6rem;
   }
 }
+/* ===== LOGO + TITRE SUR UNE LIGNE ===== */
+.title-group {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* garde le groupe centré dans l'en-tête */
+  gap: 16px;
+  flex: 1;
+}
+
+/* lien global du titre (logo + texte) */
+.logo-title-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+}
+
+/* logo 4x plus grand */
+.site-logo-large {
+  height: 200px;   /* environ 4x plus grand que le précédent (60px) */
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+/* titre inchangé visuellement */
+.site-title-text {
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  font-size: 4.4rem;  /* même taille qu’avant */
+  color: #7D6C71;
+  line-height: 1;
+}
+@media (max-width: 520px) {
+  .site-logo-large { height: 120px; }
+  .site-title-text { font-size: 2.4rem; }
+}
