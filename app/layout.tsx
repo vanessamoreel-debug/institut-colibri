@@ -1,23 +1,33 @@
 // /app/layout.tsx
 import "./globals.css";
+import type { Metadata } from "next";
+import SiteChrome from "./components/SiteChrome";
 import ClosedBanner from "./components/ClosedBanner";
 import PromoBanner from "./components/PromoBanner";
-import type { ReactNode } from "react";
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Institut Colibri",
   description: "Soins & bien-être",
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
       <body className="min-h-screen body-public">
-        {/* Bannières globales (ClosedBanner est un Server Component, PromoBanner un Client Component) */}
-        <ClosedBanner />
-        <PromoBanner />
+        <main className="mx-auto max-w-6xl p-4">
+          {/* Bannières globales */}
+          <ClosedBanner />
+          <PromoBanner />
 
-        <main className="mx-auto max-w-6xl p-4">{children}</main>
+          {/* En-tête (titre + menu) */}
+          <SiteChrome />
+
+          {/* Contenu des pages */}
+          {children}
+
+          {/* Petit pied de page discret */}
+          <footer className="site-footer">© Institut Colibri</footer>
+        </main>
       </body>
     </html>
   );
