@@ -5,17 +5,17 @@ import Menu from "./Menu";
 export default function SiteChrome({ children }: { children: React.ReactNode }) {
   return (
     <div className="site">
-      {/* Header complet */}
+      {/* HEADER */}
       <header className="site-header">
         {/* Groupe logo + titre centré */}
-        <div className="title-group">
+        <div className="logo-title-center">
           <Link href="/" className="logo-title-link" aria-label="Accueil Institut Colibri">
             <img
-  src="/logo-colibri-2.png"
-  alt="Logo Institut Colibri"
-  className="site-logo-large"
-/>
-            <span className="site-title-text">Institut Colibri</span>
+              src="/logo-colibri-3.png"
+              alt="Logo Institut Colibri"
+              className="site-logo-xxl"
+            />
+            <span className="site-title-text">Institut&nbsp;Colibri</span>
           </Link>
         </div>
 
@@ -23,10 +23,10 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
         <Menu />
       </header>
 
-      {/* Contenu principal */}
+      {/* CONTENU */}
       <main className="site-main">{children}</main>
 
-      {/* Footer */}
+      {/* FOOTER */}
       <footer className="site-footer">
         <span>© Institut Colibri 2025</span>
       </footer>
