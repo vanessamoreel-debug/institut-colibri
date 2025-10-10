@@ -489,3 +489,38 @@ h1, h2, h3, .site-title, .services-title, .services-cat, .page-title {
   box-shadow: 0 10px 24px rgba(0,0,0,0.08);
 }
 .menu-wrap .menu-link:hover { background: #f6f6f6; }
+
+/* ==== OVERRIDES MENU (placer tout en bas du fichier) ==== */
+
+/* remet l'alignement à droite du menu dans l'en-tête */
+.site-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* titre centré */
+}
+.menu-wrap {
+  align-self: flex-end !important; /* menu à droite */
+  position: relative;
+}
+
+/* bouton du menu : typo et couleur marque */
+.menu-button {
+  color: #7D6C71 !important;
+  font-family: 'Playfair Display', serif !important;
+  font-weight: 600 !important;
+}
+
+/* panneau vertical et liens en colonne */
+.menu-panel {
+  display: flex;
+  flex-direction: column;
+}
+
+/* liens bien en colonne (au cas où) */
+.menu-link {
+  display: block;
+}
+
+/* retire l'icône chevron éventuelle */
+.chevron { display: none !important; }
+
