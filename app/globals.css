@@ -18,21 +18,21 @@
   backdrop-filter: blur(6px);
 }
 
-/* ==== FOND D'ÉCRAN PRINCIPAL (version ajustée, non zoomée) ==== */
+/* ==== FOND D'ÉCRAN PRINCIPAL : MARBRE ÉLÉGANT ==== */
 .body-public {
-  background-image: url("/fond-ecran-institut.jpg");
-  background-size: contain; /* affiche l’image entière sans la couper */
-  background-repeat: no-repeat; /* ne pas dupliquer */
-  background-position: center top; /* bien centré */
-  background-attachment: fixed; /* effet scroll fluide sur desktop */
-  background-color: #f9f8f8; /* couleur de fond douce */
+  background-image: url("/fond-ecran-marbre.png");
+  background-size: cover; /* remplit la fenêtre sans distorsion */
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-attachment: fixed;
+  background-color: #f9f8f8; /* ton clair de secours */
 }
 
-/* Sur mobile : évite le bug d’attache fixe */
+/* Version mobile : défilement fluide */
 @media (max-width: 768px) {
   .body-public {
     background-attachment: scroll;
-    background-size: cover; /* évite les bandes si l’écran est petit */
+    background-size: cover; /* évite les bandes noires */
   }
 }
 
