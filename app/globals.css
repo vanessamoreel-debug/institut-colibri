@@ -333,3 +333,65 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
   font-weight: 600;
   font-size: 0.95rem;
 }
+/* ----- FOND PLEIN ÉCRAN FIABLE (mobile & desktop) ----- */
+html.body-public, body.body-public { min-height: 100dvh; background: transparent; }
+
+/* Calque de fond derrière tout le contenu */
+body.body-public::before {
+  content: "";
+  position: fixed;            /* colle à la fenêtre */
+  top: 0; left: 0;
+  width: 100vw;               /* couvre toute la largeur, même sur mobile */
+  height: 100vh;
+  z-index: -1;                /* derrière le site */
+  background: url("/fond-ecran-marbre.png") center/cover no-repeat, #f9f8f8;
+}
+
+/* iOS/Android : utiliser les unités “svh/dvh” quand dispo */
+@supports (height: 100svh) {
+  body.body-public::before { height: 100svh; }
+}
+/* Centre le container quand la hero-card est présente */
+.site-main:has(.hero-card) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Ajustements de centrage */
+.hero-card {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+  margin-top: 8svh;   /* pousse vers le centre vertical */
+  margin-bottom: 6svh;
+}
+
+@media (min-width: 769px) {
+  .site-main:has(.hero-card) {
+    min-height: 72svh;
+    justify-content: center;
+  }
+  .hero-card { margin-top: 0; margin-bottom: 0; }
+}
+/* Réserve de place si footer fixe en desktop */
+.site { padding-bottom: 72px; }
+
+/* Footer pastille — DESKTOP (fixe) */
+.site-footer {
+  position: fixed;
+  bottom: clamp(8px, env(safe-area-inset-bottom, 12px), 16px);
+  /* ancrage sur la marge gauche du site (bord + petit souffle) */
+  left: max(12px, calc((100vw - 980px) / 2 + 8px));
+  margin: 0;
+  z-index: 10;
+}
+
+/* MOBILE : pas fixe → plus aucun chevauchement */
+@media (max-width: 768px) {
+  .site { padding-bottom: 0; }     /* on retire la réserve */
+  .site-footer {
+    position: static;               /* redevient un bloc normal */
+    margin: 24px 0 12px 12px;       /* aligné en bas-gauche */
+  }
+}
