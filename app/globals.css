@@ -19,26 +19,42 @@
 }
 
 /* =========================================================
-   FOND PUBLIC : MARBRE
+   FOND PUBLIC : MARBRE — version fiable mobile/desktop
+   (remplace l’ancienne règle .body-public pour éviter les doublons)
    ========================================================= */
-.body-public {
-  background-image: url("/fond-ecran-marbre.png");
-  background-size: cover;        /* remplit la fenêtre */
-  background-repeat: no-repeat;  /* jamais doublé */
-  background-position: center center;
-  background-attachment: fixed;  /* effet subtil au scroll (desktop) */
-  background-color: #f9f8f8;
+html, body { margin: 0; padding: 0; height: 100%; }
+
+body.body-public {
+  min-height: 100dvh;
+  background-color: #f9f8f8; /* ton clair de secours */
 }
+
+/* Fond en calque derrière tout le contenu */
+body.body-public::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image: url("/fond-ecran-marbre.png");
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover; /* jamais “doublé” */
+  will-change: transform;
+}
+
+/* Mobile : on évite les saccades du fixed */
 @media (max-width: 768px) {
-  .body-public { background-attachment: scroll; }
+  body.body-public::before {
+    position: absolute; /* suit la page */
+    height: 100%;
+  }
 }
 
 /* =========================================================
-   Reset + typo
+   Typo
    ========================================================= */
-html, body { margin: 0; padding: 0; height: 100%; }
 body {
-  font-family: 'Cormorant Garamond', serif; /* texte */
+  font-family: 'Cormorant Garamond', serif;
   color: #111;
   line-height: 1.6;
 }
@@ -57,7 +73,11 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
   display: flex;
   flex-direction: column;
 }
-.site-main { flex: 1; }
+.site-main {
+  flex: 1;
+  /* espace pour que le footer fixe ne masque jamais le contenu */
+  padding-bottom: 72px;
+}
 
 /* =========================================================
    HEADER : logo / titre / menu (grille stable)
@@ -71,15 +91,13 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
   padding: 10px 16px;
   margin-bottom: 16px;
 }
-
-/* Zones */
 .header-left  { display: flex; align-items: center; justify-content: flex-start; }
-.header-center{ display: flex; align-items: center; justify-content: center;   text-align: center; }
+.header-center{ display: flex; align-items: center; justify-content: center; text-align: center; }
 .header-right { display: flex; align-items: center; justify-content: flex-end; }
 
 /* Logo XXL (gros mais propre) */
 .site-logo-xxl {
-  height: 250px;     /* ajuste ici si tu veux plus/moins grand */
+  height: 250px;
   width: auto;
   object-fit: contain;
   display: block;
@@ -150,21 +168,39 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
 /* =========================================================
    HERO (accueil) : centré visuellement
    ========================================================= */
+.site-main:has(.hero-card) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .hero-card {
   background: rgba(125,108,113,0.10);
   border: 1px solid rgba(125,108,113,0.25);
   border-radius: 14px;
   padding: 28px 24px;
   max-width: 760px;
-  margin: 10vh auto 6vh; /* centre visuellement dans la page */
+  margin: 8svh auto 6svh; /* centrage visuel */
   color: #3d2f34;
   line-height: 1.7;
-  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   text-align: center;
 }
 .hero-card h2 { margin: 0 0 8px; color: var(--brand); }
 .hero-card p  { margin: 0; font-size: 20px; }
-@media (max-width: 520px) { .hero-card { margin: 6vh auto 4vh; padding: 20px 16px; } }
+
+@media (min-width: 769px) {
+  .site-main:has(.hero-card) {
+    min-height: 72svh;
+    justify-content: center;
+  }
+  .hero-card { margin: 0 auto; }
+}
+
+@media (max-width: 520px) {
+  .hero-card { margin: 6svh auto 4svh; padding: 20px 16px; }
+}
 
 /* =========================================================
    Services
@@ -199,12 +235,13 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
    Pages info
    ========================================================= */
 .pricelist, .info-panel {
-  background: rgba(255,255,255,0.42);
-  border: 1px solid rgba(125,108,113,0.25);
+  background: rgba(255, 255, 255, 0.42);
+  border: 1px solid rgba(125, 108, 113, 0.25);
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 12px 28px rgba(0,0,0,0.12);
-  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
 .page-title { text-align: center; color: var(--brand); margin: 6px 0 16px; font-size: 2rem; font-weight: 600; }
 .pricelist a { color: var(--brand); text-decoration: none; font-weight: 600; }
@@ -275,79 +312,24 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
 .admin-shell .menu-link:hover { background: #f6f6f6; }
 
 /* =========================================================
-   Footer : pastille en bas gauche
+   Footer : pastille en bas gauche (assorti au bouton Menu)
    ========================================================= */
 .site-footer {
-  position: fixed; bottom: 12px; left: 12px; margin: 0; z-index: 10;
+  position: fixed;
+  bottom: 12px;
+  left: 12px;
+  margin: 0;
+  z-index: 10;
 }
-/* Pastille du footer, assortie au bouton Menu */
 .site-footer span {
   display: inline-block;
-  padding: 10px 14px;                 /* même padding que .menu-button */
-  border-radius: 9999px;              /* pastille bien ronde */
-  background: rgba(125,108,113,0.12); /* même fond que le bouton Menu */
+  padding: 10px 14px;            /* même padding que .menu-button */
+  border-radius: 9999px;
+  background: rgba(125,108,113,0.12);
   border: 1px solid rgba(125,108,113,0.28);
   box-shadow: 0 10px 24px rgba(0,0,0,0.08);
   color: var(--brand);
   font-family: 'Playfair Display', serif;
   font-weight: 600;
   font-size: 0.95rem;
-}
-/* ====== FOND PLEIN ÉCRAN, FIABLE SUR MOBILE ====== */
-
-/* couvre vraiment la hauteur d’écran dynamique (Android/iOS) */
-html.body-public, body.body-public {
-  min-height: 100dvh; /* évite le "trou" en bas quand l’UI du navigateur bouge */
-  background-color: #f9f8f8;
-}
-
-/* on dessine le fond dans un calque fixé derrière le contenu */
-body.body-public::before {
-  content: "";
-  position: fixed;      /* colle aux bords de la fenêtre */
-  inset: 0;
-  z-index: -1;          /* derrière tout */
-  background-image: url("/fond-ecran-marbre.png");
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-size: cover;   /* jamais “doublé” */
-  will-change: transform;   /* plus fluide */
-}
-
-/* Mobile : on évite les soucis de "fixed" (iOS/Android), tout en gardant cover */
-@media (max-width: 768px) {
-  body.body-public::before {
-    position: absolute; /* suit la page (pas de saccades) */
-    height: 100%;
-  }
-}
-
-/* ====== CENTRAGE PROPRE DE LA VIGNETTE D’ACCUEIL ====== */
-/* Quand il y a une hero-card, on centre son conteneur */
-.site-main:has(.hero-card) {
-  display: flex;
-  flex-direction: column;
-  align-items: center;     /* centre horizontalement */
-}
-
-/* Espace vertical “au milieu de la page” selon la taille d’écran */
-.hero-card {
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-  /* sur mobile on descend un peu plus pour être visuellement centré */
-  margin-top: 8svh;
-  margin-bottom: 6svh;
-}
-
-@media (min-width: 769px) {
-  /* sur desktop on peut viser un quasi-centrage vertical */
-  .site-main:has(.hero-card) {
-    min-height: 72svh;     /* pousse le bloc vers le centre */
-    justify-content: center;
-  }
-  .hero-card {
-    margin-top: 0;
-    margin-bottom: 0;
-  }
 }
