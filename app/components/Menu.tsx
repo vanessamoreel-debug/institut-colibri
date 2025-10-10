@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-/** Menu déroulant du site public */
+/** Menu déroulant du site public (aligné à droite, liste verticale, sans chevron) */
 export default function Menu() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -31,10 +31,7 @@ export default function Menu() {
   }, [open]);
 
   const Item = ({ href, label }: { href: string; label: string }) => {
-    const active =
-      href === "/"
-        ? pathname === "/"
-        : pathname?.startsWith(href);
+    const active = href === "/" ? pathname === "/" : pathname?.startsWith(href);
     return (
       <Link
         href={href}
@@ -53,9 +50,14 @@ export default function Menu() {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="menu"
+        style={{
+          // style demandé : couleur marque + typo
+          color: "#7D6C71",
+          fontFamily: "'Playfair Display', serif",
+          fontWeight: 600,
+        }}
       >
-        <span className="menu-icon">☰</span>
-        Menu <span className={`chevron ${open ? "chevron-up" : ""}`}>⌄</span>
+        Menu
       </button>
 
       <nav className={`menu-panel ${open ? "open" : ""}`} role="menu">
