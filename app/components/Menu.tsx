@@ -1,30 +1,27 @@
+// /app/components/Menu.tsx
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
+/** Menu déroulant du site public */
 export default function Menu() {
   const [open, setOpen] = useState(false);
-  const pathname = usePathname();
   const ref = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
 
-  // Fermer à chaque changement de page
+  // fermer si clic à l’extérieur
   useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
-
-  // Fermer en cliquant à l'extérieur
-  useEffect(() => {
-    function onClickOutside(e: MouseEvent) {
+    function onDocClick(e: MouseEvent) {
       if (!ref.current) return;
       if (!ref.current.contains(e.target as Node)) setOpen(false);
     }
-    if (open) document.addEventListener("mousedown", onClickOutside);
-    return () => document.removeEventListener("mousedown", onClickOutside);
+    if (open) document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
   }, [open]);
 
-  // Fermer avec Echap
+  // fermer avec Échap
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") setOpen(false);
@@ -33,18 +30,39 @@ export default function Menu() {
     return () => document.removeEventListener("keydown", onKey);
   }, [open]);
 
+  const Item = ({ href, label }: { href: string; label: string }) => {
+    const active =
+      href === "/"
+        ? pathname === "/"
+        : pathname?.startsWith(href);
+    return (
+      <Link
+        href={href}
+        className={`menu-link ${active ? "active" : ""}`}
+        onClick={() => setOpen(false)}
+      >
+        {label}
+      </Link>
+    );
+  };
+
   return (
     <div className="menu-wrap" ref={ref}>
-      <button className="menu-button" onClick={() => setOpen(v => !v)} aria-expanded={open}>
+      <button
+        className="menu-button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-haspopup="menu"
+      >
         <span className="menu-icon">☰</span>
         Menu <span className={`chevron ${open ? "chevron-up" : ""}`}>⌄</span>
       </button>
 
-      <nav className={`menu-panel ${open ? "open" : ""}`}>
-        <Link href="/"         className="menu-link" onClick={() => setOpen(false)}>Accueil</Link>
-        <Link href="/soins"    className="menu-link" onClick={() => setOpen(false)}>Soins</Link>
-        <Link href="/contact"  className="menu-link" onClick={() => setOpen(false)}>Contact</Link>
-        <Link href="/a-propos" className="menu-link" onClick={() => setOpen(false)}>À propos</Link>
+      <nav className={`menu-panel ${open ? "open" : ""}`} role="menu">
+        <Item href="/" label="Accueil" />
+        <Item href="/soins" label="Soins" />
+        <Item href="/contact" label="Contact" />
+        <Item href="/a-propos" label="À propos" />
       </nav>
     </div>
   );
