@@ -11,10 +11,10 @@ export default function SiteChrome({ children }: { children: React.ReactNode }) 
         <div className="title-group">
           <Link href="/" className="logo-title-link" aria-label="Accueil Institut Colibri">
             <img
-              src="/logo-colibri.png"
-              alt="Logo Institut Colibri"
-              className="site-logo-large"
-            />
+  src="/logo-colibri-2.png"
+  alt="Logo Institut Colibri"
+  className="site-logo-large"
+/>
             <span className="site-title-text">Institut Colibri</span>
           </Link>
         </div>
