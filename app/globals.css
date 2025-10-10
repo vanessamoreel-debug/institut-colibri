@@ -265,3 +265,40 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
 
 /* S’il restait une ancienne règle “position: fixed” dans le cache, on écrase tout. */
 .site-footer { position: relative !important; bottom: auto !important; left: auto !important; z-index: auto !important; }
+/* === Footer plus petit et mieux placé === */
+.site-footer {
+  align-self: flex-start;
+  margin: 0 0 8px 10px; /* bord gauche léger */
+}
+
+.site-footer span {
+  display: inline-block;
+  padding: 6px 10px;                /* plus petit */
+  border-radius: 9999px;
+  background: rgba(125,108,113,0.10);
+  border: 1px solid rgba(125,108,113,0.25);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  color: var(--brand);
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  font-size: 0.85rem;              /* taille réduite */
+  line-height: 1.2;
+}
+/* === Centrage du bloc d’accueil (mobile) === */
+@media (max-width: 768px) {
+  body.body-public {
+    background-attachment: scroll;
+    background-size: cover;
+    min-height: 100vh;
+  }
+
+  .site-main:has(.hero-card) {
+    justify-content: center;   /* centre verticalement */
+    align-items: center;
+    min-height: 80vh;          /* espace équilibré */
+  }
+
+  .hero-card {
+    margin: 0 auto;
+  }
+}
