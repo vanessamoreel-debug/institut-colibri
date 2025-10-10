@@ -15,8 +15,6 @@ body {
   color: #111;
   line-height: 1.6;
 }
-
-/* Titres */
 h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
   font-family: 'Playfair Display', serif;
 }
@@ -36,16 +34,23 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
 }
 
 /* =========================
-   FOND PUBLIC (marbre)
+   FOND PUBLIC — robuste (mobile & desktop)
    ========================= */
-.body-public {
-  background: url("/fond-ecran-marbre.png") center / cover no-repeat fixed;
-  background-color: #f9f8f8;         /* secours */
+html.body-public, body.body-public {
   min-height: 100dvh;
+  background: transparent; /* le fond est dessiné via ::before */
 }
-/* mobile : éviter les saccades du fixed */
-@media (max-width: 768px) {
-  .body-public { background-attachment: scroll; }
+html.body-public::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: url("/fond-ecran-marbre.png") center / cover no-repeat, #f9f8f8;
+  pointer-events: none;
+}
+/* Hauteur dynamique quand dispo (iOS/Android) */
+@supports (height: 100svh) {
+  html.body-public::before { height: 100svh; }
 }
 
 /* =========================
@@ -59,24 +64,27 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
   display: flex;
   flex-direction: column;
 }
-.site-main { flex: 1; }        /* pousse le footer en bas */
+.site-main { flex: 1 1 auto; } /* pousse le footer en bas */
 
 /* =========================
    Header (logo / titre / menu)
    ========================= */
 .site-header {
   display: grid;
-  grid-template-columns: 1fr auto 1fr;  /* gauche / centre / droite */
+  grid-template-areas: "logo title menu";
+  grid-template-columns: auto 1fr auto;  /* logo | titre (centre) | menu */
   align-items: center;
   gap: 12px;
   padding: 10px 16px;
   margin-bottom: 16px;
 }
-.header-left   { display: flex; align-items: center; justify-content: flex-start; }
-.header-center { display: flex; align-items: center; justify-content: center; text-align: center; }
-.header-right  { display: flex; align-items: center; justify-content: flex-end; }
+.header-left   { grid-area: logo;  display:flex; align-items:center; }
+.header-center { grid-area: title; display:flex; justify-content:center; text-align:center; }
+.header-right  { grid-area: menu;  display:flex; justify-content:flex-end; }
+
 .site-logo-xxl { height: 250px; width: auto; object-fit: contain; display: block; }
 @media (max-width: 768px) { .site-logo-xxl { height: 140px; } }
+
 .site-title-text {
   font-weight: 600;
   font-size: 4.4rem;
@@ -85,8 +93,19 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
   margin: 0;
   white-space: nowrap;
   text-decoration: none;
+  text-align: center;
 }
-@media (max-width: 520px) { .site-title-text { font-size: 2.6rem; } }
+/* Mobile : le titre a sa propre ligne et reste centré */
+@media (max-width: 768px) {
+  .site-header {
+    grid-template-areas:
+      "logo  menu"
+      "title title";
+    grid-template-columns: auto auto;
+    row-gap: 8px;
+  }
+  .site-title-text { font-size: 2.6rem; }
+}
 
 /* =========================
    Menu (public)
@@ -159,11 +178,10 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
 }
 .hero-card h2 { margin: 0 0 8px; color: var(--brand); }
 .hero-card p  { margin: 0; font-size: 20px; }
-
 @media (min-width: 769px) {
   .site-main:has(.hero-card) {
     min-height: 72svh;
-    justify-content: center;        /* vrai centrage vertical sur grand écran */
+    justify-content: center;        /* vrai centrage vertical */
   }
   .hero-card { margin: 0 auto; }
 }
@@ -172,7 +190,7 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
 }
 
 /* =========================
-   Services / Pages info (inchangé)
+   Services / Pages info
    ========================= */
 .services-container {
   background: rgba(255,255,255,0.35);
@@ -243,37 +261,17 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
 .admin-shell .menu-link:hover { background: #f6f6f6; }
 
 /* =========================
-   Footer : pastille en bas
-   (non FIXE → ne chevauche rien)
+   Footer : pastille en bas (non FIXE)
    ========================= */
 .site-footer {
-  align-self: flex-start;              /* en bas à gauche */
-  margin: 10px 0 0 12px;
+  margin-top: auto;            /* colle au bas de la page */
+  align-self: flex-start;      /* bas-gauche */
+  margin-left: 10px;
+  margin-bottom: 8px;
 }
 .site-footer span {
   display: inline-block;
-  padding: 10px 14px;                  /* assorti au bouton Menu */
-  border-radius: 9999px;
-  background: rgba(125,108,113,0.12);
-  border: 1px solid rgba(125,108,113,0.28);
-  box-shadow: 0 10px 24px rgba(0,0,0,0.08);
-  color: var(--brand);
-  font-family: 'Playfair Display', serif;
-  font-weight: 600;
-  font-size: 0.95rem;
-}
-
-/* S’il restait une ancienne règle “position: fixed” dans le cache, on écrase tout. */
-.site-footer { position: relative !important; bottom: auto !important; left: auto !important; z-index: auto !important; }
-/* === Footer plus petit et mieux placé === */
-.site-footer {
-  align-self: flex-start;
-  margin: 0 0 8px 10px; /* bord gauche léger */
-}
-
-.site-footer span {
-  display: inline-block;
-  padding: 6px 10px;                /* plus petit */
+  padding: 6px 10px;           /* pastille compacte */
   border-radius: 9999px;
   background: rgba(125,108,113,0.10);
   border: 1px solid rgba(125,108,113,0.25);
@@ -281,24 +279,6 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
   color: var(--brand);
   font-family: 'Playfair Display', serif;
   font-weight: 600;
-  font-size: 0.85rem;              /* taille réduite */
+  font-size: 0.85rem;
   line-height: 1.2;
-}
-/* === Centrage du bloc d’accueil (mobile) === */
-@media (max-width: 768px) {
-  body.body-public {
-    background-attachment: scroll;
-    background-size: cover;
-    min-height: 100vh;
-  }
-
-  .site-main:has(.hero-card) {
-    justify-content: center;   /* centre verticalement */
-    align-items: center;
-    min-height: 80vh;          /* espace équilibré */
-  }
-
-  .hero-card {
-    margin: 0 auto;
-  }
 }
