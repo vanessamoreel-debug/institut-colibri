@@ -605,3 +605,40 @@ h1, h2, h3, .site-title, .services-title, .services-cat, .page-title {
   background-attachment: fixed; /* effet élégant au scroll */
   background-color: #f9f8f8; /* couleur de fond douce */
 }
+
+/* ==== FOOTER ÉLÉGANT ==== */
+
+.site-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.site-footer span {
+  background: rgba(255, 255, 255, 0.85); /* léger fond blanc translucide */
+  color: #7D6C71;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 0.95rem;
+  padding: 0.4rem 1rem;
+  border-radius: 9999px; /* effet pastille */
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* Fixe le footer en bas si peu de contenu */
+body,
+html {
+  height: 100%;
+}
+
+.site {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.site-main {
+  flex: 1;
+}
