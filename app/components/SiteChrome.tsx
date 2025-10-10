@@ -2,25 +2,32 @@
 import Link from "next/link";
 import Menu from "./Menu";
 
-/** En-tête du site public : grand titre + menu déroulant (à droite) */
-export default function SiteChrome() {
+export default function SiteChrome({
+  children,
+}: {
+  children?: React.ReactNode;
+}) {
   return (
-    <header className="site-header" role="banner" aria-label="En-tête du site">
-      <h1 style={{ margin: 0 }}>
+    <div className="site">
+      {/* HEADER */}
+      <header className="site-header">
         <Link
           href="/"
           className="site-title"
           style={{ textDecoration: "none" }}
-          aria-label="Aller à l’accueil Institut Colibri"
         >
           Institut Colibri
         </Link>
-      </h1>
-
-      {/* Menu déroulant (Accueil, Soins, Contact, À propos) */}
-      <nav aria-label="Navigation principale">
         <Menu />
-      </nav>
-    </header>
+      </header>
+
+      {/* CONTENU */}
+      <main className="site-main">{children}</main>
+
+      {/* FOOTER */}
+      <footer className="site-footer">
+        <span>© Institut Colibri 2025</span>
+      </footer>
+    </div>
   );
 }
