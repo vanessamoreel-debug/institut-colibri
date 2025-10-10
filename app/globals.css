@@ -524,3 +524,72 @@ h1, h2, h3, .site-title, .services-title, .services-cat, .page-title {
 /* retire l'icône chevron éventuelle */
 .chevron { display: none !important; }
 
+/* ==== STYLE DU MENU PUBLIC ==== */
+
+/* structure de l'en-tête */
+.site-header {
+  display: flex;
+  justify-content: space-between; /* titre à gauche, menu à droite */
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+/* bouton Menu */
+.menu-button {
+  background: transparent;
+  border: none;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #7D6C71;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.menu-button:hover {
+  color: #5f4f54; /* un peu plus foncé au survol */
+}
+
+/* panneau déroulant vertical */
+.menu-panel {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.4rem;
+  background: rgba(255, 255, 255, 0.98);
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 0.8rem 1.2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  display: none;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 50;
+}
+
+.menu-panel.open {
+  display: flex;
+}
+
+/* liens du menu */
+.menu-link {
+  font-family: 'Cormorant Garamond', serif;
+  color: #7D6C71;
+  text-decoration: none;
+  font-size: 1rem;
+  transition: color 0.2s ease;
+}
+
+.menu-link:hover {
+  color: #5f4f54;
+}
+
+.menu-link.active {
+  font-weight: 600;
+  color: #5f4f54;
+}
+
+/* conteneur du menu (pour position relative du nav) */
+.menu-wrap {
+  position: relative;
+}
