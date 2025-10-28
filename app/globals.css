@@ -267,3 +267,19 @@ html.body-public::before {
     display: block;
   }
 }
+/* ✅ Menu : meilleur contraste */
+.menu-button {
+ background: rgba(125,108,113,0.22); /* plus opaque */
+ border: 1px solid rgba(125,108,113,0.38); /* bordure + visible */
+ color: #5A4A4E; /* texte plus sombre */
+ backdrop-filter: blur(4px);
+}
+
+/* Hover : plus visible */
+.menu-button:hover {
+ background: rgba(125,108,113,0.32);
+ color: #3d3134;
+}
+.menu-button {
+ box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
