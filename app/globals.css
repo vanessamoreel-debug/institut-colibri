@@ -166,20 +166,15 @@ html.body-public::before {
 }
 
 /* =========================
-   Cartes floues pour Contact / À propos / Soins
-   ========================= */
+/* --- Cartes floues (Soins / À propos / Contact) plus élégantes --- */
 .services-container,
 .pricelist,
 .info-panel {
-  background: rgba(255,255,255,0.35);
-  border: 1px solid rgba(125,108,113,0.25);
-  border-radius: 16px;
-  padding: 22px 20px;
-  max-width: 980px;
-  margin: 10px auto 20px;
+  background: rgba(255, 255, 255, 0.22);      /* avant ~0.35 */
+  border: 1px solid rgba(125, 108, 113, 0.18);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
-  box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
 }
 
 /* Typographie des pages info */
