@@ -3,13 +3,20 @@
 /* =========================
    Variables
    ========================= */
-:root { --brand: #7D6C71; }
+:root {
+  --brand: #7D6C71;
+  --bg-desktop: url("/fond-ecran-institut-desktop.png");
+  --bg-mobile: url("/fond-ecran-institut.jpg");
+}
 
 /* =========================
    Reset + typo
    ========================= */
 * { box-sizing: border-box; }
-html, body { height: 100%; margin: 0; }
+html, body {
+  height: 100%;
+  margin: 0;
+}
 body {
   font-family: 'Cormorant Garamond', serif;
   color: #111;
@@ -20,56 +27,38 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
 }
 
 /* =========================
-   FOND PUBLIC — responsive desktop/mobile
+   Fond public responsive
    ========================= */
-
-/* Variables d’images (tu peux garder .png si tu préfères) */
-:root {
-  --bg-desktop: url("/fond-ecran-institut-desktop.png");
-  --bg-mobile:  url("/fond-ecran-institut.jpg");
-}
-
-/* Fallback : si tu n’as pas encore mis les 2 fichiers,
-   décommente la ligne ci-dessous pour utiliser l’ancienne image unique. */
-/* :root { --bg-desktop: url("/fond-ecran-institut.jpg"); --bg-mobile: url("/fond-ecran-institut.jpg"); } */
-
-/* Le fond est dessiné sur un calque derrière tout le site */
 html.body-public, body.body-public {
-  min-height: 100dvh;
-  background: transparent; /* on dessine via ::before */
+  background: transparent;
+  min-height: 100vh;
 }
 
 html.body-public::before {
   content: "";
-  position: fixed;  /* colle à la fenêtre → pas de défilement visible */
+  position: fixed;
   inset: 0;
   z-index: -1;
-  background: var(--bg-desktop) center center / cover no-repeat, #f9f8f8;
+  background: var(--bg-desktop) center/cover no-repeat;
   pointer-events: none;
 }
 
-/* Mobile : on garde la version mobile et on évite le position:fixed qui saccade parfois */
 @media (max-width: 768px) {
   html.body-public::before {
-    position: absolute; /* suit la page, plus fluide sur iOS/Android */
-    background: var(--bg-mobile) center center / cover no-repeat, #f9f8f8;
+    position: absolute;
     height: 100%;
+    background: var(--bg-mobile) center/cover no-repeat;
   }
 }
 
-/* Option “dészoom” léger sur très grands écrans
-   (si tu veux encore réduire le crop sur écrans 1440px+) */
 @media (min-width: 1440px) {
   html.body-public::before {
-    background-size: 90% auto;     /* moins “zoomé” que cover */
-    background-repeat: no-repeat;   /* sans duplication */
-    background-position: center top;/* recadre si besoin */
-    /* Remarque : si tu vois des bords, remets cover et prépare un visuel desktop plus large */
+    background-size: 90% auto;
   }
 }
 
 /* =========================
-   Shell
+   Layout + Footer sticky
    ========================= */
 .site {
   max-width: 980px;
@@ -82,88 +71,74 @@ html.body-public::before {
 .site-main { flex: 1; }
 
 /* =========================
-   HEADER — Titre centré & Menu à droite
+   Header + Titre + Menu
    ========================= */
 .site-header {
   display: flex;
-  width: 100%;
   justify-content: center;
-  padding: 10px 0 10px;
-  margin-bottom: 10px;
+  align-items: center;
+  padding: 60px 0 10px; /* 🆕 espace pour le menu */
   position: relative;
 }
 
 .site-title-text {
-  font-weight: 600;
   font-size: 4rem;
+  font-weight: 600;
   color: var(--brand);
-  line-height: 1.1;
   margin: 0;
   text-align: center;
   white-space: nowrap;
 }
-
-/* Taille mobile */
-@media (max-width: 520px) {
-  .site-title-text { font-size: 2.6rem; }
+@media (max-width:520px) {
+  .site-title-text { font-size: 2.7rem; }
 }
 
-/* =========================
-   MENU (public) — positionné en haut droite
-   ========================= */
 .menu-wrap {
   position: absolute;
-  top: 0;
-  right: 0;
-  margin: 6px 16px 0 0;
+  top: 10px;
+  right: 12px;
 }
-
 .menu-button {
-  appearance: none;
   display: inline-flex;
   align-items: center;
-  background: rgba(125,108,113,0.12);
-  border: 1px solid rgba(125,108,113,0.28);
-  border-radius: 12px;
-  padding: 8px 14px;
-  font-size: 1.05rem;
   font-family: 'Playfair Display', serif;
+  font-size: 1.05rem;
   font-weight: 600;
-  color: var(--brand);
-  cursor: pointer;
-  transition: background .15s ease, color .15s ease;
-}
-.menu-button:hover { background: rgba(125,108,113,0.18); }
-
-.menu-panel {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  min-width: 180px;
-  display: none;
-  flex-direction: column;
-  gap: 6px;
-  background: rgba(255,255,255,0.98);
-  border: 1px solid rgba(125,108,113,0.25);
+  padding: 10px 14px;
+  background: rgba(125,108,113,0.22);
+  border: 1px solid rgba(125,108,113,0.38);
   border-radius: 12px;
-  padding: 10px 12px;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-  z-index: 1000;
+  color: #5A4A4E;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  cursor: pointer;
 }
-.menu-panel.open { display: flex; }
-
+.menu-panel {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  min-width: 180px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.98);
+  border-radius: 12px;
+  border: 1px solid rgba(125,108,113,0.25);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+.menu-panel.open { display: flex; flex-direction: column; gap: 6px; }
 .menu-link {
+  color: var(--brand);
   padding: 8px 10px;
+  font-size: 1rem;
+  font-family: 'Cormorant Garamond', serif;
   border-radius: 8px;
   text-decoration: none;
-  color: var(--brand);
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1rem;
 }
-.menu-link:hover { background: rgba(125,108,113,0.10); }
+.menu-link:hover {
+  background: rgba(125,108,113,0.10);
+}
 
 /* =========================
-   HERO Accueil
+   Hero — Accueil
    ========================= */
 .site-main:has(.hero-card) {
   display: flex;
@@ -171,127 +146,21 @@ html.body-public::before {
   align-items: center;
 }
 .hero-card {
-  background: rgba(255,255,255,0.35);
-  border: 1px solid rgba(125,108,113,0.25);
-  border-radius: 14px;
-  padding: 28px 24px;
+  margin-top: -16svh;
   max-width: 760px;
+  padding: 28px 24px;
+  text-align: center;
   color: #3d2f34;
   line-height: 1.7;
+  background: rgba(255,255,255,0.35);
+  border-radius: 14px;
   backdrop-filter: blur(8px);
-  text-align: center;
-
-  /* 🚀 Remonté fortement */
-  margin-top: -16svh;
-}
-
-@media (max-width: 520px) {
-  .hero-card { padding: 20px 14px; }
+  -webkit-backdrop-filter: blur(8px);
 }
 
 /* =========================
-   Footer : en bas à gauche
+   Cartes floues pour Contact / À propos / Soins
    ========================= */
-.site-footer {
-  margin-top: auto;
-  margin-left: 10px;
-  margin-bottom: 10px;
-}
-
-.site-footer span {
-  display: inline-block;
-  padding: 6px 10px;
-  border-radius: 9999px;
-  background: rgba(125,108,113,0.10);
-  border: 1px solid rgba(125,108,113,0.25);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-  color: var(--brand);
-  font-family: 'Playfair Display', serif;
-  font-weight: 600;
-  font-size: 0.85rem;
-  line-height: 1.2;
-}
-/* =========================
-   HEADER — Fix mobile layout (menu à droite du titre)
-   ========================= */
-@media (max-width: 768px) {
-  .site-header {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding-top: 12px;
-    margin-bottom: 6px;
-  }
-
-  .site-title-text {
-    flex: 1;
-    text-align: center;
-    padding: 0 60px; /* laisse la place au menu à droite */
-    font-size: 2.2rem;
-  }
-
-  .menu-button {
-    position: absolute;
-    top: 0;
-    right: 8px;
-    transform: translateY(10px); /* aligne verticalement */
-    padding: 8px 10px;
-    font-size: 0.95rem;
-  }
-
-  .menu-panel {
-    right: 8px;
-    top: 50px; /* ouvre par-dessous le bouton */
-  }
-}
-/* =========================
-   Mobile — espace entre le menu et le titre
-   ========================= */
-@media (max-width: 768px) {
-  .site-header {
-    padding-top: 48px; /* ↓ décale tout le contenu sous le menu */
-  }
-
-  .site-title-text {
-    padding-top: 18px; /* ajuste le centrage visuel */
-    font-size: 2.4rem; /* lisible sur mobile */
-    display: block;
-  }
-}
-/* ✅ Ajustement du titre sur smartphone */
-@media (max-width: 768px) {
-
-  .site-header {
-    padding-top: 70px; /* ↓ descente plus importante */
-  }
-
-  .site-title-text {
-    margin-top: 12px; /* petit espace sous le menu */
-    font-size: 2.7rem; /* meilleure lisibilité */
-    display: block;
-  }
-}
-/* ✅ Menu : meilleur contraste */
-.menu-button {
- background: rgba(125,108,113,0.22); /* plus opaque */
- border: 1px solid rgba(125,108,113,0.38); /* bordure + visible */
- color: #5A4A4E; /* texte plus sombre */
- backdrop-filter: blur(4px);
-}
-
-/* Hover : plus visible */
-.menu-button:hover {
- background: rgba(125,108,113,0.32);
- color: #3d3134;
-}
-.menu-button {
- box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-}
-/* ----------------------------------------------------
-   ✅ Cartes floues sur toutes les pages sauf Accueil
-   ---------------------------------------------------- */
-
 .services-container,
 .pricelist,
 .info-panel {
@@ -305,64 +174,49 @@ html.body-public::before {
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 28px rgba(0,0,0,0.08);
 }
-/* =========================
-   Pages info (À propos / Contact)
-   Charte typographique + carte floue
-   ========================= */
 
-/* Conteneur "carte" élégant */
-.info-panel {
-  background: rgba(255,255,255,0.35);
-  border: 1px solid rgba(125,108,113,0.25);
-  border-radius: 16px;
-  padding: 22px 20px;
-  max-width: 980px;
-  margin: 10px auto 20px;
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 28px rgba(0,0,0,0.08);
-}
-
-/* Titre de page conforme à la charte */
+/* Typographie des pages info */
 .page-title {
-  font-family: 'Playfair Display', serif;
-  font-weight: 600;
   font-size: 2rem;
-  line-height: 1.2;
+  font-weight: 600;
   color: var(--brand);
   text-align: center;
-  margin: 6px 0 16px;
+  margin-bottom: 14px;
 }
-
-/* Texte de page avec la bonne police/couleur */
 .page-content {
-  font-family: 'Cormorant Garamond', serif;
-  color: #111;
   font-size: 18px;
   line-height: 1.7;
+  font-family: 'Cormorant Garamond', serif;
+  color: #111;
 }
-
-/* Paragraphes / listes harmonisés */
-.page-content p { margin: 0 0 12px; }
-.page-content ul, .page-content ol { margin: 8px 0 12px 22px; }
-
-/* Liens : couleur de marque, soulignés au survol */
+.page-content p { margin: 6px 0 12px; }
 .page-content a {
   color: var(--brand);
-  text-decoration: none;
   font-weight: 600;
+  text-decoration: none;
 }
 .page-content a:hover { text-decoration: underline; }
-
-/* Accentuation visuelle éventuelle */
 .notice-strong {
-  display: inline-block;
   font-weight: 700;
-  font-size: 1.4rem;
-  line-height: 1.3;
+  font-size: 1.3rem;
   color: var(--brand);
-  margin: 4px 0 8px;
 }
 
-/* Petit correctif si la page a peu de contenu (footer reste bas) */
-.site-main { flex: 1 1 auto; }
+/* =========================
+   Footer bas gauche
+   ========================= */
+.site-footer {
+  margin-top: auto;
+  margin-left: 10px;
+  margin-bottom: 10px;
+}
+.site-footer span {
+  padding: 6px 10px;
+  border-radius: 9999px;
+  background: rgba(125,108,113,0.10);
+  border: 1px solid rgba(125,108,113,0.25);
+  color: var(--brand);
+  font-family: 'Playfair Display', serif;
+  font-size: 0.85rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
