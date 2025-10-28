@@ -145,17 +145,24 @@ html.body-public::before {
   justify-content: center;
   align-items: center;
 }
+/* --- HERO (accueil) plus léger --- */
 .hero-card {
-  margin-top: -16svh;
-  max-width: 760px;
-  padding: 28px 24px;
-  text-align: center;
-  color: #3d2f34;
-  line-height: 1.7;
-  background: rgba(255,255,255,0.35);
-  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.26);      /* avant ~0.35 */
+  border: 1px solid rgba(125, 108, 113, 0.18);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+}
+
+/* --- Cartes floues (Soins / À propos / Contact) plus élégantes --- */
+.services-container,
+.pricelist,
+.info-panel {
+  background: rgba(255, 255, 255, 0.22);      /* avant ~0.35 */
+  border: 1px solid rgba(125, 108, 113, 0.18);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.06);
 }
 
 /* =========================
