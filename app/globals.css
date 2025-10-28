@@ -254,3 +254,16 @@ html.body-public::before {
     display: block;
   }
 }
+/* ✅ Ajustement du titre sur smartphone */
+@media (max-width: 768px) {
+
+  .site-header {
+    padding-top: 70px; /* ↓ descente plus importante */
+  }
+
+  .site-title-text {
+    margin-top: 12px; /* petit espace sous le menu */
+    font-size: 2.7rem; /* meilleure lisibilité */
+    display: block;
+  }
+}
