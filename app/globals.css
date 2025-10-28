@@ -240,3 +240,17 @@ html.body-public::before {
     top: 50px; /* ouvre par-dessous le bouton */
   }
 }
+/* =========================
+   Mobile — espace entre le menu et le titre
+   ========================= */
+@media (max-width: 768px) {
+  .site-header {
+    padding-top: 48px; /* ↓ décale tout le contenu sous le menu */
+  }
+
+  .site-title-text {
+    padding-top: 18px; /* ajuste le centrage visuel */
+    font-size: 2.4rem; /* lisible sur mobile */
+    display: block;
+  }
+}
