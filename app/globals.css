@@ -206,3 +206,37 @@ html.body-public::before {
   font-size: 0.85rem;
   line-height: 1.2;
 }
+/* =========================
+   HEADER — Fix mobile layout (menu à droite du titre)
+   ========================= */
+@media (max-width: 768px) {
+  .site-header {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-top: 12px;
+    margin-bottom: 6px;
+  }
+
+  .site-title-text {
+    flex: 1;
+    text-align: center;
+    padding: 0 60px; /* laisse la place au menu à droite */
+    font-size: 2.2rem;
+  }
+
+  .menu-button {
+    position: absolute;
+    top: 0;
+    right: 8px;
+    transform: translateY(10px); /* aligne verticalement */
+    padding: 8px 10px;
+    font-size: 0.95rem;
+  }
+
+  .menu-panel {
+    right: 8px;
+    top: 50px; /* ouvre par-dessous le bouton */
+  }
+}
