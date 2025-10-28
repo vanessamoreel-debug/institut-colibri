@@ -181,8 +181,8 @@ html.body-public::before {
   backdrop-filter: blur(8px);
   text-align: center;
 
-  /* ✅ Remonter le bloc */
-  margin-top: 4svh; /* avant : centré vertical → maintenant un peu plus haut */
+  /* 🚀 Remonté fortement */
+  margin-top: -10svh;
 }
 
 @media (max-width: 520px) {
