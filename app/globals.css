@@ -176,8 +176,13 @@ html.body-public::before {
   border-radius: 14px;
   padding: 28px 24px;
   max-width: 760px;
+  color: #3d2f34;
+  line-height: 1.7;
+  backdrop-filter: blur(8px);
   text-align: center;
-  backdrop-filter: blur(6px);
+
+  /* ✅ Remonter le bloc */
+  margin-top: 4svh; /* avant : centré vertical → maintenant un peu plus haut */
 }
 
 @media (max-width: 520px) {
