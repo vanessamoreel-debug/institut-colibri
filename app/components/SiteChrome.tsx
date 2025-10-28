@@ -1,45 +1,29 @@
 // /app/components/SiteChrome.tsx
+"use client";
+
 import Link from "next/link";
 import Menu from "./Menu";
 
-export default function SiteChrome({ children }: { children: React.ReactNode }) {
+export default function SiteChrome() {
   return (
-    <div className="site">
-      {/* HEADER */}
-      <header className="site-header">
-        {/* Logo à gauche */}
-        <div className="header-left">
-          <img
-            src="/Logo-colibri-4.png"
-            alt="Logo Institut Colibri"
-            className="site-logo-xxl"
-          />
-        </div>
+    <header className="site-header">
+      
+      {/* Titre cliquable centré */}
+      <div className="header-center">
+        <Link
+          href="/"
+          className="site-title-text"
+          style={{ textDecoration: "none" }}
+        >
+          Institut Colibri
+        </Link>
+      </div>
 
-        {/* Titre parfaitement centré */}
-        <div className="header-center">
-          <Link
-            href="/"
-            className="site-title-text"
-            style={{ textDecoration: "none" }}
-          >
-            Institut&nbsp;Colibri
-          </Link>
-        </div>
+      {/* Menu à droite */}
+      <div className="header-right">
+        <Menu />
+      </div>
 
-        {/* Menu à droite */}
-        <div className="header-right">
-          <Menu />
-        </div>
-      </header>
-
-      {/* CONTENU */}
-      <main className="site-main">{children}</main>
-
-      {/* FOOTER */}
-      <footer className="site-footer">
-        <span>© Institut Colibri 2025</span>
-      </footer>
-    </div>
+    </header>
   );
 }
