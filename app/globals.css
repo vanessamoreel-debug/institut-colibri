@@ -26,7 +26,7 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
 /* Variables d’images (tu peux garder .png si tu préfères) */
 :root {
   --bg-desktop: url("/fond-ecran-institut-desktop.png");
-  --bg-mobile:  url("/fond-ecran-institut-mobile.png");
+  --bg-mobile:  url("/fond-ecran-institut.jpg");
 }
 
 /* Fallback : si tu n’as pas encore mis les 2 fichiers,
