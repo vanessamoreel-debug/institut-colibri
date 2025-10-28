@@ -182,7 +182,7 @@ html.body-public::before {
   text-align: center;
 
   /* 🚀 Remonté fortement */
-  margin-top: -10svh;
+  margin-top: -16svh;
 }
 
 @media (max-width: 520px) {
