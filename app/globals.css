@@ -147,7 +147,7 @@ html.body-public::before {
 }
 /* --- HERO (accueil) plus léger --- */
 .hero-card {
-  background: rgba(255, 255, 255, 0.18);      /* avant ~0.35 */
+  background: rgba(255, 255, 255, 0.10);      /* avant ~0.35 */
   border: 1px solid rgba(125, 108, 113, 0.18);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
@@ -158,7 +158,7 @@ html.body-public::before {
 .services-container,
 .pricelist,
 .info-panel {
-  background: rgba(255, 255, 255, 0.18);      /* avant ~0.35 */
+  background: rgba(255, 255, 255, 0.10);      /* avant ~0.35 */
   border: 1px solid rgba(125, 108, 113, 0.18);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
@@ -170,7 +170,7 @@ html.body-public::before {
 .services-container,
 .pricelist,
 .info-panel {
-  background: rgba(255, 255, 255, 0.22);      /* avant ~0.35 */
+  background: rgba(255, 255, 255, 0.10);      /* avant ~0.35 */
   border: 1px solid rgba(125, 108, 113, 0.18);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
