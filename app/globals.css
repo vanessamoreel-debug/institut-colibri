@@ -20,21 +20,51 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
 }
 
 /* =========================
-   FOND PUBLIC — fond-ecran-institut
+   FOND PUBLIC — responsive desktop/mobile
    ========================= */
-.body-public {
-  min-height: 100vh;
-  background: url("/fond-ecran-institut.jpg") center / cover no-repeat fixed;
-  background-color: #f9f8f8;
+
+/* Variables d’images (tu peux garder .png si tu préfères) */
+:root {
+  --bg-desktop: url("/fond-ecran-institut-desktop.png");
+  --bg-mobile:  url("/fond-ecran-institut-mobile.png");
 }
 
-/* Mobile — évite les saccades iOS */
+/* Fallback : si tu n’as pas encore mis les 2 fichiers,
+   décommente la ligne ci-dessous pour utiliser l’ancienne image unique. */
+/* :root { --bg-desktop: url("/fond-ecran-institut.jpg"); --bg-mobile: url("/fond-ecran-institut.jpg"); } */
+
+/* Le fond est dessiné sur un calque derrière tout le site */
+html.body-public, body.body-public {
+  min-height: 100dvh;
+  background: transparent; /* on dessine via ::before */
+}
+
+html.body-public::before {
+  content: "";
+  position: fixed;  /* colle à la fenêtre → pas de défilement visible */
+  inset: 0;
+  z-index: -1;
+  background: var(--bg-desktop) center center / cover no-repeat, #f9f8f8;
+  pointer-events: none;
+}
+
+/* Mobile : on garde la version mobile et on évite le position:fixed qui saccade parfois */
 @media (max-width: 768px) {
-  .body-public {
-    background-attachment: scroll;
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
+  html.body-public::before {
+    position: absolute; /* suit la page, plus fluide sur iOS/Android */
+    background: var(--bg-mobile) center center / cover no-repeat, #f9f8f8;
+    height: 100%;
+  }
+}
+
+/* Option “dészoom” léger sur très grands écrans
+   (si tu veux encore réduire le crop sur écrans 1440px+) */
+@media (min-width: 1440px) {
+  html.body-public::before {
+    background-size: 90% auto;     /* moins “zoomé” que cover */
+    background-repeat: no-repeat;   /* sans duplication */
+    background-position: center top;/* recadre si besoin */
+    /* Remarque : si tu vois des bords, remets cover et prépare un visuel desktop plus large */
   }
 }
 
