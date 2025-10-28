@@ -5,19 +5,25 @@ import SiteChrome from "./components/SiteChrome";
 
 export const metadata: Metadata = {
   title: "Institut Colibri",
-  description: "Soins & bien-être",
+  description: "Institut de beauté - soins visage, massages, bien-être",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr">
-      <body className="min-h-screen body-public">
-        {/* SiteChrome gère le header, le menu, le footer et enveloppe le contenu */}
-        <SiteChrome>{children}</SiteChrome>
+    <html lang="fr" className="body-public">
+      <body className="body-public">
+        <div className="site">
+          {/* En-tête (titre + menu) */}
+          <SiteChrome />
+
+          {/* Contenu des pages */}
+          <main className="site-main">{children}</main>
+
+          {/* Footer pastille en bas gauche (non fixe) */}
+          <footer className="site-footer">
+            <span>© Institut Colibri 2025</span>
+          </footer>
+        </div>
       </body>
     </html>
   );
