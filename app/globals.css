@@ -220,3 +220,20 @@ html.body-public::before {
   font-size: 0.85rem;
   box-shadow: 0 4px 12px rgba(0,0,0,0.06);
 }
+/* --- MENU AU-DESSUS DES CARTES --- */
+.site-header {
+  position: relative;   /* crée un contexte de superposition pour le header */
+  z-index: 1000;        /* le header passe devant le contenu */
+}
+
+.menu-wrap,
+.menu-button {
+  position: absolute;   /* tu l'as déjà, on renforce juste le z-index */
+  z-index: 1500;
+}
+
+.menu-panel {
+  position: absolute;
+  z-index: 2000;        /* le panneau passe au-dessus de tout */
+  /* (le reste de tes styles menu-panel ne change pas) */
+}
