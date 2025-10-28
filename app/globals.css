@@ -28,7 +28,7 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
   background-color: #f9f8f8;
 }
 
-/* Mobile — évite le fixed (saccades iOS) */
+/* Mobile — évite les saccades iOS */
 @media (max-width: 768px) {
   .body-public {
     background-attachment: scroll;
@@ -39,7 +39,7 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
 }
 
 /* =========================
-   Shell (layout)
+   Shell
    ========================= */
 .site {
   max-width: 980px;
@@ -49,19 +49,18 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
   display: flex;
   flex-direction: column;
 }
-.site-main {
-  flex: 1; /* pousse le footer en bas */
-}
+.site-main { flex: 1; }
 
 /* =========================
-   Header — Titre centré
+   HEADER — Titre centré & Menu à droite
    ========================= */
 .site-header {
   display: flex;
+  width: 100%;
   justify-content: center;
-  align-items: center;
-  padding: 10px 0 0 0;
+  padding: 10px 0 10px;
   margin-bottom: 10px;
+  position: relative;
 }
 
 .site-title-text {
@@ -70,44 +69,50 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
   color: var(--brand);
   line-height: 1.1;
   margin: 0;
-  white-space: nowrap;
-  text-decoration: none;
   text-align: center;
+  white-space: nowrap;
 }
 
+/* Taille mobile */
 @media (max-width: 520px) {
-  .site-title-text { font-size: 2.4rem; }
+  .site-title-text { font-size: 2.6rem; }
 }
 
 /* =========================
-   MENU (public)
+   MENU (public) — positionné en haut droite
    ========================= */
-.menu-wrap { position: relative; }
+.menu-wrap {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 6px 16px 0 0;
+}
+
 .menu-button {
   appearance: none;
-  display: inline-flex; align-items: center;
+  display: inline-flex;
+  align-items: center;
   background: rgba(125,108,113,0.12);
   border: 1px solid rgba(125,108,113,0.28);
   border-radius: 12px;
-  padding: 10px 14px;
+  padding: 8px 14px;
   font-size: 1.05rem;
   font-family: 'Playfair Display', serif;
   font-weight: 600;
   color: var(--brand);
   cursor: pointer;
-  transition: background .15s ease, transform .05s ease, color .15s ease;
-  position: absolute;
-  top: 0;
-  right: 0;
-  margin-right: 16px;
+  transition: background .15s ease, color .15s ease;
 }
+.menu-button:hover { background: rgba(125,108,113,0.18); }
 
 .menu-panel {
-  position: absolute; right: 0; top: calc(100% + 6px);
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 180px;
   display: none;
   flex-direction: column;
   gap: 6px;
-  min-width: 180px;
   background: rgba(255,255,255,0.98);
   border: 1px solid rgba(125,108,113,0.25);
   border-radius: 12px;
@@ -116,6 +121,7 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
   z-index: 1000;
 }
 .menu-panel.open { display: flex; }
+
 .menu-link {
   padding: 8px 10px;
   border-radius: 8px;
@@ -140,26 +146,25 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
   border-radius: 14px;
   padding: 28px 24px;
   max-width: 760px;
-  color: #3d2f34;
-  line-height: 1.7;
-  backdrop-filter: blur(8px);
   text-align: center;
+  backdrop-filter: blur(6px);
 }
 
-/* Mobile */
 @media (max-width: 520px) {
   .hero-card { padding: 20px 14px; }
 }
 
 /* =========================
-   Footer : toujours en bas
+   Footer : en bas à gauche
    ========================= */
 .site-footer {
   margin-top: auto;
   margin-left: 10px;
   margin-bottom: 10px;
 }
+
 .site-footer span {
+  display: inline-block;
   padding: 6px 10px;
   border-radius: 9999px;
   background: rgba(125,108,113,0.10);
@@ -169,4 +174,5 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
   font-family: 'Playfair Display', serif;
   font-weight: 600;
   font-size: 0.85rem;
+  line-height: 1.2;
 }
