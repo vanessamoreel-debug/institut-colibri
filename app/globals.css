@@ -304,3 +304,16 @@ html.body-public::before {
 }
 .admin-shell .header-center { grid-area: title; }
 .admin-shell .header-right  { grid-area: menu; }
+/* ✅ Correction centrage du titre sur mobile */
+@media (max-width: 768px) {
+  .site-title-text {
+    padding-right: 0 !important;  /* supprime la réserve excessive */
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    text-align: center !important;
+  }
+
+  .site-header {
+    justify-content: center !important;
+  }
+}
