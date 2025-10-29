@@ -33,6 +33,12 @@ function formatPriceAdmin(s: Service) {
 export default function AdminPage() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("soins");
+const searchParams = useSearchParams();
+useEffect(() => {
+  const t = (searchParams.get("tab") || "soins") as Tab;
+  if (t !== tab) setTab(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [searchParams]);
 
   // --- Promo (pilotée via /api/admin/settings) ---
   const [promoActive, setPromoActive] = useState<boolean>(false);
