@@ -1,39 +1,82 @@
 // components/SiteChrome.tsx
 "use client";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
 
-export default function SiteChrome({ children }: { children?: React.ReactNode }) {
+type Props = { children?: React.ReactNode };
+
+export default function SiteChrome({ children }: Props) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith("/admin");
+  const [open, setOpen] = useState(false);
+  const panelRef = useRef<HTMLDivElement | null>(null);
 
+  // Fermer le menu en cliquant hors du panneau
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (!panelRef.current) return;
+      if (!panelRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    if (!isAdmin) document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [isAdmin]);
+
+  // ---------- ADMIN : topbar simple ----------
+  if (isAdmin) {
+    return (
+      <div className="admin-shell">
+        <header className="admin-topbar">
+          <div className="admin-topbar-title">Administration — Institut Colibri</div>
+        </header>
+        <main className="admin-main">{children}</main>
+      </div>
+    );
+  }
+
+  // ---------- SITE CLIENT ----------
   return (
-    <div className={isAdmin ? "admin-shell" : ""}>
-      {/* ====== HEADER ====== */}
+    <>
       <header className="site-header">
-        {/* GAUCHE : masqué en admin via CSS si besoin */}
-        {!isAdmin && <div className="header-left">{/* (menu catégories, si tu le gardes) */}</div>}
+        {/* (On supprime le vieux menu “catégories” gauche) */}
+        <div className="header-left" />
 
-        {/* CENTRE : titre */}
+        {/* Titre centré */}
         <div className="header-center">
           <Link href="/" className="site-title-text">Institut Colibri</Link>
         </div>
 
-        {/* DROITE : menu déroulant */}
+        {/* Menu déroulant à droite */}
         <div className="header-right">
-          <div className="menu-wrap">
-            {/* ton bouton + panneau du menu existent déjà dans le projet */}
+          <div className="menu-wrap" data-menu>
+            <button
+              type="button"
+              className="menu-button"
+              aria-expanded={open}
+              aria-haspopup="true"
+              onClick={() => setOpen(v => !v)}
+            >
+              Menu
+            </button>
+
+            <div
+              ref={panelRef}
+              className={`menu-panel${open ? " open" : ""}`}
+              role="menu"
+            >
+              <Link className="menu-link" href="/" onClick={() => setOpen(false)}>Accueil</Link>
+              <Link className="menu-link" href="/soins" onClick={() => setOpen(false)}>Soins</Link>
+              <Link className="menu-link" href="/a-propos" onClick={() => setOpen(false)}>À&nbsp;propos</Link>
+              <Link className="menu-link" href="/contact" onClick={() => setOpen(false)}>Contact</Link>
+            </div>
           </div>
         </div>
       </header>
 
-      {/* Si on te passe des children, on les rend ici (sinon rien) */}
-      {children ? <main className="site-main">{children}</main> : null}
-
-      {/* ====== FOOTER ====== */}
-      <footer className="site-footer">
-        <span>© Institut Colibri 2025</span>
-      </footer>
-    </div>
+      {/* Contenu des pages */}
+      <main className="site-main">{children}</main>
+      {/* ⚠️ PAS DE FOOTER ICI (on garde celui du layout) */}
+    </>
   );
 }
