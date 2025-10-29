@@ -327,3 +327,34 @@ html.body-public, body.body-public {
   }
   .site-header { justify-content: center !important; }
 }
+/* === FIX MOBILE FOND MANQUANT (html a la classe .body-public) === */
+@media (max-width: 768px) {
+  html.body-public {
+    background-image: var(--bg-mobile) !important;
+    background-repeat: repeat-y !important;     /* se répète verticalement */
+    background-size: 100% auto !important;      /* largeur entière, pas de zoom */
+    background-position: top center !important;
+    background-attachment: scroll !important;
+    background-color: #f9f8f8 !important;
+  }
+
+  /* On neutralise tout pseudo-calque hérité */
+  html.body-public::before,
+  body.body-public::before {
+    content: none !important;
+  }
+}
+
+/* === CONTRASTE + GRAS pour les entrées du menu (Accueil, Soins, À propos, Contact) === */
+.menu-link {
+  font-weight: 700 !important;       /* gras */
+  color: #3d3134 !important;         /* plus sombre, comme "Menu" */
+}
+.menu-link:hover {
+  background: rgba(125,108,113,0.14) !important;
+  color: #2a2225 !important;
+}
+.menu-link.active {
+  background: rgba(125,108,113,0.18) !important;
+  color: #2a2225 !important;
+}
