@@ -34,7 +34,7 @@ function formatPriceAdmin(s: Service) {
 }
 /* ============================================================= */
 
-export default function AdminPage() {
+function AdminPageInner() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>("soins");
 const searchParams = useSearchParams();
