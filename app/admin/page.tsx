@@ -1,8 +1,7 @@
 // /app/admin/page.tsx
 "use client";
 export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
-export const revalidate = 0;
+export const revalidate = false; // simple, clair, évite tout SSG
 
 import { Suspense } from "react";
 import { useEffect, useMemo, useState } from "react";
@@ -444,10 +443,25 @@ useEffect(() => {
   // --------- UI ----------
   return (
     <div>
-      {/* Barre de statut + menu admin */}
-     <h2 style={{ marginTop: 0 }}>Administration</h2>
-<div style={{ fontSize: 13, color: authed ? "green" : "crimson", marginBottom: 8 }}>
-  Statut admin : {authed == null ? "…" : authed ? "OK" : "NON CONNECTÉ"}
+ {/* Barre de statut + action */}
+<div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12, marginBottom: 8 }}>
+  <div>
+    <h2 style={{ margin: 0 }}>Administration</h2>
+    <div style={{ fontSize: 13, color: authed ? "green" : "crimson" }}>
+      Statut admin : {authed == null ? "…" : authed ? "OK" : "NON CONNECTÉ"}
+    </div>
+  </div>
+
+  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+    <button
+      onClick={async () => {
+        await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+        router.replace("/login");
+      }}
+    >
+      Se déconnecter
+    </button>
+  </div>
 </div>
 
       {/* =================== ONGLET SOINS =================== */}
