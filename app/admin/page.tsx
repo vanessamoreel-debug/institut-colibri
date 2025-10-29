@@ -441,25 +441,10 @@ useEffect(() => {
   return (
     <div>
       {/* Barre de statut + menu admin */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
-        <div>
-          <h2 style={{ margin: 0 }}>Administration</h2>
-          <div style={{ fontSize: 13, color: authed ? "green" : "crimson" }}>
-            Statut admin : {authed == null ? "…" : authed ? "OK" : "NON CONNECTÉ"}
-          </div>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <MenuAdmin tab={undefined} setTab={undefined} />
-          <button
-            onClick={async () => {
-              await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-              router.replace("/login");
-            }}
-          >
-            Se déconnecter
-          </button>
-        </div>
-      </div>
+     <h2 style={{ marginTop: 0 }}>Administration</h2>
+<div style={{ fontSize: 13, color: authed ? "green" : "crimson", marginBottom: 8 }}>
+  Statut admin : {authed == null ? "…" : authed ? "OK" : "NON CONNECTÉ"}
+</div>
 
       {/* =================== ONGLET SOINS =================== */}
       {tab === "soins" && (
