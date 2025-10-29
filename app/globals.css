@@ -428,3 +428,35 @@ html.body-public::before {
   -webkit-backdrop-filter: blur(10px) !important;
   box-shadow: 0 8px 28px rgba(0,0,0,0.08);
 }
+/***********************************
+ * ✅ STYLE UNIQUE DES CARTES
+ * (Toutes les vignettes → même look)
+ ***********************************/
+.hero-card,
+.services-container,
+.pricelist,
+.info-panel,
+.menu-panel {
+  background: rgba(125,108,113,0.10); /* même que la vignette accueil */
+  border: 1px solid rgba(125,108,113,0.25);
+  border-radius: 14px;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+}
+
+/* Marges et padding harmonisés */
+.hero-card {
+  padding: 28px 24px;
+}
+
+.services-container,
+.pricelist,
+.info-panel {
+  padding: 24px 20px;
+  margin: 10px auto 20px;
+}
+
+.menu-panel {
+  padding: 10px 12px;
+}
