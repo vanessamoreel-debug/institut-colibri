@@ -1,25 +1,19 @@
-// /app/layout.tsx
-import "./globals.css";
+// app/layout.tsx
 import type { Metadata } from "next";
-import SiteChrome from "./components/SiteChrome";
+import "./globals.css";
+import SiteChrome from "@/components/SiteChrome";
 
 export const metadata: Metadata = {
   title: "Institut Colibri",
-  description: "Institut de beauté - soins visage, massages, bien-être",
+  description: "Soins & bien-être",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" className="body-public">
-      <body className="body-public">
+      <body className="min-h-screen">
         <div className="site">
-          {/* En-tête (titre + menu) */}
-          <SiteChrome />
-
-          {/* Contenu des pages */}
-          <main className="site-main">{children}</main>
-
-          {/* Footer pastille en bas gauche (non fixe) */}
+          <SiteChrome>{children}</SiteChrome>
           <footer className="site-footer">
             <span>© Institut Colibri 2025</span>
           </footer>
