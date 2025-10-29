@@ -1,7 +1,9 @@
 // /app/admin/page.tsx
 "use client";
 export const dynamic = "force-dynamic";
-export const revalidate = false;
+export const revalidate = false;          // ← doit être boolean ou number, pas un objet
+export const fetchCache = "force-no-store";
+export const dynamicParams = true;
 
 import { Suspense } from "react";
 import { useEffect, useMemo, useState } from "react";
