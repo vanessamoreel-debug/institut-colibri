@@ -347,3 +347,47 @@ html.body-public::before {
 /* Sécurise les zones si tu utilises ces classes */
 .admin-shell .header-center { grid-area: title; }
 .admin-shell .header-right  { grid-area: menu;  }
+/* === Menu au-dessus des vignettes === */
+.menu-wrap,
+.menu-button,
+.menu-panel { position: relative; z-index: 2000; }
+.menu-panel { z-index: 2001; }
+
+/* Si jamais une carte passe encore devant, on force : */
+.services-container,
+.pricelist,
+.info-panel,
+.hero-card { position: relative; z-index: 1; }
+
+/* === Transparence plus élégante des vignettes === */
+/* (Tu peux ajuster les alpha si tu veux encore plus de transparence) */
+.hero-card {
+  background: rgba(125, 108, 113, 0.08);   /* 0.10 -> 0.08 */
+  border: 1px solid rgba(125, 108, 113, 0.22);
+}
+
+.services-container {
+  background: rgba(255, 255, 255, 0.28);   /* 0.35 -> 0.28 */
+  border: 1px solid rgba(125, 108, 113, 0.22);
+}
+
+.pricelist,
+.info-panel {
+  background: rgba(255, 255, 255, 0.32);   /* 0.42 -> 0.32 */
+  border: 1px solid rgba(125, 108, 113, 0.22);
+}
+
+/* Effet verre plus doux mais lisible */
+.hero-card,
+.services-container,
+.pricelist,
+.info-panel {
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.06);
+}
+
+/* Mobile : panneau du menu bien au-dessus */
+@media (max-width: 768px) {
+  .menu-panel { z-index: 3000; }
+}
