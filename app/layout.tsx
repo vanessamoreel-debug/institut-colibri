@@ -1,7 +1,7 @@
 // app/layout.tsx
 import type { Metadata } from "next";
 import "./globals.css";
-import SiteChrome from "@/app/components/SiteChrome";
+import SiteChrome from "./components/SiteChrome";
 
 export const metadata: Metadata = {
   title: "Institut Colibri",
