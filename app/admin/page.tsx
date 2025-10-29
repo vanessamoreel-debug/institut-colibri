@@ -332,7 +332,55 @@ function AdminPageInner() {
     setForm(s);
     setPriceMode(inferPriceMode(s));
   }
+// --------- CRUD CATEGORIES ----------
+async function catAddOrUpdate() {
+  setCatMsg("");
+  if (!catForm?.name || !String(catForm.name).trim()) {
+    setCatMsg("Nom de catégorie requis.");
+    return;
+  }
+  const payload = {
+    id: (catForm as any).id,
+    name: String(catForm.name).trim().toUpperCase(),
+    order: catForm.order == null ? null : Number(catForm.order),
+  };
+  const method = (catForm as any).id ? "PUT" : "POST";
+  try {
+    const res = await fetch("/api/admin/categories", {
+      method,
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (handleUnauthorized(res)) return;
+    if (!res.ok) throw new Error(await res.text());
+    const json = await res.json();
+    setCats(json.data || []);
+    setCatForm({});
+    setCatMsg("✔️ Catégorie enregistrée.");
+  } catch (e: any) {
+    setCatMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
+  }
+}
 
+async function catRemove(id: string) {
+  setCatMsg("");
+  try {
+    const res = await fetch("/api/admin/categories", {
+      method: "DELETE",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (handleUnauthorized(res)) return;
+    if (!res.ok) throw new Error(await res.text());
+    const json = await res.json();
+    setCats(json.data || []);
+    setCatMsg("✔️ Catégorie supprimée.");
+  } catch (e: any) {
+    setCatMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
+  }
+}
   /* Tri local soins */
   const dataSorted = useMemo(() => {
     const copy = [...data];
