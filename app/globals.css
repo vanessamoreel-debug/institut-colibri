@@ -317,3 +317,35 @@ html.body-public::before {
     justify-content: center !important;
   }
 }
+/* ===== Fond toujours visible sur pages longues (Soins) ===== */
+
+/* Desktop / tablettes (>=769px) : on peint le fond directement sur html+body
+   avec background-attachment: fixed pour qu'il suive TOUT le scroll. */
+@media (min-width: 769px) {
+  html.body-public,
+  body.body-public {
+    background-image: var(--bg-desktop), linear-gradient(#f9f8f8, #f9f8f8);
+    background-size: cover, auto;
+    background-position: center center, center;
+    background-repeat: no-repeat, no-repeat;
+    background-attachment: fixed, fixed; /* <- clé pour le scroll long */
+  }
+  /* évite un double rendu si un ::before existe déjà */
+  html.body-public::before { content: none !important; }
+}
+
+/* Mobile (<769px) : on garde la version fluide, mais on s'assure
+   que le calque couvre TOUTE la hauteur réelle de la page. */
+@media (max-width: 768px) {
+  html.body-public { position: relative; }
+  html.body-public::before {
+    position: absolute !important;
+    top: 0; left: 0; right: 0; bottom: 0;  /* couvre toute la page */
+    background: var(--bg-mobile) center / cover no-repeat, #f9f8f8;
+    /* Si jamais tu préfères forcer la répétition verticale plutôt que le cover,
+       dé-commente la ligne ci-dessous (option de secours) :
+       background-repeat: repeat-y, no-repeat;
+       background-size: 100% auto, auto;
+    */
+  }
+}
