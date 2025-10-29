@@ -486,15 +486,23 @@ useEffect(() => {
                 value={catForm.order?.toString() || ""}
                 onChange={(e) => setCatForm({ ...(catForm as any), order: numOrNull(e.target.value) as any })}
               />
-             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-  <button
-    onClick={async () => {
-      await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-      router.replace("/login");
-    }}
-  >
-    Se déconnecter
-  </button>
+            <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 120px 180px" }}>
+  <input
+    placeholder="Nom de la catégorie (ex: SOINS DU VISAGE)"
+    value={catForm.name || ""}
+    onChange={(e) => setCatForm({ ...(catForm as any), name: e.target.value.toUpperCase() })}
+  />
+  <input
+    placeholder="Ordre (ex: 1)"
+    type="number"
+    value={catForm.order?.toString() || ""}
+    onChange={(e) => setCatForm({ ...(catForm as any), order: numOrNull(e.target.value) as any })}
+  />
+
+  <div style={{ display: "flex", gap: 8 }}>
+    <button onClick={catAddOrUpdate}>{(catForm as any).id ? "Enregistrer" : "Ajouter"}</button>
+    {(catForm as any).id ? <button onClick={() => setCatForm({})}>Annuler</button> : null}
+  </div>
 </div>
 
             {catMsg ? <p style={{ color: catMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{catMsg}</p> : null}
