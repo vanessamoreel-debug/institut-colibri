@@ -391,3 +391,32 @@ html.body-public::before {
 @media (max-width: 768px) {
   .menu-panel { z-index: 3000; }
 }
+/* ✅ Fix position menu → collé en haut à droite, mais espace avec le titre */
+.site-header {
+  position: relative;
+}
+
+/* Espace à droite du titre pour ne pas chevaucher le menu */
+.site-title-text {
+  padding-right: 100px;
+}
+
+/* Menu bien ancré dans le coin → toujours cliquable */
+.menu-wrap {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  z-index: 2000; /* passe devant toutes les vignettes */
+}
+
+/* Mobile — recentrer et donner encore un peu d'espace */
+@media (max-width: 768px) {
+  .site-title-text {
+    padding-right: 80px;
+    font-size: 2.6rem;
+  }
+  .menu-wrap {
+    top: 8px;
+    right: 10px;
+  }
+}
