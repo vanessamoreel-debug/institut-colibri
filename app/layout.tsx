@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr" className="body-public">
-      <body className="min-h-screen">
+      <body className="min-h-screen body-public">
         <div className="site">
           <SiteChrome>{children}</SiteChrome>
           <footer className="site-footer">
