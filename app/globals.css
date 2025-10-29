@@ -32,35 +32,47 @@ h1, h2, h3, .site-title-text, .services-title, .services-cat, .page-title {
   --bg-desktop: url("/fond-ecran-institut-desktop.png");
   --bg-mobile:  url("/fond-ecran-institut.jpg");
 }
-/* Fallback si une seule image : */
-/* :root { --bg-desktop: url("/fond-ecran-institut.jpg"); --bg-mobile: url("/fond-ecran-institut.jpg"); } */
 
+/* Base : pas de fond direct, on le pose par media-queries */
 html.body-public, body.body-public {
   min-height: 100dvh;
-  background: transparent; /* on dessine via ::before */
+  background: transparent;
 }
-html.body-public::before {
-  content: "";
-  position: fixed;  /* colle à la fenêtre */
-  inset: 0;
-  z-index: -1;
-  background: var(--bg-desktop) center center / cover no-repeat, #f9f8f8;
-  pointer-events: none;
+
+/* Desktop / tablettes (>=769px): image pleine fenêtre, fixe pour scroll long */
+@media (min-width: 769px) {
+  html.body-public,
+  body.body-public {
+    background-image: var(--bg-desktop), linear-gradient(#f9f8f8, #f9f8f8);
+    background-size: cover, auto;
+    background-position: center center, center;
+    background-repeat: no-repeat, no-repeat;
+    background-attachment: fixed, fixed;
+  }
+  /* On s'assure qu'aucun ::before ne vienne interférer */
+  html.body-public::before { content: none !important; }
 }
-/* Mobile : éviter les saccades du fixed */
+
+/* Mobile (<=768px): papier-peint vertical, sans zoom ni trous */
 @media (max-width: 768px) {
-  html.body-public::before {
-    position: absolute; /* suit le scroll, plus fluide */
-    background: var(--bg-mobile) center center / cover no-repeat, #f9f8f8;
-    height: 100%;
+  /* Désactive tout pseudo-calque qui aurait pu rester */
+  html.body-public::before { content: none !important; }
+
+  body.body-public {
+    background-image: var(--bg-mobile);
+    background-repeat: repeat-y;         /* répète verticalement */
+    background-size: 100% auto;          /* largeur écran, hauteur auto */
+    background-position: top center;
+    background-attachment: scroll;
+    background-color: #f9f8f8;           /* couleur de secours */
   }
 }
+
 /* Option dészoom très grands écrans */
 @media (min-width: 1440px) {
-  html.body-public::before {
-    background-size: 90% auto;
-    background-repeat: no-repeat;
-    background-position: center top;
+  html.body-public,
+  body.body-public {
+    background-size: cover, auto; /* garde cover pour éviter les bords */
   }
 }
 
@@ -304,76 +316,14 @@ html.body-public::before {
 }
 .admin-shell .header-center { grid-area: title; }
 .admin-shell .header-right  { grid-area: menu; }
+
 /* ✅ Correction centrage du titre sur mobile */
 @media (max-width: 768px) {
   .site-title-text {
-    padding-right: 0 !important;  /* supprime la réserve excessive */
+    padding-right: 0 !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
     text-align: center !important;
   }
-
-  .site-header {
-    justify-content: center !important;
-  }
-}
-/* ===== Fond toujours visible sur pages longues (Soins) ===== */
-
-/* Desktop / tablettes (>=769px) : on peint le fond directement sur html+body
-   avec background-attachment: fixed pour qu'il suive TOUT le scroll. */
-@media (min-width: 769px) {
-  html.body-public,
-  body.body-public {
-    background-image: var(--bg-desktop), linear-gradient(#f9f8f8, #f9f8f8);
-    background-size: cover, auto;
-    background-position: center center, center;
-    background-repeat: no-repeat, no-repeat;
-    background-attachment: fixed, fixed; /* <- clé pour le scroll long */
-  }
-  /* évite un double rendu si un ::before existe déjà */
-  html.body-public::before { content: none !important; }
-}
-
-/* Mobile (<769px) : on garde la version fluide, mais on s'assure
-   que le calque couvre TOUTE la hauteur réelle de la page. */
-@media (max-width: 768px) {
-  html.body-public { position: relative; }
-  html.body-public::before {
-    position: absolute !important;
-    top: 0; left: 0; right: 0; bottom: 0;  /* couvre toute la page */
-    background: var(--bg-mobile) center / cover no-repeat, #f9f8f8;
-    /* Si jamais tu préfères forcer la répétition verticale plutôt que le cover,
-       dé-commente la ligne ci-dessous (option de secours) :
-       background-repeat: repeat-y, no-repeat;
-       background-size: 100% auto, auto;
-    */
-  }
-}
-/***********************************
- * ✅ Mobile : papier-peint répétitif (fond infini)
- ***********************************/
-@media (max-width: 768px) {
-  html.body-public,
-  body.body-public {
-    background: transparent !important;
-  }
-
-  html.body-public::before {
-    content: "" !important;
-    position: absolute !important;
-    top: 0; left: 0;
-    width: 100%;
-    min-height: 100%;
-    z-index: -1 !important;
-    pointer-events: none !important;
-
-    /* ✅ papier-peint mobile */
-    background-image: var(--bg-mobile) !important;
-    background-repeat: repeat !important; /* X + Y */
-    background-size: 100% auto !important; /* largeur 100% */
-    background-position: center top !important;
-
-    /* Anti lignes / espace entre répétitions */
-    transform: translateZ(0);
-  }
+  .site-header { justify-content: center !important; }
 }
