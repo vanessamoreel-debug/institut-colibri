@@ -4,7 +4,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Service, Category, PageDoc } from "../../types";
-import MenuAdmin from "../components/MenuAdmin";
+import { useSearchParams } from "next/navigation";
 
 type Tab = "soins" | "contact" | "a-propos" | "fermeture" | "promo";
 type PriceMode = "single" | "range";
