@@ -13,11 +13,10 @@ export default function SiteChrome({ children }: Props) {
   const isAdmin = pathname.startsWith("/admin");
 
   return (
-    // Classe admin-shell en admin → permet à ton CSS d’appliquer les styles admin
     <div className={isAdmin ? "admin-shell" : undefined}>
       <header className="site-header">
-        {/* ⛔ Menu inline gauche SUPPRIMÉ en admin */}
-        {!isAdmin && <div className="header-left">{/* (vide côté public) */}</div>}
+        {/* ⛔ En admin on supprime la colonne gauche (menu inline) */}
+        {!isAdmin && <div className="header-left">{/* vide côté public */}</div>}
 
         <div className="header-center">
           <Link href="/" className="site-title-text">INSTITUT COLIBRI</Link>
@@ -28,7 +27,6 @@ export default function SiteChrome({ children }: Props) {
         </div>
       </header>
 
-      {/* Le contenu des pages */}
       <main className="site-main">{children}</main>
     </div>
   );
