@@ -350,27 +350,30 @@ html.body-public::before {
   }
 }
 /***********************************
- * ✅ Mobile : fond non zoomé + dupliqué verticalement
+ * ✅ Mobile : papier-peint répétitif (fond infini)
  ***********************************/
 @media (max-width: 768px) {
-  /* on n'utilise que le calque ::before pour dessiner le fond */
-  html.body-public {
+  html.body-public,
+  body.body-public {
     background: transparent !important;
-    position: relative !important;
-    min-height: 100dvh !important;
   }
 
   html.body-public::before {
     content: "" !important;
     position: absolute !important;
-    top: 0; left: 0; right: 0; bottom: 0;
-    /* 👉 image mobile, non zoomée, largeur 100%, répétée en Y */
-    background-image: var(--bg-mobile) !important;
-    background-position: center top !important;
-    background-size: 100% auto !important;   /* pleine largeur, conserve les proportions */
-    background-repeat: repeat-y !important;  /* duplique verticalement */
+    top: 0; left: 0;
+    width: 100%;
+    min-height: 100%;
     z-index: -1 !important;
     pointer-events: none !important;
-    transform: translateZ(0); /* lisse le scroll sur certains Android */
+
+    /* ✅ papier-peint mobile */
+    background-image: var(--bg-mobile) !important;
+    background-repeat: repeat !important; /* X + Y */
+    background-size: 100% auto !important; /* largeur 100% */
+    background-position: center top !important;
+
+    /* Anti lignes / espace entre répétitions */
+    transform: translateZ(0);
   }
 }
