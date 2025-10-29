@@ -443,7 +443,7 @@ export default function AdminPage() {
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <MenuAdmin tab={tab} setTab={setTab} />
+          <MenuAdmin tab={undefined} setTab={undefined} />
           <button
             onClick={async () => {
               await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
