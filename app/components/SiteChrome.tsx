@@ -3,8 +3,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import Menu from "./admin/Menu";
-import MenuAdmin from "./admin/MenuAdmin";
+
+// ✅ imports absolus (évite les soucis de chemins relatifs)
+import Menu from "@/components/admin/Menu";
+import MenuAdmin from "@/components/admin/MenuAdmin";
 
 type Props = { children: React.ReactNode };
 
@@ -15,8 +17,8 @@ export default function SiteChrome({ children }: Props) {
   return (
     <div className={isAdmin ? "admin-shell" : undefined}>
       <header className="site-header">
-        {/* ⛔ En admin on supprime la colonne gauche (menu inline) */}
-        {!isAdmin && <div className="header-left">{/* vide côté public */}</div>}
+        {/* côté gauche : rien en admin, (on laisse vide aussi en public pour rester propre) */}
+        {!isAdmin && <div className="header-left" />}
 
         <div className="header-center">
           <Link href="/" className="site-title-text">INSTITUT COLIBRI</Link>
