@@ -7,16 +7,8 @@ export const dynamic = "force-dynamic";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Service, Category, PageDoc } from "../../types";
-
-// Quand on entre sur la page admin, on applique la classe spéciale
-function AdminPageInner() {
-  useEffect(() => {
-    document.body.classList.add("admin-shell");
-    return () => {
-      document.body.classList.remove("admin-shell");
-    };
-  }, []);
-}
+type Tab = "soins" | "contact" | "a-propos" | "fermeture" | "promo";
+type PriceMode = "single" | "range";
 
 /* ===== Helpers ===== */
 function numOrNull(v: any): number | null {
