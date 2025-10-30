@@ -9,6 +9,19 @@ import { Suspense } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Service, Category, PageDoc } from "../../types";
+import { useEffect } from "react";
+// ...
+
+function AdminPageInner() {
+  // ...
+  useEffect(() => {
+    document.body.classList.add("admin-shell");
+    return () => {
+      document.body.classList.remove("admin-shell");
+    };
+  }, []);
+  // ...
+}
 
 type Tab = "soins" | "contact" | "a-propos" | "fermeture" | "promo";
 type PriceMode = "single" | "range";
