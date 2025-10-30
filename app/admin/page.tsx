@@ -1,30 +1,22 @@
 // /app/admin/page.tsx
 "use client";
-export const dynamic = "force-dynamic";
-export const revalidate = false;          // ← doit être boolean ou number, pas un objet
-export const fetchCache = "force-no-store";
-export const dynamicParams = true;
 
-import { Suspense } from "react";
-import { useEffect, useMemo, useState } from "react";
+// On force un rendu 100 % dynamique pour éviter les erreurs de "revalidate"
+export const dynamic = "force-dynamic";
+
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { Service, Category, PageDoc } from "../../types";
-import { useEffect } from "react";
-// ...
 
+// Quand on entre sur la page admin, on applique la classe spéciale
 function AdminPageInner() {
-  // ...
   useEffect(() => {
     document.body.classList.add("admin-shell");
     return () => {
       document.body.classList.remove("admin-shell");
     };
   }, []);
-  // ...
 }
-
-type Tab = "soins" | "contact" | "a-propos" | "fermeture" | "promo";
-type PriceMode = "single" | "range";
 
 /* ===== Helpers ===== */
 function numOrNull(v: any): number | null {
