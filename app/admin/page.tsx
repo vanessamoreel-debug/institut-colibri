@@ -417,34 +417,31 @@ async function catRemove(id: string) {
   /* ===== UI ===== */
   return (
     <div>
-      {/* Barre de statut + action */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          gap: 12,
-          marginBottom: 8,
-        }}
-      >
-        <div>
-          <h2 style={{ margin: 0 }}>Administration</h2>
-          <div style={{ fontSize: 13, color: authed ? "green" : "crimson" }}>
-            Statut admin : {authed == null ? "…" : authed ? "OK" : "NON CONNECTÉ"}
-          </div>
-        </div>
+     {/* Barre de statut + action (sans titre local) */}
+<div
+  style={{
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    gap: 12,
+    marginBottom: 8,
+  }}
+>
+  <div style={{ fontSize: 13, color: authed ? "green" : "crimson" }}>
+    Statut admin : {authed == null ? "…" : authed ? "OK" : "NON CONNECTÉ"}
+  </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <button
-            onClick={async () => {
-              await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-              router.replace("/login");
-            }}
-          >
-            Se déconnecter
-          </button>
-        </div>
-      </div>
+  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+    <button
+      onClick={async () => {
+        await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+        router.replace("/login");
+      }}
+    >
+      Se déconnecter
+    </button>
+  </div>
+</div>
 
       {/* =================== ONGLET SOINS =================== */}
       {tab === "soins" && (
