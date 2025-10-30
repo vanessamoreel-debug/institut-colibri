@@ -358,3 +358,50 @@ html.body-public, body.body-public {
   background: rgba(125,108,113,0.18) !important;
   color: #2a2225 !important;
 }
+/* =========================
+   ADMIN STYLE
+   ========================= */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+body.admin-shell {
+  font-family: 'Poppins', sans-serif;
+  background-color: #fafafa;
+  color: #333;
+}
+
+/* cartes admin */
+.admin-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  padding: 16px;
+  margin-top: 16px;
+}
+
+/* titres */
+.admin-section-title {
+  font-weight: 600;
+  color: var(--brand);
+  margin-bottom: 8px;
+}
+
+/* boutons */
+button {
+  background-color: var(--brand);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+button:hover {
+  background-color: #6b5b60;
+}
+
+/* textes secondaires */
+.admin-muted {
+  color: #777;
+  font-size: 0.9rem;
+}
