@@ -32,6 +32,13 @@ function AdminPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  useEffect(() => {
+  document.body.classList.add("admin-shell");
+  return () => {
+    document.body.classList.remove("admin-shell");
+  };
+}, []);
+
   /* Onglet */
   const [tab, setTab] = useState<Tab>("soins");
   useEffect(() => {
