@@ -106,10 +106,11 @@ html.body-public, body.body-public {
   font-size: 4rem;
   color: var(--brand);
   line-height: 1.1;
-  margin: 0;
+  margin: 0 auto;
   text-align: center;
   white-space: nowrap;
-  padding-right: 100px; /* réserve pour le bouton menu à droite */
+  position: relative;
+  left: -40px; /* ajuste l’équilibre visuel à gauche du bouton menu */
 }
 @media (max-width: 520px) {
   .site-title-text { font-size: 2.6rem; }
