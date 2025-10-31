@@ -697,7 +697,7 @@ async function catRemove(id: string) {
               <table
                 style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10 }}
               >
-                <thead>
+               <thead>
   <tr>
     <th style={{ textAlign: "left" }}>Nom</th>
     <th>Catégorie</th>
