@@ -111,6 +111,12 @@ html.body-public, body.body-public {
   white-space: nowrap;
   padding-right: 100px; /* réserve pour le bouton menu à droite */
 }
+/* Ajustement du centrage uniquement sur PC */
+@media (min-width: 769px) {
+  .site-title-text {
+    padding-right: 60px; /* moins d’espace que 100px, donc titre plus centré */
+  }
+}
 @media (max-width: 520px) {
   .site-title-text { font-size: 2.6rem; }
 }
