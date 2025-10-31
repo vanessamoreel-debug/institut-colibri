@@ -114,7 +114,7 @@ html.body-public, body.body-public {
 /* Ajustement du centrage uniquement sur PC */
 @media (min-width: 769px) {
   .site-title-text {
-    padding-right: 50px; /* moins d’espace que 100px, donc titre plus centré */
+    padding-right: 30px; /* moins d’espace que 100px, donc titre plus centré */
   }
 }
 @media (max-width: 520px) {
