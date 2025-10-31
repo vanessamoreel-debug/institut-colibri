@@ -681,17 +681,89 @@ async function catRemove(id: string) {
               <table
                 style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10 }}
               >
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: "left" }}>Nom</th>
-                    <th>Catégorie</th>
-                    <th>Durée</th>
-                    <th>Ordre</th>
-                    <th>Prix</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
+               <thead>
+  <tr>
+    <th style={{ textAlign: "left" }}>Nom</th>
+    <th>Catégorie</th>
+    <th>Durée</th>
+    <th>Ordre</th>
+    <th>Prix</th>
+    <th>Description</th>
+    <th>Actions</th>
+  </tr>
+</thead>
+<tbody>
+  {dataSorted.map((s) => {
+    const isOpen = openDescId === s.id;
+    return (
+      <React.Fragment key={s.id}>
+        <tr>
+          <td>{s.name}</td>
+          <td style={{ textAlign: "center" }}>{s.category || "—"}</td>
+          <td style={{ textAlign: "center" }}>{formatDurationInline(s)}</td>
+          <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
+          <td style={{ textAlign: "center", fontWeight: 600 }}>{formatPriceAdmin(s)}</td>
+
+          {/* ➜ APERÇU DESCRIPTION */}
+          <td>
+            <span
+              style={{
+                display: "inline-block",
+                background: "#f2f2f2",
+                color: "#444",
+                padding: "2px 6px",
+                borderRadius: 6,
+                fontSize: 12,
+              }}
+            >
+              {preview(s.description, 80)}
+            </span>
+          </td>
+
+          {/* Actions */}
+          <td style={{ textAlign: "center" }}>
+            <button onClick={() => editService(s)}>Modifier</button>
+            <button onClick={() => remove(s.id)} style={{ marginLeft: 8 }}>
+              Supprimer
+            </button>
+            <button
+              onClick={() => setOpenDescId(isOpen ? null : s.id)}
+              style={{ marginLeft: 8, background: "#eee", color: "#333" }}
+            >
+              {isOpen ? "Fermer" : "Voir"}
+            </button>
+          </td>
+        </tr>
+
+        {/* ➜ LIGNE DÉPLIABLE : description complète */}
+        {isOpen && (
+          <tr>
+            <td
+              colSpan={7}
+              style={{
+                background: "#fafafa",
+                padding: 12,
+                borderTop: "1px solid #eee",
+              }}
+            >
+              <div style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", color: "#333" }}>
+                {s.description?.trim() || "—"}
+              </div>
+            </td>
+          </tr>
+        )}
+      </React.Fragment>
+    );
+  })}
+  {dataSorted.length === 0 ? (
+    <tr>
+      <td colSpan={7} style={{ color: "#666", padding: 8 }}>
+        Aucun soin.
+      </td>
+    </tr>
+  ) : null}
+</tbody>
+
                   {dataSorted.map((s) => (
                     <tr key={s.id}>
                       <td>{s.name}</td>
