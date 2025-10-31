@@ -75,6 +75,8 @@ function AdminPageInner() {
   const [promoActive, setPromoActive] = useState<boolean>(false);
   const [promoText, setPromoText] = useState<string>("");
   const [promoMsg, setPromoMsg] = useState<string>("");
+// Pour ouvrir/fermer la description complète
+const [openDescId, setOpenDescId] = useState<string | null>(null);
 
   function handleUnauthorized(res: Response) {
     if (res.status === 401) {
@@ -234,7 +236,12 @@ function AdminPageInner() {
       setMsg(`❌ Erreur: ${e?.message || "action refusée"}`);
     }
   }
-
+// Petite fonction pour résumer la description
+function preview(txt?: string, max = 80) {
+  if (!txt) return "—";
+  const clean = String(txt).trim().replace(/\s+/g, " ");
+  return clean.length > max ? clean.slice(0, max) + "…" : clean;
+}
   /* Prix UI */
   function inferPriceMode(s: Partial<Service>): PriceMode {
     if (s.priceMin != null && s.priceMax != null) return "range";
