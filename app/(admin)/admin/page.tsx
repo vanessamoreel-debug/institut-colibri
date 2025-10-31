@@ -413,554 +413,526 @@ async function catRemove(id: string) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* ===== UI ===== */
-  return (
-  <div className="admin-shell">
-
-     {/* Barre de statut + action (sans titre local) */}
-<div
-  style={{
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    gap: 12,
-    marginBottom: 8,
-  }}
->
-  <div style={{ fontSize: 13, color: authed ? "green" : "crimson" }}>
-    Statut admin : {authed == null ? "…" : authed ? "OK" : "NON CONNECTÉ"}
-  </div>
-
-  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-    <button
-      onClick={async () => {
-        await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
-        router.replace("/login");
+/* ===== UI ===== */
+return (
+  <div>
+    {/* Barre de statut + action (sans titre local) */}
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        gap: 12,
+        marginBottom: 8,
       }}
     >
-      Se déconnecter
-    </button>
-  </div>
-</div>
+      <div style={{ fontSize: 13, color: authed ? "green" : "crimson" }}>
+        Statut admin : {authed == null ? "…" : authed ? "OK" : "NON CONNECTÉ"}
+      </div>
 
-      {/* =================== ONGLET SOINS =================== */}
-      {tab === "soins" && (
-        <>
-          {/* Catégories */}
-          <div className="admin-card">
-            <h3 className="admin-section-title">Catégories (ordre des sections)</h3>
-            <p className="admin-muted" style={{ marginTop: 0 }}>
-              MAJUSCULES, avec un numéro d&apos;ordre (1 en haut, puis 2, 3...).
-            </p>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <button
+          onClick={async () => {
+            await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
+            router.replace("/login");
+          }}
+        >
+          Se déconnecter
+        </button>
+      </div>
+    </div>
 
-            <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 120px 180px" }}>
-              <input
-                placeholder="Nom de la catégorie (ex: SOINS DU VISAGE)"
-                value={catForm.name || ""}
-                onChange={(e) =>
-                  setCatForm({ ...(catForm as any), name: e.target.value.toUpperCase() })
-                }
-              />
-              <input
-                placeholder="Ordre (ex: 1)"
-                type="number"
-                value={catForm.order?.toString() || ""}
-                onChange={(e) =>
-                  setCatForm({ ...(catForm as any), order: numOrNull(e.target.value) as any })
-                }
-              />
-              <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={catAddOrUpdate}>
-                  {(catForm as any).id ? "Enregistrer" : "Ajouter"}
-                </button>
-                {(catForm as any).id ? (
-                  <button onClick={() => setCatForm({})}>Annuler</button>
-                ) : null}
-              </div>
-            </div>
+    {/* =================== ONGLET SOINS =================== */}
+    {tab === "soins" && (
+      <>
+        {/* Catégories */}
+        <div className="admin-card">
+          <h3 className="admin-section-title">Catégories (ordre des sections)</h3>
+          <p className="admin-muted" style={{ marginTop: 0 }}>
+            MAJUSCULES, avec un numéro d&apos;ordre (1 en haut, puis 2, 3...).
+          </p>
 
-            {catMsg ? (
-              <p style={{ color: catMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>
-                {catMsg}
-              </p>
-            ) : null}
-
-            {catsLoading ? (
-              <p>Chargement des catégories…</p>
-            ) : (
-              <table
-                style={{
-                  width: "100%",
-                  background: "#fff",
-                  border: "1px solid #eee",
-                  borderRadius: 10,
-                  marginTop: 12,
-                }}
-              >
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: "left" }}>Nom</th>
-                    <th style={{ width: 120 }}>Ordre</th>
-                    <th style={{ width: 180 }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[...cats]
-                    .sort((a, b) => {
-                      const oa = a.order ?? 9999;
-                      const ob = b.order ?? 9999;
-                      if (oa !== ob) return oa - ob;
-                      return (a.name || "").localeCompare(b.name || "");
-                    })
-                    .map((c) => (
-                      <tr key={c.id}>
-                        <td>{c.name}</td>
-                        <td style={{ textAlign: "center" }}>{c.order ?? "—"}</td>
-                        <td style={{ textAlign: "center" }}>
-                          <button onClick={() => setCatForm(c)}>Modifier</button>
-                          <button onClick={() => catRemove(c.id)} style={{ marginLeft: 8 }}>
-                            Supprimer
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  {cats.length === 0 ? (
-                    <tr>
-                      <td colSpan={3} style={{ color: "#666", padding: 8 }}>
-                        Aucune catégorie.
-                      </td>
-                    </tr>
-                  ) : null}
-                </tbody>
-              </table>
-            )}
-          </div>
-
-          {/* Soins */}
-          <div className="admin-card">
-            <h3 className="admin-section-title">
-              {form?.id ? "Modifier un soin" : "Ajouter un soin"}
-            </h3>
-
-            {/* Toggle mode prix */}
-            <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 8 }}>
-              <span style={{ fontWeight: 600 }}>Type de prix :</span>
-              <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <input
-                  type="radio"
-                  name="priceMode"
-                  checked={priceMode === "single"}
-                  onChange={() => onChangePriceMode("single")}
-                />
-                Prix unique
-              </label>
-              <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <input
-                  type="radio"
-                  name="priceMode"
-                  checked={priceMode === "range"}
-                  onChange={() => onChangePriceMode("range")}
-                />
-                Intervalle (min–max)
-              </label>
-            </div>
-
-            <div
-              style={{
-                display: "grid",
-                gap: 8,
-                gridTemplateColumns:
-                  priceMode === "single" ? "1fr 1fr 90px 90px 1fr" : "1fr 1fr 1fr 90px 90px 1fr",
-              }}
-            >
-              <input
-                placeholder="Nom"
-                value={form.name || ""}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-              />
-
-              {priceMode === "single" ? (
-                <input
-                  placeholder="Prix (CHF)"
-                  type="number"
-                  value={(form.price ?? form.priceMin ?? "").toString()}
-                  onChange={(e) => setForm({ ...form, price: numOrNull(e.target.value) as any })}
-                />
-              ) : (
-                <>
-                  <input
-                    placeholder="Prix min (CHF)"
-                    type="number"
-                    value={(form.priceMin ?? "").toString()}
-                    onChange={(e) =>
-                      setForm({ ...form, priceMin: numOrNull(e.target.value) as any })
-                    }
-                  />
-                  <input
-                    placeholder="Prix max (CHF)"
-                    type="number"
-                    value={(form.priceMax ?? "").toString()}
-                    onChange={(e) =>
-                      setForm({ ...form, priceMax: numOrNull(e.target.value) as any })
-                    }
-                  />
-                </>
-              )}
-
-              <input
-                placeholder="Durée (min)"
-                type="number"
-                value={form.duration?.toString() || ""}
-                onChange={(e) => setForm({ ...form, duration: numOrNull(e.target.value) as any })}
-              />
-              <input
-                placeholder="Ordre"
-                type="number"
-                value={form.order?.toString() || ""}
-                onChange={(e) => setForm({ ...form, order: numOrNull(e.target.value) as any })}
-              />
-              <input
-                list="colibri-cats"
-                placeholder="Catégorie"
-                value={form.category || ""}
-                onChange={(e) => setForm({ ...form, category: e.target.value.toUpperCase() })}
-              />
-              <datalist id="colibri-cats">
-                {cats.map((c) => (
-                  <option key={c.id} value={c.name} />
-                ))}
-              </datalist>
-            </div>
-
-            <label style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 8 }}>
-              <input
-                type="checkbox"
-                checked={!!form.approxDuration}
-                onChange={(e) => setForm({ ...form, approxDuration: e.target.checked })}
-              />
-              Durée approximative (±)
-            </label>
-
-            <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 110px" }}>
-              <textarea
-                placeholder="Description (optionnel) — vous pouvez mettre du **gras**."
-                value={form.description || ""}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-              />
-              <input
-                placeholder="Espacement (px)"
-                type="number"
-                value={form.spacing?.toString() || ""}
-                onChange={(e) => setForm({ ...form, spacing: numOrNull(e.target.value) as any })}
-              />
-            </div>
-
-            <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
-              <button onClick={addOrUpdate}>{form?.id ? "Enregistrer" : "Ajouter"}</button>
-              {form?.id ? (
-                <button
-                  onClick={() => {
-                    setForm({});
-                    setPriceMode("single");
-                  }}
-                >
-                  Annuler
-                </button>
+          <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 120px 180px" }}>
+            <input
+              placeholder="Nom de la catégorie (ex: SOINS DU VISAGE)"
+              value={catForm.name || ""}
+              onChange={(e) =>
+                setCatForm({ ...(catForm as any), name: e.target.value.toUpperCase() })
+              }
+            />
+            <input
+              placeholder="Ordre (ex: 1)"
+              type="number"
+              value={catForm.order?.toString() || ""}
+              onChange={(e) =>
+                setCatForm({ ...(catForm as any), order: numOrNull(e.target.value) as any })
+              }
+            />
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={catAddOrUpdate}>
+                {(catForm as any).id ? "Enregistrer" : "Ajouter"}
+              </button>
+              {(catForm as any).id ? (
+                <button onClick={() => setCatForm({})}>Annuler</button>
               ) : null}
             </div>
           </div>
 
-          {msg ? (
-            <p style={{ color: msg.startsWith("✔") ? "green" : "crimson" }}>{msg}</p>
+          {catMsg ? (
+            <p style={{ color: catMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>
+              {catMsg}
+            </p>
           ) : null}
 
-          <div className="admin-card">
-            {loading ? (
-              <p>Chargement…</p>
-            ) : (
-              <table
-                style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10 }}
-              >
-               <thead>
-  <tr>
-    <th style={{ textAlign: "left" }}>Nom</th>
-    <th>Catégorie</th>
-    <th>Durée</th>
-    <th>Ordre</th>
-    <th>Prix</th>
-    <th>Description</th>
-    <th>Actions</th>
-  </tr>
-</thead>
-<tbody>
-  {dataSorted.map((s) => {
-    const isOpen = openDescId === s.id;
-    return (
-      <React.Fragment key={s.id}>
-        <tr>
-          <td>{s.name}</td>
-          <td style={{ textAlign: "center" }}>{s.category || "—"}</td>
-          <td style={{ textAlign: "center" }}>{formatDurationInline(s)}</td>
-          <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
-          <td style={{ textAlign: "center", fontWeight: 600 }}>{formatPriceAdmin(s)}</td>
-
-          {/* ➜ APERÇU DESCRIPTION */}
-          <td>
-            <span
+          {catsLoading ? (
+            <p>Chargement des catégories…</p>
+          ) : (
+            <table
               style={{
-                display: "inline-block",
-                background: "#f2f2f2",
-                color: "#444",
-                padding: "2px 6px",
-                borderRadius: 6,
-                fontSize: 12,
+                width: "100%",
+                background: "#fff",
+                border: "1px solid #eee",
+                borderRadius: 10,
+                marginTop: 12,
               }}
             >
-              {preview(s.description, 80)}
-            </span>
-          </td>
-
-          {/* Actions */}
-          <td style={{ textAlign: "center" }}>
-            <button onClick={() => editService(s)}>Modifier</button>
-            <button onClick={() => remove(s.id)} style={{ marginLeft: 8 }}>
-              Supprimer
-            </button>
-            <button
-              onClick={() => setOpenDescId(isOpen ? null : s.id)}
-              style={{ marginLeft: 8, background: "#eee", color: "#333" }}
-            >
-              {isOpen ? "Fermer" : "Voir"}
-            </button>
-          </td>
-        </tr>
-
-        {/* ➜ LIGNE DÉPLIABLE : description complète */}
-        {isOpen && (
-          <tr>
-            <td
-              colSpan={7}
-              style={{
-                background: "#fafafa",
-                padding: 12,
-                borderTop: "1px solid #eee",
-              }}
-            >
-              <div style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", color: "#333" }}>
-                {s.description?.trim() || "—"}
-              </div>
-            </td>
-          </tr>
-        )}
-      </React.Fragment>
-    );
-  })}
-  {dataSorted.length === 0 ? (
-    <tr>
-      <td colSpan={7} style={{ color: "#666", padding: 8 }}>
-        Aucun soin.
-      </td>
-    </tr>
-  ) : null}
-</tbody>
-
-                  {dataSorted.map((s) => (
-                    <tr key={s.id}>
-                      <td>{s.name}</td>
-                      <td style={{ textAlign: "center" }}>{s.category || "—"}</td>
-                      <td style={{ textAlign: "center" }}>{formatDurationInline(s)}</td>
-                      <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
-                      <td style={{ textAlign: "center", fontWeight: 600 }}>{formatPriceAdmin(s)}</td>
+              <thead>
+                <tr>
+                  <th style={{ textAlign: "left" }}>Nom</th>
+                  <th style={{ width: 120 }}>Ordre</th>
+                  <th style={{ width: 180 }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[...cats]
+                  .sort((a, b) => {
+                    const oa = a.order ?? 9999;
+                    const ob = b.order ?? 9999;
+                    if (oa !== ob) return oa - ob;
+                    return (a.name || "").localeCompare(b.name || "");
+                  })
+                  .map((c) => (
+                    <tr key={c.id}>
+                      <td>{c.name}</td>
+                      <td style={{ textAlign: "center" }}>{c.order ?? "—"}</td>
                       <td style={{ textAlign: "center" }}>
-                        <button onClick={() => editService(s)}>Modifier</button>
-                        <button onClick={() => remove(s.id)} style={{ marginLeft: 8 }}>
+                        <button onClick={() => setCatForm(c)}>Modifier</button>
+                        <button onClick={() => catRemove(c.id)} style={{ marginLeft: 8 }}>
                           Supprimer
                         </button>
                       </td>
                     </tr>
                   ))}
-                  {dataSorted.length === 0 ? (
-                    <tr>
-                      <td colSpan={6} style={{ color: "#666", padding: 8 }}>
-                        Aucun soin.
-                      </td>
-                    </tr>
-                  ) : null}
-                </tbody>
-              </table>
+                {cats.length === 0 ? (
+                  <tr>
+                    <td colSpan={3} style={{ color: "#666", padding: 8 }}>
+                      Aucune catégorie.
+                    </td>
+                  </tr>
+                ) : null}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* Soins */}
+        <div className="admin-card">
+          <h3 className="admin-section-title">
+            {form?.id ? "Modifier un soin" : "Ajouter un soin"}
+          </h3>
+
+          {/* Toggle mode prix */}
+          <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 8 }}>
+            <span style={{ fontWeight: 600 }}>Type de prix :</span>
+            <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <input
+                type="radio"
+                name="priceMode"
+                checked={priceMode === "single"}
+                onChange={() => onChangePriceMode("single")}
+              />
+              Prix unique
+            </label>
+            <label style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <input
+                type="radio"
+                name="priceMode"
+                checked={priceMode === "range"}
+                onChange={() => onChangePriceMode("range")}
+              />
+              Intervalle (min–max)
+            </label>
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gap: 8,
+              gridTemplateColumns:
+                priceMode === "single" ? "1fr 1fr 90px 90px 1fr" : "1fr 1fr 1fr 90px 90px 1fr",
+            }}
+          >
+            <input
+              placeholder="Nom"
+              value={form.name || ""}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+            />
+
+            {priceMode === "single" ? (
+              <input
+                placeholder="Prix (CHF)"
+                type="number"
+                value={(form.price ?? form.priceMin ?? "").toString()}
+                onChange={(e) => setForm({ ...form, price: numOrNull(e.target.value) as any })}
+              />
+            ) : (
+              <>
+                <input
+                  placeholder="Prix min (CHF)"
+                  type="number"
+                  value={(form.priceMin ?? "").toString()}
+                  onChange={(e) =>
+                    setForm({ ...form, priceMin: numOrNull(e.target.value) as any })
+                  }
+                />
+                <input
+                  placeholder="Prix max (CHF)"
+                  type="number"
+                  value={(form.priceMax ?? "").toString()}
+                  onChange={(e) =>
+                    setForm({ ...form, priceMax: numOrNull(e.target.value) as any })
+                  }
+                />
+              </>
             )}
+
+            <input
+              placeholder="Durée (min)"
+              type="number"
+              value={form.duration?.toString() || ""}
+              onChange={(e) => setForm({ ...form, duration: numOrNull(e.target.value) as any })}
+            />
+            <input
+              placeholder="Ordre"
+              type="number"
+              value={form.order?.toString() || ""}
+              onChange={(e) => setForm({ ...form, order: numOrNull(e.target.value) as any })}
+            />
+            <input
+              list="colibri-cats"
+              placeholder="Catégorie"
+              value={form.category || ""}
+              onChange={(e) => setForm({ ...form, category: e.target.value.toUpperCase() })}
+            />
+            <datalist id="colibri-cats">
+              {cats.map((c) => (
+                <option key={c.id} value={c.name} />
+              ))}
+            </datalist>
           </div>
-        </>
-      )}
 
-      {/* =================== ONGLET CONTACT =================== */}
-      {tab === "contact" && (
-        <div className="admin-card">
-          <h3 className="admin-section-title">Page Contact</h3>
-          <p className="admin-muted" style={{ marginTop: 0 }}>
-            Cette page est publique sur <code>/contact</code>.
-          </p>
-
-          <div className="admin-grid-2">
-            <div>
-              <label style={{ display: "block", fontWeight: 600, marginBottom: 4 }}>Titre</label>
-              <input value={contactTitle} onChange={(e) => setContactTitle(e.target.value)} placeholder="Contact" />
-
-              <label style={{ display: "block", fontWeight: 600, margin: "12px 0 4px" }}>Contenu</label>
-              <textarea
-                value={contactBody}
-                onChange={(e) => setContactBody(e.target.value)}
-                placeholder="Adresse, téléphone, e-mail, horaires…"
-                style={{ width: "100%", height: 220 }}
-              />
-
-              <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
-                <button onClick={() => savePage("contact", contactTitle, contactBody, setContactMsg)}>
-                  Enregistrer
-                </button>
-                <button onClick={loadPages}>Recharger</button>
-              </div>
-
-              {contactMsg ? (
-                <p style={{ color: contactMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>
-                  {contactMsg}
-                </p>
-              ) : null}
-            </div>
-
-            <div>
-              <div style={{ fontWeight: 700, marginBottom: 8 }}>Aperçu</div>
-              <div className="admin-card" style={{ minHeight: 220 }}>
-                <h2 style={{ marginTop: 0 }}>{contactTitle || "Contact"}</h2>
-                <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 }}>
-                  {contactBody || "—"}
-                </pre>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* =================== ONGLET A PROPOS =================== */}
-      {tab === "a-propos" && (
-        <div className="admin-card">
-          <h3 className="admin-section-title">Page À propos</h3>
-          <p className="admin-muted" style={{ marginTop: 0 }}>
-            Cette page est publique sur <code>/a-propos</code>.
-          </p>
-
-          <div className="admin-grid-2">
-            <div>
-              <label style={{ display: "block", fontWeight: 600, marginBottom: 4 }}>Titre</label>
-              <input value={aproposTitle} onChange={(e) => setAproposTitle(e.target.value)} placeholder="À propos" />
-
-              <label style={{ display: "block", fontWeight: 600, margin: "12px 0 4px" }}>Contenu</label>
-              <textarea
-                value={aproposBody}
-                onChange={(e) => setAproposBody(e.target.value)}
-                placeholder="Votre histoire, votre philosophie, l’équipe…"
-                style={{ width: "100%", height: 220 }}
-              />
-
-              <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
-                <button onClick={() => savePage("a-propos", aproposTitle, aproposBody, setAproposMsg)}>
-                  Enregistrer
-                </button>
-                <button onClick={loadPages}>Recharger</button>
-              </div>
-
-              {aproposMsg ? (
-                <p style={{ color: aproposMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>
-                  {aproposMsg}
-                </p>
-              ) : null}
-            </div>
-
-            <div>
-              <div style={{ fontWeight: 700, marginBottom: 8 }}>Aperçu</div>
-              <div className="admin-card" style={{ minHeight: 220 }}>
-                <h2 style={{ marginTop: 0 }}>{aproposTitle || "À propos"}</h2>
-                <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 }}>
-                  {aproposBody || "—"}
-                </pre>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* =================== ONGLET FERMETURE =================== */}
-      {tab === "fermeture" && (
-        <div className="admin-card">
-          <h3 className="admin-section-title">Bannière de fermeture (congés / indisponibilité)</h3>
-          <p className="admin-muted" style={{ marginTop: 0 }}>
-            Active une bannière visible en haut des pages publiques (Accueil, Soins, Contact, À&nbsp;propos).
-          </p>
-
-          <label style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-            <input type="checkbox" checked={closed} onChange={(e) => setClosed(e.target.checked)} />
-            Afficher la bannière de fermeture
+          <label style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 8 }}>
+            <input
+              type="checkbox"
+              checked={!!form.approxDuration}
+              onChange={(e) => setForm({ ...form, approxDuration: e.target.checked })}
+            />
+            Durée approximative (±)
           </label>
 
-          <div style={{ marginTop: 12 }}>
+          <div style={{ display: "grid", gap: 8, gridTemplateColumns: "1fr 110px" }}>
             <textarea
-              placeholder="Message (ex : L’institut est fermé du 5 au 20 août inclus — merci pour votre compréhension.)"
-              value={closedMessage}
-              onChange={(e) => setClosedMessage(e.target.value)}
-              style={{ width: "100%", height: 120 }}
+              placeholder="Description (optionnel) — vous pouvez mettre du **gras**."
+              value={form.description || ""}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+            />
+            <input
+              placeholder="Espacement (px)"
+              type="number"
+              value={form.spacing?.toString() || ""}
+              onChange={(e) => setForm({ ...form, spacing: numOrNull(e.target.value) as any })}
             />
           </div>
 
-          <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
-            <button onClick={saveSettings}>Enregistrer</button>
-            <button onClick={loadSettings}>Recharger</button>
+          <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
+            <button onClick={addOrUpdate}>{form?.id ? "Enregistrer" : "Ajouter"}</button>
+            {form?.id ? (
+              <button
+                onClick={() => {
+                  setForm({});
+                  setPriceMode("single");
+                }}
+              >
+                Annuler
+              </button>
+            ) : null}
           </div>
-
-          {closedMsg ? (
-            <p style={{ color: closedMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>
-              {closedMsg}
-            </p>
-          ) : null}
         </div>
-      )}
 
-      {/* =================== ONGLET PROMO =================== */}
-      {tab === "promo" && (
+        {msg ? (
+          <p style={{ color: msg.startsWith("✔") ? "green" : "crimson" }}>{msg}</p>
+        ) : null}
+
         <div className="admin-card">
-          <h3 className="admin-section-title">Bannière promotion</h3>
-          <p className="admin-muted" style={{ marginTop: 0 }}>
-            Message promo affiché tout en haut des pages publiques si activé.
-          </p>
+          {loading ? (
+            <p>Chargement…</p>
+          ) : (
+            <table
+              style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10 }}
+            >
+              {/* EN-TÊTE AVEC COLONNE DESCRIPTION */}
+              <thead>
+                <tr>
+                  <th style={{ textAlign: "left" }}>Nom</th>
+                  <th>Catégorie</th>
+                  <th>Durée</th>
+                  <th>Ordre</th>
+                  <th>Prix</th>
+                  <th>Description</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
 
-          <label style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-            <input type="checkbox" checked={promoActive} onChange={(e) => setPromoActive(e.target.checked)} />
-            Afficher la bannière promo
-          </label>
+              {/* LIGNES + APERÇU + DÉPLIABLE */}
+              <tbody>
+                {dataSorted.map((s) => {
+                  const isOpen = openDescId === s.id;
+                  return (
+                    <React.Fragment key={s.id}>
+                      <tr>
+                        <td>{s.name}</td>
+                        <td style={{ textAlign: "center" }}>{s.category || "—"}</td>
+                        <td style={{ textAlign: "center" }}>{formatDurationInline(s)}</td>
+                        <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
+                        <td style={{ textAlign: "center", fontWeight: 600 }}>{formatPriceAdmin(s)}</td>
+                        <td>
+                          <span
+                            style={{
+                              display: "inline-block",
+                              background: "#f2f2f2",
+                              color: "#444",
+                              padding: "2px 6px",
+                              borderRadius: 6,
+                              fontSize: 12,
+                            }}
+                          >
+                            {preview(s.description, 80)}
+                          </span>
+                        </td>
+                        <td style={{ textAlign: "center" }}>
+                          <button onClick={() => editService(s)}>Modifier</button>
+                          <button onClick={() => remove(s.id)} style={{ marginLeft: 8 }}>
+                            Supprimer
+                          </button>
+                          <button
+                            onClick={() => setOpenDescId(isOpen ? null : s.id)}
+                            style={{ marginLeft: 8, background: "#eee", color: "#333" }}
+                          >
+                            {isOpen ? "Fermer" : "Voir"}
+                          </button>
+                        </td>
+                      </tr>
 
-          <div style={{ marginTop: 10 }}>
-            <textarea
-              placeholder="Ex : -20% sur les soins visage jusqu’au 31/08"
-              value={promoText}
-              onChange={(e) => setPromoText(e.target.value)}
-              style={{ width: "100%", height: 100 }}
-            />
-          </div>
-
-          <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
-            <button onClick={savePromo}>Enregistrer</button>
-            <button onClick={loadSettings}>Recharger</button>
-          </div>
-
-          {promoMsg ? (
-            <p style={{ color: promoMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>
-              {promoMsg}
-            </p>
-          ) : null}
+                      {isOpen && (
+                        <tr>
+                          <td
+                            colSpan={7}
+                            style={{
+                              background: "#fafafa",
+                              padding: 12,
+                              borderTop: "1px solid #eee",
+                            }}
+                          >
+                            <div style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", color: "#333" }}>
+                              {s.description?.trim() || "—"}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
+                {dataSorted.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} style={{ color: "#666", padding: 8 }}>
+                      Aucun soin.
+                    </td>
+                  </tr>
+                ) : null}
+              </tbody>
+            </table>
+          )}
         </div>
-      )}
-    </div>
-  );
-}
+      </>
+    )}
+
+    {/* =================== ONGLET CONTACT =================== */}
+    {tab === "contact" && (
+      <div className="admin-card">
+        <h3 className="admin-section-title">Page Contact</h3>
+        <p className="admin-muted" style={{ marginTop: 0 }}>
+          Cette page est publique sur <code>/contact</code>.
+        </p>
+
+        <div className="admin-grid-2">
+          <div>
+            <label style={{ display: "block", fontWeight: 600, marginBottom: 4 }}>Titre</label>
+            <input value={contactTitle} onChange={(e) => setContactTitle(e.target.value)} placeholder="Contact" />
+
+            <label style={{ display: "block", fontWeight: 600, margin: "12px 0 4px" }}>Contenu</label>
+            <textarea
+              value={contactBody}
+              onChange={(e) => setContactBody(e.target.value)}
+              placeholder="Adresse, téléphone, e-mail, horaires…"
+              style={{ width: "100%", height: 220 }}
+            />
+
+            <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+              <button onClick={() => savePage("contact", contactTitle, contactBody, setContactMsg)}>
+                Enregistrer
+              </button>
+              <button onClick={loadPages}>Recharger</button>
+            </div>
+
+            {contactMsg ? (
+              <p style={{ color: contactMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>
+                {contactMsg}
+              </p>
+            ) : null}
+          </div>
+
+          <div>
+            <div style={{ fontWeight: 700, marginBottom: 8 }}>Aperçu</div>
+            <div className="admin-card" style={{ minHeight: 220 }}>
+              <h2 style={{ marginTop: 0 }}>{contactTitle || "Contact"}</h2>
+              <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 }}>
+                {contactBody || "—"}
+              </pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* =================== ONGLET A PROPOS =================== */}
+    {tab === "a-propos" && (
+      <div className="admin-card">
+        <h3 className="admin-section-title">Page À propos</h3>
+        <p className="admin-muted" style={{ marginTop: 0 }}>
+          Cette page est publique sur <code>/a-propos</code>.
+        </p>
+
+        <div className="admin-grid-2">
+          <div>
+            <label style={{ display: "block", fontWeight: 600, marginBottom: 4 }}>Titre</label>
+            <input value={aproposTitle} onChange={(e) => setAproposTitle(e.target.value)} placeholder="À propos" />
+
+            <label style={{ display: "block", fontWeight: 600, margin: "12px 0 4px" }}>Contenu</label>
+            <textarea
+              value={aproposBody}
+              onChange={(e) => setAproposBody(e.target.value)}
+              placeholder="Votre histoire, votre philosophie, l’équipe…"
+              style={{ width: "100%", height: 220 }}
+            />
+
+            <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+              <button onClick={() => savePage("a-propos", aproposTitle, aproposBody, setAproposMsg)}>
+                Enregistrer
+              </button>
+              <button onClick={loadPages}>Recharger</button>
+            </div>
+
+            {aproposMsg ? (
+              <p style={{ color: aproposMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>
+                {aproposMsg}
+              </p>
+            ) : null}
+          </div>
+
+          <div>
+            <div style={{ fontWeight: 700, marginBottom: 8 }}>Aperçu</div>
+            <div className="admin-card" style={{ minHeight: 220 }}>
+              <h2 style={{ marginTop: 0 }}>{aproposTitle || "À propos"}</h2>
+              <pre style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", margin: 0 }}>
+                {aproposBody || "—"}
+              </pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* =================== ONGLET FERMETURE =================== */}
+    {tab === "fermeture" && (
+      <div className="admin-card">
+        <h3 className="admin-section-title">Bannière de fermeture (congés / indisponibilité)</h3>
+        <p className="admin-muted" style={{ marginTop: 0 }}>
+          Active une bannière visible en haut des pages publiques (Accueil, Soins, Contact, À&nbsp;propos).
+        </p>
+
+        <label style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+          <input type="checkbox" checked={closed} onChange={(e) => setClosed(e.target.checked)} />
+          Afficher la bannière de fermeture
+        </label>
+
+        <div style={{ marginTop: 12 }}>
+          <textarea
+            placeholder="Message (ex : L’institut est fermé du 5 au 20 août inclus — merci pour votre compréhension.)"
+            value={closedMessage}
+            onChange={(e) => setClosedMessage(e.target.value)}
+            style={{ width: "100%", height: 120 }}
+          />
+        </div>
+
+        <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+          <button onClick={saveSettings}>Enregistrer</button>
+          <button onClick={loadSettings}>Recharger</button>
+        </div>
+
+        {closedMsg ? (
+          <p style={{ color: closedMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>
+            {closedMsg}
+          </p>
+        ) : null}
+      </div>
+    )}
+
+    {/* =================== ONGLET PROMO =================== */}
+    {tab === "promo" && (
+      <div className="admin-card">
+        <h3 className="admin-section-title">Bannière promotion</h3>
+        <p className="admin-muted" style={{ marginTop: 0 }}>
+          Message promo affiché tout en haut des pages publiques si activé.
+        </p>
+
+        <label style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+          <input type="checkbox" checked={promoActive} onChange={(e) => setPromoActive(e.target.checked)} />
+          Afficher la bannière promo
+        </label>
+
+        <div style={{ marginTop: 10 }}>
+          <textarea
+            placeholder="Ex : -20% sur les soins visage jusqu’au 31/08"
+            value={promoText}
+            onChange={(e) => setPromoText(e.target.value)}
+            style={{ width: "100%", height: 100 }}
+          />
+        </div>
+
+        <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
+          <button onClick={savePromo}>Enregistrer</button>
+          <button onClick={loadSettings}>Recharger</button>
+        </div>
+
+        {promoMsg ? (
+          <p style={{ color: promoMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>
+            {promoMsg}
+          </p>
+        ) : null}
+      </div>
+    )}
+  </div>
+);
 
 /* Wrapper Suspense required by useSearchParams */
 export default function AdminPage() {
