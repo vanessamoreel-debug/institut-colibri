@@ -485,9 +485,14 @@ body.admin-shell .site-header { display: none !important; }
 /* =========================
    ACCUEIL — centrage vertical du bloc "Bienvenue"
    ========================= */
-body.body-public main .hero-card {
+body.body-public main {
   display: flex;
-  flex-direction: column;
   justify-content: center;
-  min-height: calc(100dvh - 180px); /* laisse place pour le titre + footer */
+  align-items: center;
+  min-height: calc(100dvh - 180px); /* centrer le contenu */
+}
+
+body.body-public main .hero-card {
+  min-height: auto !important; /* la carte s’ajuste à son contenu */
+  margin: 0 auto;
 }
