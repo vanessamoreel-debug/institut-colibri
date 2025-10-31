@@ -5,7 +5,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import type { Service, Category, PageDoc } from "../../types";
+import type { Service, Category, PageDoc } from "../../../types";
 type Tab = "soins" | "contact" | "a-propos" | "fermeture" | "promo";
 type PriceMode = "single" | "range";
 
