@@ -696,80 +696,69 @@ async function catRemove(id: string) {
               <p>Chargement…</p>
             ) : (
               <table
-                style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10 }}
-              >
-               <thead>
-  <tr>
-    <th style={{ textAlign: "left" }}>Nom</th>
-    <th>Catégorie</th>
-    <th>Durée</th>
-    <th>Ordre</th>
-    <th>Prix</th>
-    <th>Actions</th>
-  </tr>
-</thead>
-                <tbody>
-                  {dataSorted.map((s) => {
-                    const isOpen = openDescId === s.id;
-                    return (
-                      <>
-                        <tr key={s.id}>
-                          <td>{s.name}</td>
-                          <td style={{ textAlign: "center" }}>{s.category || "—"}</td>
-                          <td style={{ textAlign: "center" }}>{formatDurationInline(s)}</td>
-                          <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
-                          <td style={{ textAlign: "center", fontWeight: 600 }}>
-                            {formatPriceAdmin(s)}
-                          </td>
-                          <td>
-                            <td style={{ textAlign: "center" }}>
-  <button onClick={() => editService(s)}>Modifier</button>
-  <button onClick={() => remove(s.id)} style={{ marginLeft: 8 }}>
-    Supprimer
-  </button>
-</td>
-                        </tr>
-{/* Ligne de description (sous le soin) */}
-{s.description && (
-  <tr>
-    <td colSpan={6} style={{ background: "#fafafa", padding: "8px 16px", fontSize: 14, color: "#444" }}>
-      <div style={{ whiteSpace: "pre-wrap" }}>
-        {s.description.trim()}
-      </div>
-    </td>
-  </tr>
-)}
+  style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10 }}
+>
+  <thead>
+    <tr>
+      <th style={{ textAlign: "left" }}>Nom</th>
+      <th>Catégorie</th>
+      <th>Durée</th>
+      <th>Ordre</th>
+      <th>Prix</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
 
-                        {isOpen && (
-                          <tr>
-                            <td
-                              colSpan={7}
-                              style={{
-                                background: "#fafafa",
-                                padding: 12,
-                                borderTop: "1px solid #eee",
-                              }}
-                            >
-                              <div
-                                style={{ whiteSpace: "pre-wrap", fontFamily: "inherit", color: "#333" }}
-                              >
-                                {s.description?.trim() || "—"}
-                              </div>
-                            </td>
-                          </tr>
-                        )}
-                      </>
-                    );
-                  })}
-                  {dataSorted.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} style={{ color: "#666", padding: 8 }}>
-                        Aucun soin.
-                      </td>
-                    </tr>
-                  ) : null}
-                </tbody>
-              </table>
+  <tbody>
+    {dataSorted.map((s) => (
+      <React.Fragment key={s.id}>
+        {/* Ligne principale du soin */}
+        <tr>
+          <td>{s.name}</td>
+          <td style={{ textAlign: "center" }}>{s.category || "—"}</td>
+          <td style={{ textAlign: "center" }}>{formatDurationInline(s)}</td>
+          <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
+          <td style={{ textAlign: "center", fontWeight: 600 }}>
+            {formatPriceAdmin(s)}
+          </td>
+          <td style={{ textAlign: "center" }}>
+            <button onClick={() => editService(s)}>Modifier</button>
+            <button onClick={() => remove(s.id)} style={{ marginLeft: 8 }}>
+              Supprimer
+            </button>
+          </td>
+        </tr>
+
+        {/* Ligne description sous le soin (seulement si renseignée) */}
+        {s.description && (
+          <tr>
+            <td
+              colSpan={6}
+              style={{
+                background: "#fafafa",
+                padding: "8px 16px",
+                fontSize: 14,
+                color: "#444",
+              }}
+            >
+              <div style={{ whiteSpace: "pre-wrap" }}>
+                {String(s.description || "").trim()}
+              </div>
+            </td>
+          </tr>
+        )}
+      </React.Fragment>
+    ))}
+
+    {dataSorted.length === 0 ? (
+      <tr>
+        <td colSpan={6} style={{ color: "#666", padding: 8 }}>
+          Aucun soin.
+        </td>
+      </tr>
+    ) : null}
+  </tbody>
+</table>
             )}
           </div>
         </>
