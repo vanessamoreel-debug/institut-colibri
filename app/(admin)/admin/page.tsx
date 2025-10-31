@@ -5,6 +5,7 @@
 export const dynamic = "force-dynamic";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
+import React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 // ⬇️ Si ton types.ts est à la RACINE du projet, garde cette ligne.
 //    Si tu as app/types.ts, remplace par: "../../types"
