@@ -481,3 +481,4 @@ button:hover {
   display: flex;
   gap: 18px;
 }
+body.admin-shell .site-header { display: none !important; }
