@@ -408,7 +408,8 @@ async function catRemove(id: string) {
 
   /* ===== UI ===== */
   return (
-    <div>
+  <div className="admin-shell">
+
      {/* Barre de statut + action (sans titre local) */}
 <div
   style={{
