@@ -482,3 +482,12 @@ button:hover {
   gap: 18px;
 }
 body.admin-shell .site-header { display: none !important; }
+/* =========================
+   ACCUEIL — centrage vertical du bloc "Bienvenue"
+   ========================= */
+body.body-public main .hero-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: calc(100dvh - 180px); /* laisse place pour le titre + footer */
+}
