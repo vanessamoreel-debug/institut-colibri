@@ -732,7 +732,7 @@ async function catRemove(id: string) {
                                 fontSize: 12,
                               }}
                             >
-                              {preview(s.description, 80)}
+                              {preview(s.description ?? "", 80)}
                             </span>
                           </td>
                           <td style={{ textAlign: "center" }}>
