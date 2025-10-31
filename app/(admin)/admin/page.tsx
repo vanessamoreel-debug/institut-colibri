@@ -698,16 +698,15 @@ async function catRemove(id: string) {
                 style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10 }}
               >
                 <thead>
-                  <tr>
-                    <th style={{ textAlign: "left" }}>Nom</th>
-                    <th>Catégorie</th>
-                    <th>Durée</th>
-                    <th>Ordre</th>
-                    <th>Prix</th>
-                    <th>Description</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
+  <tr>
+    <th style={{ textAlign: "left" }}>Nom</th>
+    <th>Catégorie</th>
+    <th>Durée</th>
+    <th>Ordre</th>
+    <th>Prix</th>
+    <th>Actions</th>
+  </tr>
+</thead>
                 <tbody>
                   {dataSorted.map((s) => {
                     const isOpen = openDescId === s.id;
@@ -722,31 +721,12 @@ async function catRemove(id: string) {
                             {formatPriceAdmin(s)}
                           </td>
                           <td>
-                            <span
-                              style={{
-                                display: "inline-block",
-                                background: "#f2f2f2",
-                                color: "#444",
-                                padding: "2px 6px",
-                                borderRadius: 6,
-                                fontSize: 12,
-                              }}
-                            >
-                              {preview(s.description ?? "", 80)}
-                            </span>
-                          </td>
-                          <td style={{ textAlign: "center" }}>
-                            <button onClick={() => editService(s)}>Modifier</button>
-                            <button onClick={() => remove(s.id)} style={{ marginLeft: 8 }}>
-                              Supprimer
-                            </button>
-                            <button
-                              onClick={() => setOpenDescId(isOpen ? null : s.id)}
-                              style={{ marginLeft: 8, background: "#eee", color: "#333" }}
-                            >
-                              {isOpen ? "Fermer" : "Voir"}
-                            </button>
-                          </td>
+                            <td style={{ textAlign: "center" }}>
+  <button onClick={() => editService(s)}>Modifier</button>
+  <button onClick={() => remove(s.id)} style={{ marginLeft: 8 }}>
+    Supprimer
+  </button>
+</td>
                         </tr>
 
                         {isOpen && (
