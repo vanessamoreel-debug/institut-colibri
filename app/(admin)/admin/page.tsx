@@ -728,6 +728,16 @@ async function catRemove(id: string) {
   </button>
 </td>
                         </tr>
+{/* Ligne de description (sous le soin) */}
+{s.description && (
+  <tr>
+    <td colSpan={6} style={{ background: "#fafafa", padding: "8px 16px", fontSize: 14, color: "#444" }}>
+      <div style={{ whiteSpace: "pre-wrap" }}>
+        {s.description.trim()}
+      </div>
+    </td>
+  </tr>
+)}
 
                         {isOpen && (
                           <tr>
