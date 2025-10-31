@@ -2,7 +2,6 @@
 "use client";
 
 // On force un rendu 100 % dynamique pour éviter les erreurs de "revalidate"
-export const dynamic = "force-dynamic";
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -31,13 +30,6 @@ function formatPriceAdmin(s: Service) {
 function AdminPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
-
-  useEffect(() => {
-  document.body.classList.add("admin-shell");
-  return () => {
-    document.body.classList.remove("admin-shell");
-  };
-}, []);
 
   /* Onglet */
   const [tab, setTab] = useState<Tab>("soins");
