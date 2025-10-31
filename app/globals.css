@@ -461,3 +461,23 @@ button:hover {
   margin: 40px auto;
   padding: 0 20px 80px;
 }
+/* === Compatibilité noms de classes du header admin === */
+.admin-header__inner { /* même style que .admin-header-inner */
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 14px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.admin-header__brand { /* même style que .admin-header-title */
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  font-size: 1.3rem;
+  color: var(--brand);
+  letter-spacing: 0.3px;
+}
+.admin-header__nav { /* même style que .admin-nav */
+  display: flex;
+  gap: 18px;
+}
