@@ -1,4 +1,4 @@
-// /app/admin/(admin)/page.tsx
+// /app/(admin)/admin/page.tsx
 "use client";
 
 // On force un rendu 100 % dynamique pour éviter les erreurs de "revalidate"
