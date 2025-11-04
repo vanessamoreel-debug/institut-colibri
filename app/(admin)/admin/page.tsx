@@ -465,7 +465,8 @@ async function bumpOrdersBeforeInsert(
         order: (s.order ?? 0) + 1,
       }),
     });
-  
+  } // <-- on ferme le for (const s of sameCat)
+
   /* ===== UI ===== */
   return (
     <div>
