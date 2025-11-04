@@ -539,7 +539,7 @@ body.body-public main .hero-card {
 .after-site-title {
   width: 100%;
   max-width: 900px;
-  margin: 8px auto 6px; /* petit espace sous le titre */
+  margin: 8px auto 6px;
   padding: 0 10px;
 }
 
@@ -554,12 +554,11 @@ body.body-public main .hero-card {
   backdrop-filter: blur(8px);
   text-align: center;
 
-  /* >>> Typo unifiée avec chiffres “grands” */
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  font-weight: 500;                       /* demandé : medium élégant */
-  font-variant-numeric: lining-nums;      /* chiffres “grands” */
+  font-weight: 500;
+  font-variant-numeric: lining-nums;
   font-feature-settings: "lnum" 1, "liga" 1;
-  color: var(--brand);                    /* même couleur que le titre */
+  color: var(--brand);
 }
 
 .colibri-banner__chip {
@@ -575,15 +574,15 @@ body.body-public main .hero-card {
   font-size: 15px;
   margin-right: 10px;
   vertical-align: middle;
-  line-height: 1; /* bien centré */
+  line-height: 1;
 }
 
 .colibri-banner__text {
   font-size: 1.05rem;
   line-height: 1.4;
-  font-weight: 500;                       /* cohérent avec la bannière */
+  font-weight: 500;
   vertical-align: middle;
-  font-variant-numeric: lining-nums;      /* chiffres “grands” */
+  font-variant-numeric: lining-nums;
   font-feature-settings: "lnum" 1, "liga" 1;
 }
 
