@@ -534,3 +534,72 @@ body.body-public main .hero-card {
 .body-public .site-main > *:first-child {
   margin-top: 8px !important; /* descends à 4px si tu veux encore plus serré */
 }
+/* ========= BANNIÈRES COLIBRI (promo + fermeture) ========= */
+.after-site-title {
+  width: 100%;
+  max-width: 900px;
+  margin: 8px auto 6px; /* petit espace sous le titre */
+  padding: 0 10px;
+}
+.colibri-banner {
+  width: 100%;
+  margin: 6px auto;
+  padding: 12px 20px;
+  border-radius: 14px;
+  border: 1px solid rgba(125,108,113,.25);
+  background: linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.45));
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  text-align: center;
+  font-weight: 500;               /* même poids demandé */
+  font-family: inherit;           /* suit la police du site */
+  color: var(--colibri-accent, #7D6C71); /* même couleur que le titre */
+}
+.colibri-banner__chip {
+  display: inline-flex;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #7D6C71;
+  color: #fff;
+  font-weight: 700;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+.colibri-banner__text {
+  font-size: 1.05rem;
+  line-height: 1.4;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+/* ========= ESPACEMENTS PUBLICS : remonter “Bienvenue…”, Contact, À-propos ========= */
+.site-header { margin-bottom: 0 !important; }
+
+.body-public .site-main.site-main--tight {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Raccourci universel : le tout premier enfant du contenu public */
+.body-public .site-main.site-main--tight > :first-child {
+  margin-top: 8px !important;
+}
+
+/* Cas fréquents : containers/wrappers différents selon les pages */
+.body-public .site-main.site-main--tight > .container:first-child,
+.body-public .site-main.site-main--tight > .page:first-child,
+.body-public .site-main.site-main--tight > .section:first-child,
+.body-public .site-main.site-main--tight > .prose:first-child,
+.body-public .site-main.site-main--tight > .card:first-child {
+  margin-top: 8px !important;
+}
+
+/* Si la page commence directement par un titre */
+.body-public .site-main.site-main--tight h1:first-of-type,
+.body-public .site-main.site-main--tight h2:first-of-type {
+  margin-top: 8px !important;
+}
