@@ -34,10 +34,18 @@ function PublicMenuDropdown() {
         Menu
       </button>
       <nav className={`menu-panel ${open ? "open" : ""}`}>
-        <Link className="menu-link" href="/" onClick={() => setOpen(false)}>Accueil</Link>
-        <Link className="menu-link" href="/soins" onClick={() => setOpen(false)}>Soins</Link>
-        <Link className="menu-link" href="/a-propos" onClick={() => setOpen(false)}>À propos</Link>
-        <Link className="menu-link" href="/contact" onClick={() => setOpen(false)}>Contact</Link>
+        <Link className="menu-link" href="/" onClick={() => setOpen(false)}>
+          Accueil
+        </Link>
+        <Link className="menu-link" href="/soins" onClick={() => setOpen(false)}>
+          Soins
+        </Link>
+        <Link className="menu-link" href="/a-propos" onClick={() => setOpen(false)}>
+          À propos
+        </Link>
+        <Link className="menu-link" href="/contact" onClick={() => setOpen(false)}>
+          Contact
+        </Link>
       </nav>
     </div>
   );
@@ -56,6 +64,7 @@ function ClosedBannerInline() {
         const res = await fetch("/api/settings", { cache: "no-store" });
         const j = res.ok ? await res.json() : {};
         if (!mounted) return;
+
         const enabled = !!j?.closed;
         const message = String(j?.message ?? "").trim();
         setActive(enabled && !!message);
@@ -64,14 +73,18 @@ function ClosedBannerInline() {
         if (mounted) setLoading(false);
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   if (loading || !active) return null;
 
   return (
     <div className="colibri-banner" role="status" aria-live="polite">
-      <span className="colibri-banner__chip" aria-hidden title="Fermeture">!</span>
+      <span className="colibri-banner__chip" aria-hidden title="Fermeture">
+        !
+      </span>
       <span className="colibri-banner__text">{text}</span>
     </div>
   );
@@ -81,23 +94,27 @@ export default function SiteChrome({ children }: Props) {
   const pathname = usePathname() || "/";
   const isAdmin = pathname.startsWith("/admin");
 
+  // Ajoute/retire la classe d'arrière-plan public
   useEffect(() => {
     const body = document.body;
     if (!isAdmin) body.classList.add("body-public");
     else body.classList.remove("body-public");
   }, [isAdmin]);
 
+  // Layout admin : pas de header public
   if (isAdmin) {
     return <main className="site-main">{children}</main>;
   }
 
+  // Layout public : titre centré + bannières dessous + contenu serré
   return (
     <div>
-      {/* HEADER : uniquement le titre et le menu → reste centré */}
       <header className="site-header" style={{ marginBottom: 0 }}>
         <div className="header-left" />
         <div className="header-center">
-          <Link href="/" className="site-title-text">INSTITUT COLIBRI</Link>
+          <Link href="/" className="site-title-text">
+            INSTITUT COLIBRI
+          </Link>
         </div>
         <div className="header-right">
           <PublicMenuDropdown />
@@ -112,8 +129,6 @@ export default function SiteChrome({ children }: Props) {
 
       {/* Contenu public : collé au plus près des bannières */}
       <main className="site-main site-main--tight">{children}</main>
-        {children}
-      </main>
     </div>
   );
 }
