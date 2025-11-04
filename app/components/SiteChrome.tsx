@@ -51,9 +51,9 @@ function PublicMenuDropdown() {
   );
 }
 
-/** 
- * Fermeture en "client" pour éviter d'importer un composant serveur
- * dans ce fichier "use client". Même design que PromoBanner.
+/**
+ * Bannière FERMETURE en "client" (même design que PromoBanner),
+ * placée SOUS le header (pas dedans) pour ne pas casser l’alignement du titre.
  */
 function ClosedBannerInline() {
   const [loading, setLoading] = useState(true);
@@ -88,7 +88,7 @@ function ClosedBannerInline() {
       style={{
         width: "100%",
         maxWidth: 900,
-        margin: "8px auto 0",
+        margin: "0 auto",
         padding: "12px 20px",
         borderRadius: 14,
         border: "1px solid rgba(125,108,113,.25)",
@@ -156,6 +156,7 @@ export default function SiteChrome({ children }: Props) {
   // ---- Site public : header chic + grand titre centré + menu déroulant ----
   return (
     <div>
+      {/* HEADER PUBLIC (titre centré, menu à droite, inchangé) */}
       <header className="site-header">
         <div className="header-left" />
         <div className="header-center">
@@ -166,14 +167,24 @@ export default function SiteChrome({ children }: Props) {
         <div className="header-right">
           <PublicMenuDropdown />
         </div>
-
-        {/* 👉 Bannières sous le titre, l'une sous l'autre si les deux actives */}
-        <div style={{ width: "100%", maxWidth: 900, margin: "0 auto 10px" }}>
-          <ClosedBannerInline />
-          <PromoBanner />
-        </div>
       </header>
 
+      {/* ✅ BANNIÈRES SOUS LE HEADER (jamais à côté du titre) */}
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 900,
+          margin: "10px auto 14px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 10,
+        }}
+      >
+        <ClosedBannerInline />
+        <PromoBanner />
+      </div>
+
+      {/* CONTENU */}
       <main className="site-main">{children}</main>
     </div>
   );
