@@ -430,7 +430,34 @@ async function catRemove(id: string) {
     loadSettings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+/** 
+ * Décale les ordres des soins de la même catégorie AVANT insertion.
+ * Tous les soins avec order >= newOrder seront +1.
+ */
+async function bumpOrdersBeforeInsert(
+  all: Service[],
+  newOrder: number,
+  category: string
+) {
+  // On travaille du plus grand vers le plus petit pour éviter les collisions
+  const toBump = [...all]
+    .filter(s => (s.category || "").toUpperCase() === category.toUpperCase())
+    .filter(s => (s.order ?? 999999) >= newOrder)
+    .sort((a, b) => (b.order ?? 0) - (a.order ?? 0));
 
+  for (const s of toBump) {
+    await fetch("/api/admin/services", {
+      method: "PUT",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: s.id,
+        // on incrémente d’1 (si order null, on met 0 d’abord)
+        order: (s.order ?? 0) + 1,
+      }),
+    });
+  }
+}
   /* ===== UI ===== */
   return (
     <div>
