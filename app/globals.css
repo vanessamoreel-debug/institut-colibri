@@ -502,3 +502,22 @@ body.body-public main .hero-card {
   min-height: auto !important; /* la carte s’ajuste à son contenu */
   margin: 0 auto;
 }
+/* --- Patch bannières & espacement sous le header --- */
+.site-header {
+  margin-bottom: 0 !important;
+}
+
+.banner-stack {
+  /* Evite un gros blanc entre header et contenu */
+  margin-bottom: 6px;
+}
+
+.body-public .site-main {
+  padding-top: 8px !important;
+  margin-top: 0 !important;
+}
+
+/* Si la section d'accueil a un gros margin-top par défaut, on le neutralise */
+.body-public .site-main > *:first-child {
+  margin-top: 0 !important;
+}
