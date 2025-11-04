@@ -535,11 +535,11 @@ body.body-public main .hero-card {
 .body-public .site-main > *:first-child {
   margin-top: 8px !important; /* descends à 4px si tu veux encore plus serré */
 }
-/* ========= BANNIÈRES COLIBRI (promo + fermeture) ========= */
+/* ========= BANNIÈRES COLIBRI (promo + fermeture) — Inter 500 + lining nums ========= */
 .after-site-title {
   width: 100%;
   max-width: 900px;
-  margin: 6px auto 4px; /* (avant 8px/6px) rapproché du contenu */
+  margin: 8px auto 6px; /* petit espace sous le titre */
   padding: 0 10px;
 }
 
@@ -554,14 +554,12 @@ body.body-public main .hero-card {
   backdrop-filter: blur(8px);
   text-align: center;
 
-  /* → Police identique au titre + chiffres “lining” */
-  font-family: 'Playfair Display', serif;
-  font-weight: 500;
-  font-variant-numeric: lining-nums;
-  font-feature-settings: "lnum" 1;
-
-  /* → même couleur que le titre */
-  color: var(--brand);
+  /* >>> Typo unifiée avec chiffres “grands” */
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-weight: 500;                       /* demandé : medium élégant */
+  font-variant-numeric: lining-nums;      /* chiffres “grands” */
+  font-feature-settings: "lnum" 1, "liga" 1;
+  color: var(--brand);                    /* même couleur que le titre */
 }
 
 .colibri-banner__chip {
@@ -577,13 +575,17 @@ body.body-public main .hero-card {
   font-size: 15px;
   margin-right: 10px;
   vertical-align: middle;
+  line-height: 1; /* bien centré */
 }
 
 .colibri-banner__text {
   font-size: 1.05rem;
   line-height: 1.4;
-  font-weight: 600; /* garde un peu plus de présence */
+  font-weight: 500;                       /* cohérent avec la bannière */
   vertical-align: middle;
+  font-variant-numeric: lining-nums;      /* chiffres “grands” */
+  font-feature-settings: "lnum" 1, "liga" 1;
+}
 
   /* sécurité : mêmes features que le container */
   font-variant-numeric: lining-nums;
