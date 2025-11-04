@@ -111,7 +111,7 @@ export default function SiteChrome({ children }: Props) {
       </div>
 
       {/* Contenu public : collé au plus près des bannières */}
-      <main className="site-main site-main--tight">
+      <main className="site-main site-main--tight">{children}</main>
         {children}
       </main>
     </div>
