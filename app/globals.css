@@ -114,9 +114,7 @@ html.body-public, body.body-public {
 }
 /* Ajustement du centrage uniquement sur PC */
 @media (min-width: 769px) {
-  .site-title-text {
-    padding-right: 30px; /* moins d’espace que 100px, donc titre plus centré */
-  }
+  .site-title-text { padding-right: 30px; }
 }
 @media (max-width: 520px) {
   .site-title-text { font-size: 2.6rem; }
@@ -365,6 +363,7 @@ html.body-public, body.body-public {
   background: rgba(125,108,113,0.18) !important;
   color: #2a2225 !important;
 }
+
 /* =========================
    ADMIN STYLE
    ========================= */
@@ -412,6 +411,7 @@ button:hover {
   color: #777;
   font-size: 0.9rem;
 }
+
 /* =========================
    HEADER ADMIN CHIC
    ========================= */
@@ -468,8 +468,9 @@ button:hover {
   margin: 40px auto;
   padding: 0 20px 80px;
 }
+
 /* === Compatibilité noms de classes du header admin === */
-.admin-header__inner { /* même style que .admin-header-inner */
+.admin-header__inner {
   max-width: 1100px;
   margin: 0 auto;
   padding: 14px 20px;
@@ -477,18 +478,19 @@ button:hover {
   justify-content: space-between;
   align-items: center;
 }
-.admin-header__brand { /* même style que .admin-header-title */
+.admin-header__brand {
   font-family: 'Playfair Display', serif;
   font-weight: 600;
   font-size: 1.3rem;
   color: var(--brand);
   letter-spacing: 0.3px;
 }
-.admin-header__nav { /* même style que .admin-nav */
+.admin-header__nav {
   display: flex;
   gap: 18px;
 }
 body.admin-shell .site-header { display: none !important; }
+
 /* =========================
    ACCUEIL — centrage vertical du bloc "Bienvenue"
    ========================= */
@@ -503,10 +505,9 @@ body.body-public main .hero-card {
   min-height: auto !important; /* la carte s’ajuste à son contenu */
   margin: 0 auto;
 }
+
 /* --- Patch bannières & espacement sous le header --- */
-.site-header {
-  margin-bottom: 0 !important;
-}
+.site-header { margin-bottom: 0 !important; }
 
 .banner-stack {
   /* Evite un gros blanc entre header et contenu */
@@ -514,7 +515,7 @@ body.body-public main .hero-card {
 }
 
 .body-public .site-main {
-  padding-top: 8px !important;
+  padding-top: 0 !important;
   margin-top: 0 !important;
 }
 
@@ -522,19 +523,7 @@ body.body-public main .hero-card {
 .body-public .site-main > *:first-child {
   margin-top: 0 !important;
 }
-/* --- Ajustements header/bannières/espaces --- */
-.site-header { margin-bottom: 0 !important; }
 
-/* Réduit l'espace avant le contenu */
-.body-public .site-main {
-  padding-top: 0 !important;
-  margin-top: 0 !important;
-}
-
-/* Colle vraiment la première section (ex: “Bienvenue…”) sous les bannières */
-.body-public .site-main > *:first-child {
-  margin-top: 8px !important; /* descends à 4px si tu veux encore plus serré */
-}
 /* ========= BANNIÈRES COLIBRI (promo + fermeture) — Inter 500 + lining nums ========= */
 .after-site-title {
   width: 100%;
@@ -554,6 +543,7 @@ body.body-public main .hero-card {
   backdrop-filter: blur(8px);
   text-align: center;
 
+  /* Inter uniquement sur les bannières */
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   font-weight: 500;
   font-variant-numeric: lining-nums;
@@ -586,11 +576,6 @@ body.body-public main .hero-card {
   font-feature-settings: "lnum" 1, "liga" 1;
 }
 
-  /* sécurité : mêmes features que le container */
-  font-variant-numeric: lining-nums;
-  font-feature-settings: "lnum" 1;
-}
-
 /* ========= ESPACEMENTS PUBLICS : remonter “Bienvenue…”, Contact, À-propos ========= */
 .site-header { margin-bottom: 0 !important; }
 
@@ -599,9 +584,9 @@ body.body-public main .hero-card {
   margin-top: 0 !important;
 }
 
-/* Raccourci universel : le tout premier enfant du contenu public */
+/* Raccourci universel : premier enfant du contenu public, marge désirée */
 .body-public .site-main.site-main--tight > :first-child {
-  margin-top: 8px !important;
+  margin-top: 16px !important;  /* mt 16 comme demandé */
 }
 
 /* Cas fréquents : containers/wrappers différents selon les pages */
@@ -610,11 +595,11 @@ body.body-public main .hero-card {
 .body-public .site-main.site-main--tight > .section:first-child,
 .body-public .site-main.site-main--tight > .prose:first-child,
 .body-public .site-main.site-main--tight > .card:first-child {
-  margin-top: 8px !important;
+  margin-top: 16px !important;  /* mt 16 */
 }
 
 /* Si la page commence directement par un titre */
 .body-public .site-main.site-main--tight h1:first-of-type,
 .body-public .site-main.site-main--tight h2:first-of-type {
-  margin-top: 8px !important;
+  margin-top: 16px !important;  /* mt 16 */
 }
