@@ -538,9 +538,10 @@ body.body-public main .hero-card {
 .after-site-title {
   width: 100%;
   max-width: 900px;
-  margin: 8px auto 6px; /* petit espace sous le titre */
+  margin: 6px auto 4px; /* (avant 8px/6px) rapproché du contenu */
   padding: 0 10px;
 }
+
 .colibri-banner {
   width: 100%;
   margin: 6px auto;
@@ -551,10 +552,17 @@ body.body-public main .hero-card {
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
   text-align: center;
-  font-weight: 500;               /* même poids demandé */
-  font-family: inherit;           /* suit la police du site */
-  color: var(--colibri-accent, #7D6C71); /* même couleur que le titre */
+
+  /* → Police identique au titre + chiffres “lining” */
+  font-family: 'Playfair Display', serif;
+  font-weight: 500;
+  font-variant-numeric: lining-nums;
+  font-feature-settings: "lnum" 1;
+
+  /* → même couleur que le titre */
+  color: var(--brand);
 }
+
 .colibri-banner__chip {
   display: inline-flex;
   width: 26px;
@@ -569,11 +577,16 @@ body.body-public main .hero-card {
   margin-right: 10px;
   vertical-align: middle;
 }
+
 .colibri-banner__text {
   font-size: 1.05rem;
   line-height: 1.4;
-  font-weight: 600;
+  font-weight: 600; /* garde un peu plus de présence */
   vertical-align: middle;
+
+  /* sécurité : mêmes features que le container */
+  font-variant-numeric: lining-nums;
+  font-feature-settings: "lnum" 1;
 }
 
 /* ========= ESPACEMENTS PUBLICS : remonter “Bienvenue…”, Contact, À-propos ========= */
