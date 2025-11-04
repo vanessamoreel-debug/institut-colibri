@@ -466,7 +466,6 @@ async function bumpOrdersBeforeInsert(
       }),
     });
   } // <-- on ferme le for (const s of sameCat)
-
   /* ===== UI ===== */
   return (
     <div>
