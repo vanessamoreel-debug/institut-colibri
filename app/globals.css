@@ -521,3 +521,16 @@ body.body-public main .hero-card {
 .body-public .site-main > *:first-child {
   margin-top: 0 !important;
 }
+/* --- Ajustements header/bannières/espaces --- */
+.site-header { margin-bottom: 0 !important; }
+
+/* Réduit l'espace avant le contenu */
+.body-public .site-main {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* Colle vraiment la première section (ex: “Bienvenue…”) sous les bannières */
+.body-public .site-main > *:first-child {
+  margin-top: 8px !important; /* descends à 4px si tu veux encore plus serré */
+}
