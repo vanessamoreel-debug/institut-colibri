@@ -541,50 +541,86 @@ async function bumpOrdersBeforeInsert(
               <p>Chargement des catégories…</p>
             ) : (
               <table
+  style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10 }}
+>
+  <thead>
+    <tr>
+      <th style={{ textAlign: "left" }}>Nom</th>
+      <th>Catégorie</th>
+      <th>Durée</th>
+      <th>Ordre</th>
+      <th>Prix</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {dataSorted.map((s) => (
+      <React.Fragment key={s.id}>
+        {/* Ligne principale du soin */}
+        <tr>
+          <td>{s.name}</td>
+          <td style={{ textAlign: "center" }}>{s.category || "—"}</td>
+          <td style={{ textAlign: "center" }}>{formatDurationInline(s)}</td>
+          <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
+          <td style={{ textAlign: "center", fontWeight: 600 }}>
+            {formatPriceAdmin(s)}
+          </td>
+          <td style={{ textAlign: "center" }}>
+            <div
+              style={{
+                display: "inline-flex",
+                gap: 8,
+                flexWrap: "wrap",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <button onClick={() => editService(s)}>Modifier</button>
+              <button
+                onClick={() => remove(s.id)}
                 style={{
-                  width: "100%",
                   background: "#fff",
-                  border: "1px solid #eee",
-                  borderRadius: 10,
-                  marginTop: 12,
+                  color: "#a42828",
+                  border: "1px solid #f0caca",
                 }}
               >
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: "left" }}>Nom</th>
-                    <th style={{ width: 120 }}>Ordre</th>
-                    <th style={{ width: 180 }}>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[...cats]
-                    .sort((a, b) => {
-                      const oa = a.order ?? 9999;
-                      const ob = b.order ?? 9999;
-                      if (oa !== ob) return oa - ob;
-                      return (a.name || "").localeCompare(b.name || "");
-                    })
-                    .map((c) => (
-                      <tr key={c.id}>
-                        <td>{c.name}</td>
-                        <td style={{ textAlign: "center" }}>{c.order ?? "—"}</td>
-                        <td style={{ textAlign: "center" }}>
-                          <button onClick={() => setCatForm(c)}>Modifier</button>
-                          <button onClick={() => catRemove(c.id)} style={{ marginLeft: 8 }}>
-                            Supprimer
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  {cats.length === 0 ? (
-                    <tr>
-                      <td colSpan={3} style={{ color: "#666", padding: 8 }}>
-                        Aucune catégorie.
-                      </td>
-                    </tr>
-                  ) : null}
-                </tbody>
-              </table>
+                Supprimer
+              </button>
+            </div>
+          </td>
+        </tr>
+
+        {/* Ligne description sous le soin (seulement si renseignée) */}
+        {s.description && String(s.description).trim() && (
+          <tr>
+            <td
+              colSpan={6}
+              style={{
+                background: "#fafafa",
+                padding: "8px 16px",
+                fontSize: 14,
+                color: "#444",
+              }}
+            >
+              <div style={{ whiteSpace: "pre-wrap" }}>
+                {String(s.description).trim()}
+              </div>
+            </td>
+          </tr>
+        )}
+      </React.Fragment>
+    ))}
+
+    {dataSorted.length === 0 ? (
+      <tr>
+        <td colSpan={6} style={{ color: "#666", padding: 8 }}>
+          Aucun soin.
+        </td>
+      </tr>
+    ) : null}
+  </tbody>
+</table>
             )}
           </div>
 
