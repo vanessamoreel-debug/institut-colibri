@@ -344,20 +344,31 @@ function AdminPageInner() {
     }
   }
 
-  async function remove(id: string) {
+  // ⬇️ NOUVELLE VERSION : on passe le Service complet pour pouvoir reindexer la catégorie
+  async function remove(svc: Service) {
     setMsg("");
     try {
+      // 1) Supprime le soin
       const res = await fetch("/api/admin/services", {
         method: "DELETE",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ id: svc.id }),
       });
       if (handleUnauthorized(res)) return;
       if (!res.ok) throw new Error(await res.text());
-      const json = await res.json();
-      setData(json.data || []);
-      setMsg("✔️ Supprimé.");
+
+      // 2) Recharge la liste
+      await loadServices();
+
+      // 3) Reindexe la catégorie pour enlever les trous (1..n)
+      const catUpper = (svc.category || "").toUpperCase();
+      if (catUpper) {
+        await reindexCategoryOrders(catUpper);
+        await loadServices(); // reflète les nouveaux ordres
+      }
+
+      setMsg("✔️ Supprimé et réordonné.");
     } catch (e: any) {
       setMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
     }
@@ -466,6 +477,40 @@ function AdminPageInner() {
           order: (s.order ?? 0) + 1, // pousse d’1
         }),
       });
+    }
+  }
+
+  /**
+   * Re-numérote séquentiellement tous les soins d'une catégorie (1,2,3,...) pour enlever les trous.
+   */
+  async function reindexCategoryOrders(categoryUpper: string) {
+    // Récupère la liste la plus fraîche
+    const res = await fetch("/api/services", { cache: "no-store" });
+    if (!res.ok) throw new Error(await res.text());
+    const all = (await res.json()) as Service[];
+
+    // Garde la même catégorie, tri logique (ordre puis nom pour stabilité)
+    const same = all
+      .filter((s) => (s.category || "").toUpperCase() === categoryUpper)
+      .sort((a, b) => {
+        const oa = a.order ?? 9999;
+        const ob = b.order ?? 9999;
+        if (oa !== ob) return oa - ob;
+        return a.name.localeCompare(b.name);
+      });
+
+    // Réassigne 1..n si différent
+    let expected = 1;
+    for (const s of same) {
+      if ((s.order ?? 0) !== expected) {
+        await fetch("/api/admin/services", {
+          method: "PUT",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: s.id, order: expected }),
+        });
+      }
+      expected += 1;
     }
   }
 
@@ -754,7 +799,7 @@ function AdminPageInner() {
                           >
                             <button onClick={() => editService(s)}>Modifier</button>
                             <button
-                              onClick={() => remove(s.id)}
+                              onClick={() => remove(s)} // ⬅️ on passe le Service complet
                               style={{ background: "#fff", color: "#a42828", border: "1px solid #f0caca" }}
                             >
                               Supprimer
