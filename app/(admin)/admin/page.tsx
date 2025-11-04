@@ -4,11 +4,8 @@
 // Rendu 100% dynamique
 export const dynamic = "force-dynamic";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
-import React from "react";
+import React, { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-// ⬇️ Si ton types.ts est à la RACINE du projet, garde cette ligne.
-//    Si tu as app/types.ts, remplace par: "../../types"
 import type { Service, Category, PageDoc } from "../../../types";
 
 type Tab = "soins" | "contact" | "a-propos" | "fermeture" | "promo";
@@ -69,8 +66,8 @@ function AdminPageInner() {
   const [priceMode, setPriceMode] = useState<PriceMode>("single");
   const [msg, setMsg] = useState<string>("");
 
-  /* Aperçu description (ligne dépliable) */
-  const [openDescId, setOpenDescId] = useState<string | null>(null);
+  /* (Réservé si un jour on replie/déplie la description) */
+  const [openDescId] = useState<string | null>(null);
 
   /* Catégories */
   const [cats, setCats] = useState<Category[]>([]);
@@ -282,7 +279,7 @@ function AdminPageInner() {
     });
   }
 
-   /* CRUD Soins */
+  /* CRUD Soins */
   async function addOrUpdate() {
     setMsg("");
 
@@ -306,9 +303,7 @@ function AdminPageInner() {
       ...form,
       price: null,
       priceMin:
-        priceMode === "single"
-          ? numOrNull(form.price ?? form.priceMin)
-          : numOrNull(form.priceMin),
+        priceMode === "single" ? numOrNull(form.price ?? form.priceMin) : numOrNull(form.priceMin),
       priceMax: priceMode === "range" ? numOrNull(form.priceMax) : null,
       category: form.category ? String(form.category).toUpperCase() : null,
       duration: form.duration == null ? null : Number(form.duration),
@@ -454,11 +449,7 @@ function AdminPageInner() {
    * Décale les ordres des soins de la même catégorie AVANT insertion.
    * Tous les soins avec order >= newOrder seront +1.
    */
-  async function bumpOrdersBeforeInsert(
-    all: Service[],
-    newOrder: number,
-    category: string
-  ) {
+  async function bumpOrdersBeforeInsert(all: Service[], newOrder: number, category: string) {
     // On travaille du plus grand vers le plus petit pour éviter les collisions
     const toBump = [...all]
       .filter((s) => (s.category || "").toUpperCase() === category.toUpperCase())
@@ -479,7 +470,6 @@ function AdminPageInner() {
   }
 
   /* ===== UI ===== */
-
   return (
     <div>
       {/* Barre de statut + action */}
@@ -522,9 +512,7 @@ function AdminPageInner() {
               <input
                 placeholder="Nom de la catégorie (ex: SOINS DU VISAGE)"
                 value={catForm.name || ""}
-                onChange={(e) =>
-                  setCatForm({ ...(catForm as any), name: e.target.value.toUpperCase() })
-                }
+                onChange={(e) => setCatForm({ ...(catForm as any), name: e.target.value.toUpperCase() })}
               />
               <input
                 placeholder="Ordre (ex: 1)"
@@ -535,113 +523,69 @@ function AdminPageInner() {
                 }
               />
               <div style={{ display: "flex", gap: 8 }}>
-                <button onClick={catAddOrUpdate}>
-                  {(catForm as any).id ? "Enregistrer" : "Ajouter"}
-                </button>
-                {(catForm as any).id ? (
-                  <button onClick={() => setCatForm({})}>Annuler</button>
-                ) : null}
+                <button onClick={catAddOrUpdate}>{(catForm as any).id ? "Enregistrer" : "Ajouter"}</button>
+                {(catForm as any).id ? <button onClick={() => setCatForm({})}>Annuler</button> : null}
               </div>
             </div>
 
             {catMsg ? (
-              <p style={{ color: catMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>
-                {catMsg}
-              </p>
+              <p style={{ color: catMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{catMsg}</p>
             ) : null}
 
             {catsLoading ? (
               <p>Chargement des catégories…</p>
             ) : (
               <table
-  style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10 }}
->
-  <thead>
-    <tr>
-      <th style={{ textAlign: "left" }}>Nom</th>
-      <th>Catégorie</th>
-      <th>Durée</th>
-      <th>Ordre</th>
-      <th>Prix</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    {dataSorted.map((s) => (
-      <React.Fragment key={s.id}>
-        {/* Ligne principale du soin */}
-        <tr>
-          <td>{s.name}</td>
-          <td style={{ textAlign: "center" }}>{s.category || "—"}</td>
-          <td style={{ textAlign: "center" }}>{formatDurationInline(s)}</td>
-          <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
-          <td style={{ textAlign: "center", fontWeight: 600 }}>
-            {formatPriceAdmin(s)}
-          </td>
-          <td style={{ textAlign: "center" }}>
-            <div
-              style={{
-                display: "inline-flex",
-                gap: 8,
-                flexWrap: "wrap",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <button onClick={() => editService(s)}>Modifier</button>
-              <button
-                onClick={() => remove(s.id)}
                 style={{
+                  width: "100%",
                   background: "#fff",
-                  color: "#a42828",
-                  border: "1px solid #f0caca",
+                  border: "1px solid #eee",
+                  borderRadius: 10,
+                  marginTop: 12,
                 }}
               >
-                Supprimer
-              </button>
-            </div>
-          </td>
-        </tr>
-
-        {/* Ligne description sous le soin (seulement si renseignée) */}
-        {s.description && String(s.description).trim() && (
-          <tr>
-            <td
-              colSpan={6}
-              style={{
-                background: "#fafafa",
-                padding: "8px 16px",
-                fontSize: 14,
-                color: "#444",
-              }}
-            >
-              <div style={{ whiteSpace: "pre-wrap" }}>
-                {String(s.description).trim()}
-              </div>
-            </td>
-          </tr>
-        )}
-      </React.Fragment>
-    ))}
-
-    {dataSorted.length === 0 ? (
-      <tr>
-        <td colSpan={6} style={{ color: "#666", padding: 8 }}>
-          Aucun soin.
-        </td>
-      </tr>
-    ) : null}
-  </tbody>
-</table>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: "left" }}>Nom</th>
+                    <th style={{ width: 120 }}>Ordre</th>
+                    <th style={{ width: 180 }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[...cats]
+                    .sort((a, b) => {
+                      const oa = a.order ?? 9999;
+                      const ob = b.order ?? 9999;
+                      if (oa !== ob) return oa - ob;
+                      return (a.name || "").localeCompare(b.name || "");
+                    })
+                    .map((c) => (
+                      <tr key={c.id}>
+                        <td>{c.name}</td>
+                        <td style={{ textAlign: "center" }}>{c.order ?? "—"}</td>
+                        <td style={{ textAlign: "center" }}>
+                          <button onClick={() => setCatForm(c)}>Modifier</button>
+                          <button onClick={() => catRemove(c.id)} style={{ marginLeft: 8 }}>
+                            Supprimer
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  {cats.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} style={{ color: "#666", padding: 8 }}>
+                        Aucune catégorie.
+                      </td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
             )}
           </div>
 
-          {/* Soins */}
+          {/* Formulaire Soins */}
           <div className="admin-card">
-            <h3 className="admin-section-title">
-              {form?.id ? "Modifier un soin" : "Ajouter un soin"}
-            </h3>
+            <h3 className="admin-section-title">{form?.id ? "Modifier un soin" : "Ajouter un soin"}</h3>
 
             {/* Toggle mode prix */}
             <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 8 }}>
@@ -693,17 +637,13 @@ function AdminPageInner() {
                     placeholder="Prix min (CHF)"
                     type="number"
                     value={(form.priceMin ?? "").toString()}
-                    onChange={(e) =>
-                      setForm({ ...form, priceMin: numOrNull(e.target.value) as any })
-                    }
+                    onChange={(e) => setForm({ ...form, priceMin: numOrNull(e.target.value) as any })}
                   />
                   <input
                     placeholder="Prix max (CHF)"
                     type="number"
                     value={(form.priceMax ?? "").toString()}
-                    onChange={(e) =>
-                      setForm({ ...form, priceMax: numOrNull(e.target.value) as any })
-                    }
+                    onChange={(e) => setForm({ ...form, priceMax: numOrNull(e.target.value) as any })}
                   />
                 </>
               )}
@@ -771,94 +711,86 @@ function AdminPageInner() {
             </div>
           </div>
 
-          {msg ? (
-            <p style={{ color: msg.startsWith("✔") ? "green" : "crimson" }}>{msg}</p>
-          ) : null}
+          {msg ? <p style={{ color: msg.startsWith("✔") ? "green" : "crimson" }}>{msg}</p> : null}
 
+          {/* Liste des soins */}
           <div className="admin-card">
             {loading ? (
               <p>Chargement…</p>
             ) : (
               <table
-  style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10 }}
->
-  <thead>
-    <tr>
-      <th style={{ textAlign: "left" }}>Nom</th>
-      <th>Catégorie</th>
-      <th>Durée</th>
-      <th>Ordre</th>
-      <th>Prix</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
+                style={{ width: "100%", background: "#fff", border: "1px solid #eee", borderRadius: 10 }}
+              >
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: "left" }}>Nom</th>
+                    <th>Catégorie</th>
+                    <th>Durée</th>
+                    <th>Ordre</th>
+                    <th>Prix</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
 
-  <tbody>
-    {dataSorted.map((s) => (
-      <React.Fragment key={s.id}>
-        {/* Ligne principale du soin */}
-        <tr>
-          <td>{s.name}</td>
-          <td style={{ textAlign: "center" }}>{s.category || "—"}</td>
-          <td style={{ textAlign: "center" }}>{formatDurationInline(s)}</td>
-          <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
-          <td style={{ textAlign: "center", fontWeight: 600 }}>
-            {formatPriceAdmin(s)}
-        <td style={{ textAlign: "center" }}>
-  <div
-    style={{
-      display: "inline-flex",
-      gap: 8,
-      flexWrap: "wrap",
-      alignItems: "center",
-      justifyContent: "center",
-    }}
-  >
-    <button onClick={() => editService(s)}>
-      Modifier
-    </button>
-    <button
-      onClick={() => remove(s.id)}
-      style={{
-        background: "#fff",
-        color: "#a42828",
-        border: "1px solid #f0caca",
-      }}
-    >
-      Supprimer
-    </button>
-  </div>
-</td>
-        {/* Ligne description sous le soin (seulement si renseignée) */}
-        {s.description && (
-          <tr>
-            <td
-              colSpan={6}
-              style={{
-                background: "#fafafa",
-                padding: "8px 16px",
-                fontSize: 14,
-                color: "#444",
-              }}
-            >
-              <div style={{ whiteSpace: "pre-wrap" }}>
-                {String(s.description || "").trim()}
-              </div>
-            </td>
-          </tr>
-        )}
-      </React.Fragment>
-    ))}
+                <tbody>
+                  {dataSorted.map((s) => (
+                    <React.Fragment key={s.id}>
+                      {/* Ligne principale du soin */}
+                      <tr>
+                        <td>{s.name}</td>
+                        <td style={{ textAlign: "center" }}>{s.category || "—"}</td>
+                        <td style={{ textAlign: "center" }}>{formatDurationInline(s)}</td>
+                        <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
+                        <td style={{ textAlign: "center", fontWeight: 600 }}>{formatPriceAdmin(s)}</td>
+                        <td style={{ textAlign: "center" }}>
+                          <div
+                            style={{
+                              display: "inline-flex",
+                              gap: 8,
+                              flexWrap: "wrap",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <button onClick={() => editService(s)}>Modifier</button>
+                            <button
+                              onClick={() => remove(s.id)}
+                              style={{ background: "#fff", color: "#a42828", border: "1px solid #f0caca" }}
+                            >
+                              Supprimer
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
 
-    {dataSorted.length === 0 ? (
-      <tr>
-        <td colSpan={6} style={{ color: "#666", padding: 8 }}>
-          Aucun soin.
-        </td>
-      </tr>
-    ) : null}
-  </tbody>
-</table>
+                      {/* Ligne description sous le soin (seulement si renseignée) */}
+                      {s.description && String(s.description).trim() && (
+                        <tr>
+                          <td
+                            colSpan={6}
+                            style={{
+                              background: "#fafafa",
+                              padding: "8px 16px",
+                              fontSize: 14,
+                              color: "#444",
+                            }}
+                          >
+                            <div style={{ whiteSpace: "pre-wrap" }}>{String(s.description).trim()}</div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  ))}
+
+                  {dataSorted.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} style={{ color: "#666", padding: 8 }}>
+                        Aucun soin.
+                      </td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
             )}
           </div>
         </>
@@ -893,9 +825,7 @@ function AdminPageInner() {
               </div>
 
               {contactMsg ? (
-                <p style={{ color: contactMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>
-                  {contactMsg}
-                </p>
+                <p style={{ color: contactMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{contactMsg}</p>
               ) : null}
             </div>
 
@@ -941,9 +871,7 @@ function AdminPageInner() {
               </div>
 
               {aproposMsg ? (
-                <p style={{ color: aproposMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>
-                  {aproposMsg}
-                </p>
+                <p style={{ color: aproposMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{aproposMsg}</p>
               ) : null}
             </div>
 
@@ -988,9 +916,7 @@ function AdminPageInner() {
           </div>
 
           {closedMsg ? (
-            <p style={{ color: closedMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>
-              {closedMsg}
-            </p>
+            <p style={{ color: closedMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{closedMsg}</p>
           ) : null}
         </div>
       )}
@@ -1023,9 +949,7 @@ function AdminPageInner() {
           </div>
 
           {promoMsg ? (
-            <p style={{ color: promoMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>
-              {promoMsg}
-            </p>
+            <p style={{ color: promoMsg.startsWith("✔") ? "green" : "crimson", marginTop: 8 }}>{promoMsg}</p>
           ) : null}
         </div>
       )}
