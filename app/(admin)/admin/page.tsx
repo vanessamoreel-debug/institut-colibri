@@ -756,15 +756,31 @@ async function bumpOrdersBeforeInsert(
           <td style={{ textAlign: "center" }}>{s.order ?? "—"}</td>
           <td style={{ textAlign: "center", fontWeight: 600 }}>
             {formatPriceAdmin(s)}
-          </td>
-          <td style={{ textAlign: "center" }}>
-            <button onClick={() => editService(s)}>Modifier</button>
-            <button onClick={() => remove(s.id)} style={{ marginLeft: 8 }}>
-              Supprimer
-            </button>
-          </td>
-        </tr>
-
+        <td style={{ textAlign: "center" }}>
+  <div
+    style={{
+      display: "inline-flex",
+      gap: 8,
+      flexWrap: "wrap",
+      alignItems: "center",
+      justifyContent: "center",
+    }}
+  >
+    <button onClick={() => editService(s)}>
+      Modifier
+    </button>
+    <button
+      onClick={() => remove(s.id)}
+      style={{
+        background: "#fff",
+        color: "#a42828",
+        border: "1px solid #f0caca",
+      }}
+    >
+      Supprimer
+    </button>
+  </div>
+</td>
         {/* Ligne description sous le soin (seulement si renseignée) */}
         {s.description && (
           <tr>
