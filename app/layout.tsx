@@ -2,8 +2,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import SiteChrome from "./components/SiteChrome";
-import ClosedBanner from "./components/ClosedBanner";
-import PromoBanner from "./components/PromoBanner";
 
 export const metadata: Metadata = {
   title: "Institut Colibri",
@@ -14,10 +12,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fr" className="body-public">
       <body className="min-h-screen">
-        {/* Bannières en haut de page */}
-        <ClosedBanner />
-        <PromoBanner />
-
         <div className="site">
           <SiteChrome>{children}</SiteChrome>
           <footer className="site-footer">
