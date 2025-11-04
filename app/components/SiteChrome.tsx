@@ -43,7 +43,7 @@ function PublicMenuDropdown() {
   );
 }
 
-/** Fermeture inline (client) — même design/poids que PromoBanner */
+/** Fermeture inline (client) — même design/poids/couleur que Promo */
 function ClosedBannerInline() {
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(false);
@@ -70,54 +70,9 @@ function ClosedBannerInline() {
   if (loading || !active) return null;
 
   return (
-    <div
-      style={{
-        width: "100%",
-        maxWidth: 900,
-        margin: "6px auto 6px",
-        padding: "12px 20px",
-        borderRadius: 14,
-        border: "1px solid rgba(125,108,113,.25)",
-        background: "linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.45))",
-        backdropFilter: "blur(8px)",
-        WebkitBackdropFilter: "blur(8px)",
-        color: "#7D6C71",           // même couleur que la promo
-        textAlign: "center",
-        fontWeight: 500,            // même poids que demandé
-        fontFamily: "inherit",      // suit la même police que le site
-      }}
-    >
-      <span
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 10,
-          fontSize: "1.05rem",
-          lineHeight: 1.4,
-        }}
-      >
-        <span
-          aria-hidden
-          title="Fermeture"
-          style={{
-            display: "inline-flex",
-            width: 26,
-            height: 26,
-            borderRadius: "50%",
-            background: "#7D6C71",
-            color: "#fff",
-            fontWeight: 700,
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 15,
-            flexShrink: 0,
-          }}
-        >
-          !
-        </span>
-        <span style={{ fontWeight: 600 }}>{text}</span>
-      </span>
+    <div className="colibri-banner" role="status" aria-live="polite">
+      <span className="colibri-banner__chip" aria-hidden title="Fermeture">!</span>
+      <span className="colibri-banner__text">{text}</span>
     </div>
   );
 }
@@ -126,22 +81,19 @@ export default function SiteChrome({ children }: Props) {
   const pathname = usePathname() || "/";
   const isAdmin = pathname.startsWith("/admin");
 
-  // Public ↔ Admin : classe body
   useEffect(() => {
     const body = document.body;
     if (!isAdmin) body.classList.add("body-public");
     else body.classList.remove("body-public");
   }, [isAdmin]);
 
-  // Admin : layout séparé
   if (isAdmin) {
     return <main className="site-main">{children}</main>;
   }
 
-  // Public
   return (
     <div>
-      {/* HEADER UNIQUEMENT LE TITRE + MENU (rien d'autre) */}
+      {/* HEADER : uniquement le titre et le menu → reste centré */}
       <header className="site-header" style={{ marginBottom: 0 }}>
         <div className="header-left" />
         <div className="header-center">
@@ -152,14 +104,14 @@ export default function SiteChrome({ children }: Props) {
         </div>
       </header>
 
-      {/* ⬇️ Bannières PLEINE LARGEUR CENTRÉES, SOUS le titre, sans décentrer le header */}
-      <div style={{ width: "100%", maxWidth: 900, margin: "8px auto 6px" }}>
+      {/* Bannières sous le titre, centrées, l'une sous l'autre */}
+      <div className="after-site-title">
         <ClosedBannerInline />
         <PromoBanner />
       </div>
 
-      {/* Contenu public : on remonte au plus près des bannières */}
-      <main className="site-main" style={{ paddingTop: 0, marginTop: 0 }}>
+      {/* Contenu public : collé au plus près des bannières */}
+      <main className="site-main site-main--tight">
         {children}
       </main>
     </div>
