@@ -311,7 +311,16 @@ function AdminPageInner() {
       spacing: form.spacing == null ? null : Number(form.spacing),
       description: form.description ?? "",
     };
+// ⬇️ Si on CRÉE un soin (pas en modification) ET qu'on a un ordre + une catégorie,
+// on décale d'abord les autres soins de la même catégorie (order >= newOrder => +1)
+if (!form?.id) {
+  const newOrder = numOrNull(form.order);
+  const cat = form.category ? String(form.category).toUpperCase() : null;
 
+  if (newOrder != null && cat) {
+    await bumpOrdersBeforeInsert(data, newOrder, cat);
+  }
+}
     const method = form?.id ? "PUT" : "POST";
     try {
       const res = await fetch("/api/admin/services", {
