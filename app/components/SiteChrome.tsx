@@ -9,12 +9,11 @@ import { Inter } from "next/font/google";
 
 const inter = Inter({
   subsets: ["latin"],
-  weight: ["500"], // même graisse que la promo
+  weight: ["500"],
 });
 
 type Props = { children: React.ReactNode };
 
-/* --------- Menu déroulant PUBLIC (utilise les classes CSS existantes) --------- */
 function PublicMenuDropdown() {
   const [open, setOpen] = useState(false);
 
@@ -40,27 +39,16 @@ function PublicMenuDropdown() {
         Menu
       </button>
       <nav className={`menu-panel ${open ? "open" : ""}`}>
-        <Link className="menu-link" href="/" onClick={() => setOpen(false)}>
-          Accueil
-        </Link>
-        <Link className="menu-link" href="/soins" onClick={() => setOpen(false)}>
-          Soins
-        </Link>
-        <Link className="menu-link" href="/a-propos" onClick={() => setOpen(false)}>
-          À propos
-        </Link>
-        <Link className="menu-link" href="/contact" onClick={() => setOpen(false)}>
-          Contact
-        </Link>
+        <Link className="menu-link" href="/" onClick={() => setOpen(false)}>Accueil</Link>
+        <Link className="menu-link" href="/soins" onClick={() => setOpen(false)}>Soins</Link>
+        <Link className="menu-link" href="/a-propos" onClick={() => setOpen(false)}>À propos</Link>
+        <Link className="menu-link" href="/contact" onClick={() => setOpen(false)}>Contact</Link>
       </nav>
     </div>
   );
 }
 
-/**
- * Fermeture inline (client) pour éviter d'importer un composant serveur ici.
- * Design identique à PromoBanner, même police Inter 500. Couleurs inchangées.
- */
+/* Bannière fermeture (client) */
 function ClosedBannerInline() {
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(false);
@@ -69,22 +57,14 @@ function ClosedBannerInline() {
   useEffect(() => {
     let mounted = true;
     (async () => {
-      try {
-        const res = await fetch("/api/settings", { cache: "no-store" });
-        const j = res.ok ? await res.json() : {};
-        if (!mounted) return;
-
-        const enabled = !!j?.closed;
-        const message = String(j?.message ?? "").trim();
-        setActive(enabled && !!message);
-        setText(message);
-      } finally {
-        if (mounted) setLoading(false);
-      }
+      const res = await fetch("/api/settings", { cache: "no-store" });
+      const j = res.ok ? await res.json() : {};
+      if (!mounted) return;
+      setActive(!!j?.closed && !!String(j?.message ?? "").trim());
+      setText(String(j?.message ?? ""));
+      setLoading(false);
     })();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
   if (loading || !active) return null;
@@ -95,30 +75,20 @@ function ClosedBannerInline() {
       style={{
         width: "100%",
         maxWidth: 900,
-        margin: "8px auto 0",
+        margin: "6px auto 0",
         padding: "12px 20px",
         borderRadius: 14,
         border: "1px solid rgba(125,108,113,.25)",
-        background:
-          "linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.45))",
+        background: "linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.45))",
         backdropFilter: "blur(8px)",
         WebkitBackdropFilter: "blur(8px)",
-        color: "#3d2f34", // ⚠ ne pas changer la couleur
+        color: "#7D6C71", // même couleur que le titre
         textAlign: "center",
-        fontWeight: 500, // Inter 500
+        fontWeight: 500,
         fontVariantNumeric: "lining-nums proportional-nums",
       }}
     >
-      <span
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: 10,
-          fontSize: "1.05rem",
-          lineHeight: 1.4,
-        }}
-      >
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 10, fontSize: "1.05rem" }}>
         <span
           aria-hidden
           title="Fermeture"
@@ -127,13 +97,11 @@ function ClosedBannerInline() {
             width: 26,
             height: 26,
             borderRadius: "50%",
-            background: "#7D6C71", // ⚠ garder la couleur
+            background: "#7D6C71",
             color: "#fff",
             fontWeight: 700,
             alignItems: "center",
             justifyContent: "center",
-            fontSize: 15,
-            flexShrink: 0,
           }}
         >
           !
@@ -148,38 +116,29 @@ export default function SiteChrome({ children }: Props) {
   const pathname = usePathname() || "/";
   const isAdmin = pathname.startsWith("/admin");
 
-  // Public ↔ Admin : gère la classe du body pour l'arrière-plan public
   useEffect(() => {
-    const body = document.body;
-    if (!isAdmin) body.classList.add("body-public");
-    else body.classList.remove("body-public");
+    document.body.classList.toggle("body-public", !isAdmin);
   }, [isAdmin]);
 
-  // ⚠️ L'admin a son propre layout (/app/(admin)/layout.tsx).
-  if (isAdmin) {
-    return <main className="site-main">{children}</main>;
-  }
+  if (isAdmin) return <main className="site-main">{children}</main>;
 
-  // ---- Site public : header chic + grand titre centré + menu déroulant ----
   return (
     <div>
       <header className="site-header">
         <div className="header-left" />
         <div className="header-center">
-          <Link href="/" className="site-title-text">
-            INSTITUT COLIBRI
-          </Link>
+          <Link href="/" className="site-title-text">INSTITUT COLIBRI</Link>
         </div>
         <div className="header-right">
           <PublicMenuDropdown />
         </div>
-
-        {/* Bannières SOUS le titre, l'une sous l'autre si les deux actives */}
-        <div style={{ width: "100%", maxWidth: 900, margin: "0 auto 10px" }}>
-          <ClosedBannerInline />
-          <PromoBanner />
-        </div>
       </header>
+
+      {/* ✅ Bannières en dessous du titre, pas dans le header */}
+      <div style={{ width: "100%", maxWidth: 900, margin: "0 auto 14px" }}>
+        <ClosedBannerInline />
+        <PromoBanner />
+      </div>
 
       <main className="site-main">{children}</main>
     </div>
