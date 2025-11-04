@@ -8,7 +8,7 @@ import PromoBanner from "./PromoBanner";
 
 type Props = { children: React.ReactNode };
 
-/* --------- Menu déroulant PUBLIC (utilise les classes CSS existantes) --------- */
+/* --------- Menu déroulant PUBLIC --------- */
 function PublicMenuDropdown() {
   const [open, setOpen] = useState(false);
 
@@ -34,26 +34,16 @@ function PublicMenuDropdown() {
         Menu
       </button>
       <nav className={`menu-panel ${open ? "open" : ""}`}>
-        <Link className="menu-link" href="/" onClick={() => setOpen(false)}>
-          Accueil
-        </Link>
-        <Link className="menu-link" href="/soins" onClick={() => setOpen(false)}>
-          Soins
-        </Link>
-        <Link className="menu-link" href="/a-propos" onClick={() => setOpen(false)}>
-          À propos
-        </Link>
-        <Link className="menu-link" href="/contact" onClick={() => setOpen(false)}>
-          Contact
-        </Link>
+        <Link className="menu-link" href="/" onClick={() => setOpen(false)}>Accueil</Link>
+        <Link className="menu-link" href="/soins" onClick={() => setOpen(false)}>Soins</Link>
+        <Link className="menu-link" href="/a-propos" onClick={() => setOpen(false)}>À propos</Link>
+        <Link className="menu-link" href="/contact" onClick={() => setOpen(false)}>Contact</Link>
       </nav>
     </div>
   );
 }
 
-/**
- * Fermeture inline (client) — même design que PromoBanner
- */
+/** Fermeture inline (client) — même design/poids que PromoBanner */
 function ClosedBannerInline() {
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(false);
@@ -74,30 +64,27 @@ function ClosedBannerInline() {
         if (mounted) setLoading(false);
       }
     })();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
   if (loading || !active) return null;
 
   return (
     <div
-      className="banner"
       style={{
         width: "100%",
         maxWidth: 900,
-        margin: "6px auto 0",
+        margin: "6px auto 6px",
         padding: "12px 20px",
         borderRadius: 14,
         border: "1px solid rgba(125,108,113,.25)",
-        background:
-          "linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.45))",
+        background: "linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.45))",
         backdropFilter: "blur(8px)",
         WebkitBackdropFilter: "blur(8px)",
-        color: "#7D6C71",
+        color: "#7D6C71",           // même couleur que la promo
         textAlign: "center",
-        fontWeight: 500,
+        fontWeight: 500,            // même poids que demandé
+        fontFamily: "inherit",      // suit la même police que le site
       }}
     >
       <span
@@ -139,14 +126,14 @@ export default function SiteChrome({ children }: Props) {
   const pathname = usePathname() || "/";
   const isAdmin = pathname.startsWith("/admin");
 
-  // Public ↔ Admin : gère la classe du body pour l'arrière-plan public
+  // Public ↔ Admin : classe body
   useEffect(() => {
     const body = document.body;
     if (!isAdmin) body.classList.add("body-public");
     else body.classList.remove("body-public");
   }, [isAdmin]);
 
-  // Admin : son propre layout
+  // Admin : layout séparé
   if (isAdmin) {
     return <main className="site-main">{children}</main>;
   }
@@ -154,37 +141,25 @@ export default function SiteChrome({ children }: Props) {
   // Public
   return (
     <div>
-      <header
-        className="site-header"
-        // on neutralise tout écart supplémentaire sous le header
-        style={{ marginBottom: 0 }}
-      >
+      {/* HEADER UNIQUEMENT LE TITRE + MENU (rien d'autre) */}
+      <header className="site-header" style={{ marginBottom: 0 }}>
         <div className="header-left" />
         <div className="header-center">
-          <Link href="/" className="site-title-text">
-            INSTITUT COLIBRI
-          </Link>
-
-          {/* BANNIÈRES SOUS LE TITRE — conteneur centré et marges serrées */}
-          <div
-            className="banner-stack"
-            style={{
-              width: "100%",
-              maxWidth: 900,
-              margin: "8px auto 0",
-            }}
-          >
-            <ClosedBannerInline />
-            <PromoBanner />
-          </div>
+          <Link href="/" className="site-title-text">INSTITUT COLIBRI</Link>
         </div>
         <div className="header-right">
           <PublicMenuDropdown />
         </div>
       </header>
 
-      {/* pas d’espace inutile au-dessus du contenu */}
-      <main className="site-main" style={{ paddingTop: 8, marginTop: 0 }}>
+      {/* ⬇️ Bannières PLEINE LARGEUR CENTRÉES, SOUS le titre, sans décentrer le header */}
+      <div style={{ width: "100%", maxWidth: 900, margin: "8px auto 6px" }}>
+        <ClosedBannerInline />
+        <PromoBanner />
+      </div>
+
+      {/* Contenu public : on remonte au plus près des bannières */}
+      <main className="site-main" style={{ paddingTop: 0, marginTop: 0 }}>
         {children}
       </main>
     </div>
