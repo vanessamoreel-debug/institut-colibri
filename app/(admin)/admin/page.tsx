@@ -282,9 +282,11 @@ function AdminPageInner() {
     });
   }
 
-  /* CRUD Soins */
+   /* CRUD Soins */
   async function addOrUpdate() {
     setMsg("");
+
+    // Validations
     if (!form?.name || !String(form.name).trim()) {
       setMsg("Nom requis.");
       return;
@@ -299,10 +301,14 @@ function AdminPageInner() {
       if (pmax != null && pmax < pmin) return setMsg("Prix max doit être ≥ prix min.");
     }
 
+    // Prépare payload
     const payload = {
       ...form,
       price: null,
-      priceMin: priceMode === "single" ? numOrNull(form.price ?? form.priceMin) : numOrNull(form.priceMin),
+      priceMin:
+        priceMode === "single"
+          ? numOrNull(form.price ?? form.priceMin)
+          : numOrNull(form.priceMin),
       priceMax: priceMode === "range" ? numOrNull(form.priceMax) : null,
       category: form.category ? String(form.category).toUpperCase() : null,
       duration: form.duration == null ? null : Number(form.duration),
@@ -311,16 +317,16 @@ function AdminPageInner() {
       spacing: form.spacing == null ? null : Number(form.spacing),
       description: form.description ?? "",
     };
-// ⬇️ Si on CRÉE un soin (pas en modification) ET qu'on a un ordre + une catégorie,
-// on décale d'abord les autres soins de la même catégorie (order >= newOrder => +1)
-if (!form?.id) {
-  const newOrder = numOrNull(form.order);
-  const cat = form.category ? String(form.category).toUpperCase() : null;
 
-  if (newOrder != null && cat) {
-    await bumpOrdersBeforeInsert(data, newOrder, cat);
-  }
-}
+    // Si on CRÉE (pas en modification) et qu'on a ordre + catégorie -> on décale avant insertion
+    if (!form?.id) {
+      const newOrder = numOrNull(form.order);
+      const cat = form.category ? String(form.category).toUpperCase() : null;
+      if (newOrder != null && cat) {
+        await bumpOrdersBeforeInsert(data, newOrder, cat);
+      }
+    }
+
     const method = form?.id ? "PUT" : "POST";
     try {
       const res = await fetch("/api/admin/services", {
@@ -331,6 +337,7 @@ if (!form?.id) {
       });
       if (handleUnauthorized(res)) return;
       if (!res.ok) throw new Error(await res.text());
+
       const json = await res.json();
       setData(json.data || []);
       setForm({});
@@ -341,6 +348,7 @@ if (!form?.id) {
       setMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
     }
   }
+
   async function remove(id: string) {
     setMsg("");
     try {
@@ -359,59 +367,61 @@ if (!form?.id) {
       setMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
     }
   }
+
   function editService(s: Service) {
     setForm(s);
     setPriceMode(inferPriceMode(s));
   }
-// --------- CRUD CATEGORIES ----------
-async function catAddOrUpdate() {
-  setCatMsg("");
-  if (!catForm?.name || !String(catForm.name).trim()) {
-    setCatMsg("Nom de catégorie requis.");
-    return;
-  }
-  const payload = {
-    id: (catForm as any).id,
-    name: String(catForm.name).trim().toUpperCase(),
-    order: catForm.order == null ? null : Number(catForm.order),
-  };
-  const method = (catForm as any).id ? "PUT" : "POST";
-  try {
-    const res = await fetch("/api/admin/categories", {
-      method,
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    if (handleUnauthorized(res)) return;
-    if (!res.ok) throw new Error(await res.text());
-    const json = await res.json();
-    setCats(json.data || []);
-    setCatForm({});
-    setCatMsg("✔️ Catégorie enregistrée.");
-  } catch (e: any) {
-    setCatMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
-  }
-}
 
-async function catRemove(id: string) {
-  setCatMsg("");
-  try {
-    const res = await fetch("/api/admin/categories", {
-      method: "DELETE",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    if (handleUnauthorized(res)) return;
-    if (!res.ok) throw new Error(await res.text());
-    const json = await res.json();
-    setCats(json.data || []);
-    setCatMsg("✔️ Catégorie supprimée.");
-  } catch (e: any) {
-    setCatMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
+  // --------- CRUD CATEGORIES ----------
+  async function catAddOrUpdate() {
+    setCatMsg("");
+    if (!catForm?.name || !String(catForm.name).trim()) {
+      setCatMsg("Nom de catégorie requis.");
+      return;
+    }
+    const payload = {
+      id: (catForm as any).id,
+      name: String(catForm.name).trim().toUpperCase(),
+      order: catForm.order == null ? null : Number(catForm.order),
+    };
+    const method = (catForm as any).id ? "PUT" : "POST";
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method,
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (handleUnauthorized(res)) return;
+      if (!res.ok) throw new Error(await res.text());
+      const json = await res.json();
+      setCats(json.data || []);
+      setCatForm({});
+      setCatMsg("✔️ Catégorie enregistrée.");
+    } catch (e: any) {
+      setCatMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
+    }
   }
-}
+
+  async function catRemove(id: string) {
+    setCatMsg("");
+    try {
+      const res = await fetch("/api/admin/categories", {
+        method: "DELETE",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (handleUnauthorized(res)) return;
+      if (!res.ok) throw new Error(await res.text());
+      const json = await res.json();
+      setCats(json.data || []);
+      setCatMsg("✔️ Catégorie supprimée.");
+    } catch (e: any) {
+      setCatMsg(`❌ Erreur: ${e?.message || "action refusée"} `);
+    }
+  }
 
   /* Tri local soins */
   const dataSorted = useMemo(() => {
@@ -439,34 +449,37 @@ async function catRemove(id: string) {
     loadSettings();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-/** 
- * Décale les ordres des soins de la même catégorie AVANT insertion.
- * Tous les soins avec order >= newOrder seront +1.
- */
-async function bumpOrdersBeforeInsert(
-  all: Service[],
-  newOrder: number,
-  category: string
-) {
-  // On travaille du plus grand vers le plus petit pour éviter les collisions
-  const toBump = [...all]
-    .filter(s => (s.category || "").toUpperCase() === category.toUpperCase())
-    .filter(s => (s.order ?? 999999) >= newOrder)
-    .sort((a, b) => (b.order ?? 0) - (a.order ?? 0));
 
-  for (const s of toBump) {
-    await fetch("/api/admin/services", {
-      method: "PUT",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        id: s.id,
-        // on incrémente d’1 (si order null, on met 0 d’abord)
-        order: (s.order ?? 0) + 1,
-      }),
-    });
-  } // <-- on ferme le for (const s of sameCat)
+  /**
+   * Décale les ordres des soins de la même catégorie AVANT insertion.
+   * Tous les soins avec order >= newOrder seront +1.
+   */
+  async function bumpOrdersBeforeInsert(
+    all: Service[],
+    newOrder: number,
+    category: string
+  ) {
+    // On travaille du plus grand vers le plus petit pour éviter les collisions
+    const toBump = [...all]
+      .filter((s) => (s.category || "").toUpperCase() === category.toUpperCase())
+      .filter((s) => (s.order ?? 999999) >= newOrder)
+      .sort((a, b) => (b.order ?? 0) - (a.order ?? 0));
+
+    for (const s of toBump) {
+      await fetch("/api/admin/services", {
+        method: "PUT",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: s.id,
+          order: (s.order ?? 0) + 1, // pousse d’1
+        }),
+      });
+    }
+  }
+
   /* ===== UI ===== */
+
   return (
     <div>
       {/* Barre de statut + action */}
