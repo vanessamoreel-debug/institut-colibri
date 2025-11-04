@@ -1,10 +1,16 @@
-// app/components/SiteChrome.tsx
+// /app/components/SiteChrome.tsx
 "use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import PromoBanner from "./PromoBanner";
+import { Inter } from "next/font/google";
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["500"], // même graisse que la promo
+});
 
 type Props = { children: React.ReactNode };
 
@@ -52,8 +58,8 @@ function PublicMenuDropdown() {
 }
 
 /**
- * Bannière FERMETURE en "client" (même design que PromoBanner),
- * placée SOUS le header (pas dedans) pour ne pas casser l’alignement du titre.
+ * Fermeture inline (client) pour éviter d'importer un composant serveur ici.
+ * Design identique à PromoBanner, même police Inter 500. Couleurs inchangées.
  */
 function ClosedBannerInline() {
   const [loading, setLoading] = useState(true);
@@ -85,10 +91,11 @@ function ClosedBannerInline() {
 
   return (
     <div
+      className={inter.className}
       style={{
         width: "100%",
         maxWidth: 900,
-        margin: "0 auto",
+        margin: "8px auto 0",
         padding: "12px 20px",
         borderRadius: 14,
         border: "1px solid rgba(125,108,113,.25)",
@@ -96,8 +103,10 @@ function ClosedBannerInline() {
           "linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.45))",
         backdropFilter: "blur(8px)",
         WebkitBackdropFilter: "blur(8px)",
-        color: "#3d2f34",
+        color: "#3d2f34", // ⚠ ne pas changer la couleur
         textAlign: "center",
+        fontWeight: 500, // Inter 500
+        fontVariantNumeric: "lining-nums proportional-nums",
       }}
     >
       <span
@@ -107,7 +116,6 @@ function ClosedBannerInline() {
           justifyContent: "center",
           gap: 10,
           fontSize: "1.05rem",
-          fontWeight: 500,
           lineHeight: 1.4,
         }}
       >
@@ -119,7 +127,7 @@ function ClosedBannerInline() {
             width: 26,
             height: 26,
             borderRadius: "50%",
-            background: "#7D6C71",
+            background: "#7D6C71", // ⚠ garder la couleur
             color: "#fff",
             fontWeight: 700,
             alignItems: "center",
@@ -148,7 +156,6 @@ export default function SiteChrome({ children }: Props) {
   }, [isAdmin]);
 
   // ⚠️ L'admin a son propre layout (/app/(admin)/layout.tsx).
-  // Ici, on N'AFFICHE PAS le header public quand on est en /admin.
   if (isAdmin) {
     return <main className="site-main">{children}</main>;
   }
@@ -156,7 +163,6 @@ export default function SiteChrome({ children }: Props) {
   // ---- Site public : header chic + grand titre centré + menu déroulant ----
   return (
     <div>
-      {/* HEADER PUBLIC (titre centré, menu à droite, inchangé) */}
       <header className="site-header">
         <div className="header-left" />
         <div className="header-center">
@@ -167,24 +173,14 @@ export default function SiteChrome({ children }: Props) {
         <div className="header-right">
           <PublicMenuDropdown />
         </div>
+
+        {/* Bannières SOUS le titre, l'une sous l'autre si les deux actives */}
+        <div style={{ width: "100%", maxWidth: 900, margin: "0 auto 10px" }}>
+          <ClosedBannerInline />
+          <PromoBanner />
+        </div>
       </header>
 
-      {/* ✅ BANNIÈRES SOUS LE HEADER (jamais à côté du titre) */}
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 900,
-          margin: "10px auto 14px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 10,
-        }}
-      >
-        <ClosedBannerInline />
-        <PromoBanner />
-      </div>
-
-      {/* CONTENU */}
       <main className="site-main">{children}</main>
     </div>
   );
