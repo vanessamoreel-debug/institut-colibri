@@ -5,15 +5,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import PromoBanner from "./PromoBanner";
-import { Inter } from "next/font/google";
-
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["500"],
-});
 
 type Props = { children: React.ReactNode };
 
+/* --------- Menu déroulant PUBLIC (utilise les classes CSS existantes) --------- */
 function PublicMenuDropdown() {
   const [open, setOpen] = useState(false);
 
@@ -39,16 +34,26 @@ function PublicMenuDropdown() {
         Menu
       </button>
       <nav className={`menu-panel ${open ? "open" : ""}`}>
-        <Link className="menu-link" href="/" onClick={() => setOpen(false)}>Accueil</Link>
-        <Link className="menu-link" href="/soins" onClick={() => setOpen(false)}>Soins</Link>
-        <Link className="menu-link" href="/a-propos" onClick={() => setOpen(false)}>À propos</Link>
-        <Link className="menu-link" href="/contact" onClick={() => setOpen(false)}>Contact</Link>
+        <Link className="menu-link" href="/" onClick={() => setOpen(false)}>
+          Accueil
+        </Link>
+        <Link className="menu-link" href="/soins" onClick={() => setOpen(false)}>
+          Soins
+        </Link>
+        <Link className="menu-link" href="/a-propos" onClick={() => setOpen(false)}>
+          À propos
+        </Link>
+        <Link className="menu-link" href="/contact" onClick={() => setOpen(false)}>
+          Contact
+        </Link>
       </nav>
     </div>
   );
 }
 
-/* Bannière fermeture (client) */
+/**
+ * Fermeture inline (client) — même design que PromoBanner
+ */
 function ClosedBannerInline() {
   const [loading, setLoading] = useState(true);
   const [active, setActive] = useState(false);
@@ -57,21 +62,28 @@ function ClosedBannerInline() {
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const res = await fetch("/api/settings", { cache: "no-store" });
-      const j = res.ok ? await res.json() : {};
-      if (!mounted) return;
-      setActive(!!j?.closed && !!String(j?.message ?? "").trim());
-      setText(String(j?.message ?? ""));
-      setLoading(false);
+      try {
+        const res = await fetch("/api/settings", { cache: "no-store" });
+        const j = res.ok ? await res.json() : {};
+        if (!mounted) return;
+        const enabled = !!j?.closed;
+        const message = String(j?.message ?? "").trim();
+        setActive(enabled && !!message);
+        setText(message);
+      } finally {
+        if (mounted) setLoading(false);
+      }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   if (loading || !active) return null;
 
   return (
     <div
-      className={inter.className}
+      className="banner"
       style={{
         width: "100%",
         maxWidth: 900,
@@ -79,16 +91,25 @@ function ClosedBannerInline() {
         padding: "12px 20px",
         borderRadius: 14,
         border: "1px solid rgba(125,108,113,.25)",
-        background: "linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.45))",
+        background:
+          "linear-gradient(180deg, rgba(255,255,255,.7), rgba(255,255,255,.45))",
         backdropFilter: "blur(8px)",
         WebkitBackdropFilter: "blur(8px)",
-        color: "#7D6C71", // même couleur que le titre
+        color: "#7D6C71",
         textAlign: "center",
         fontWeight: 500,
-        fontVariantNumeric: "lining-nums proportional-nums",
       }}
     >
-      <span style={{ display: "inline-flex", alignItems: "center", gap: 10, fontSize: "1.05rem" }}>
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 10,
+          fontSize: "1.05rem",
+          lineHeight: 1.4,
+        }}
+      >
         <span
           aria-hidden
           title="Fermeture"
@@ -102,6 +123,8 @@ function ClosedBannerInline() {
             fontWeight: 700,
             alignItems: "center",
             justifyContent: "center",
+            fontSize: 15,
+            flexShrink: 0,
           }}
         >
           !
@@ -116,31 +139,54 @@ export default function SiteChrome({ children }: Props) {
   const pathname = usePathname() || "/";
   const isAdmin = pathname.startsWith("/admin");
 
+  // Public ↔ Admin : gère la classe du body pour l'arrière-plan public
   useEffect(() => {
-    document.body.classList.toggle("body-public", !isAdmin);
+    const body = document.body;
+    if (!isAdmin) body.classList.add("body-public");
+    else body.classList.remove("body-public");
   }, [isAdmin]);
 
-  if (isAdmin) return <main className="site-main">{children}</main>;
+  // Admin : son propre layout
+  if (isAdmin) {
+    return <main className="site-main">{children}</main>;
+  }
 
+  // Public
   return (
     <div>
-      <header className="site-header">
+      <header
+        className="site-header"
+        // on neutralise tout écart supplémentaire sous le header
+        style={{ marginBottom: 0 }}
+      >
         <div className="header-left" />
         <div className="header-center">
-          <Link href="/" className="site-title-text">INSTITUT COLIBRI</Link>
+          <Link href="/" className="site-title-text">
+            INSTITUT COLIBRI
+          </Link>
+
+          {/* BANNIÈRES SOUS LE TITRE — conteneur centré et marges serrées */}
+          <div
+            className="banner-stack"
+            style={{
+              width: "100%",
+              maxWidth: 900,
+              margin: "8px auto 0",
+            }}
+          >
+            <ClosedBannerInline />
+            <PromoBanner />
+          </div>
         </div>
         <div className="header-right">
           <PublicMenuDropdown />
         </div>
       </header>
 
-      {/* ✅ Bannières en dessous du titre, pas dans le header */}
-      <div style={{ width: "100%", maxWidth: 900, margin: "0 auto 14px" }}>
-        <ClosedBannerInline />
-        <PromoBanner />
-      </div>
-
-      <main className="site-main">{children}</main>
+      {/* pas d’espace inutile au-dessus du contenu */}
+      <main className="site-main" style={{ paddingTop: 8, marginTop: 0 }}>
+        {children}
+      </main>
     </div>
   );
 }
