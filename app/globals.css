@@ -586,7 +586,8 @@ body.body-public main .hero-card {
 
 /* Raccourci universel : premier enfant du contenu public, marge désirée */
 .body-public .site-main.site-main--tight > :first-child {
-  margin-top: 16px !important;  /* mt 16 comme demandé */
+  margin-block-start: 0 !important; /* annule la marge existante */
+padding-top: 16px !important;      /* ajoute seulement l’espace qu’on veut */
 }
 
 /* Cas fréquents : containers/wrappers différents selon les pages */
@@ -595,11 +596,13 @@ body.body-public main .hero-card {
 .body-public .site-main.site-main--tight > .section:first-child,
 .body-public .site-main.site-main--tight > .prose:first-child,
 .body-public .site-main.site-main--tight > .card:first-child {
-  margin-top: 16px !important;  /* mt 16 */
+margin-block-start: 0 !important; /* annule la marge existante */
+padding-top: 16px !important;      /* ajoute seulement l’espace qu’on veut */
 }
 
 /* Si la page commence directement par un titre */
 .body-public .site-main.site-main--tight h1:first-of-type,
 .body-public .site-main.site-main--tight h2:first-of-type {
-  margin-top: 16px !important;  /* mt 16 */
+margin-block-start: 0 !important; /* annule la marge existante */
+padding-top: 16px !important;      /* ajoute seulement l’espace qu’on veut */
 }
