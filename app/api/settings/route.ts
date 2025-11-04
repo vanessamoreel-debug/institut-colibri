@@ -5,26 +5,43 @@ import { getAdminDb } from "../../../lib/firebaseAdmin";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const db = getAdminDb();
+  try {
+    const db = getAdminDb();
 
-  // 👉 On lit le document "general" (même cible que /api/admin/settings)
-  const snap = await db.collection("settings").doc("general").get();
-  const data: any = snap.exists ? snap.data() : {};
+    // On lit le document unique "settings/general"
+    const snap = await db.collection("settings").doc("general").get();
+    const data: any = snap.exists ? snap.data() : {};
 
-  // Compat : si anciens champs promoBanner.* existent, on les utilise par défaut
-  const bannerEnabled = !!data?.promoBanner?.enabled;
-  const bannerMessage = data?.promoBanner?.message ?? "";
+    // Normalisation (nouveau schéma)
+    const closed =
+      typeof data?.closed === "boolean"
+        ? data.closed
+        : !!data?.closedBanner?.enabled;
+    const message =
+      typeof data?.message === "string"
+        ? data.message
+        : String(data?.closedBanner?.message || "");
 
-  const promoActive =
-    typeof data?.promoActive === "boolean" ? data.promoActive : bannerEnabled;
+    const promoActive =
+      typeof data?.promoActive === "boolean"
+        ? data.promoActive
+        : !!data?.promoBanner?.enabled;
 
-  const promoText =
-    typeof data?.promoText === "string" ? data.promoText : bannerMessage;
+    const promoText =
+      typeof data?.promoText === "string"
+        ? data.promoText
+        : String(data?.promoBanner?.message || "");
 
-  // On renvoie aussi les champs pour la bannière de fermeture si tu les utilises côté client
-  return NextResponse.json({
-    ...data,
-    promoActive,
-    promoText,
-  });
+    const payload = { closed, message, promoActive, promoText };
+
+    const res = NextResponse.json(payload);
+    // très important: désactiver tout cache
+    res.headers.set("Cache-Control", "no-store");
+    return res;
+  } catch (e: any) {
+    return NextResponse.json(
+      { error: e?.message || "Failed to load settings" },
+      { status: 500 }
+    );
+  }
 }
