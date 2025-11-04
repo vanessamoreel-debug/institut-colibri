@@ -568,6 +568,14 @@ body.body-public main .hero-card {
 }
 
 .colibri-banner__text {
+  /* Force le même rendu texte pour promo + fermeture */
+.colibri-banner,
+.colibri-banner__text {
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
+  font-weight: 500 !important;
+  font-variant-numeric: lining-nums !important;
+  font-feature-settings: "lnum" 1, "liga" 1 !important;
+} 
   font-size: 1.05rem;
   line-height: 1.4;
   font-weight: 500;
