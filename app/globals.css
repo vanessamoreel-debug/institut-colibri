@@ -528,7 +528,7 @@ body.body-public main .hero-card {
 .after-site-title {
   width: 100%;
   max-width: 900px;
-  margin: 8px auto 6px;
+  margin: 8px auto 6px;   /* petit espace sous le titre */
   padding: 0 10px;
 }
 
@@ -543,9 +543,9 @@ body.body-public main .hero-card {
   backdrop-filter: blur(8px);
   text-align: center;
 
-  /* Inter uniquement sur les bannières */
+  /* Police dédiée bannière */
   font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  font-weight: 500;
+  font-weight: 500; /* même graisse pour Promo & Fermeture */
   font-variant-numeric: lining-nums;
   font-feature-settings: "lnum" 1, "liga" 1;
   color: var(--brand);
@@ -568,14 +568,13 @@ body.body-public main .hero-card {
 }
 
 .colibri-banner__text {
-  /* Force le même rendu texte pour promo + fermeture */
-.colibri-banner,
-.colibri-banner__text {
-  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif !important;
-  font-weight: 500 !important;
-  font-variant-numeric: lining-nums !important;
-  font-feature-settings: "lnum" 1, "liga" 1 !important;
-} 
+  font-size: 1.05rem;
+  line-height: 1.4;
+  font-weight: 500;
+  vertical-align: middle;
+  font-variant-numeric: lining-nums;
+  font-feature-settings: "lnum" 1, "liga" 1;
+}
   font-size: 1.05rem;
   line-height: 1.4;
   font-weight: 500;
